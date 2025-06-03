@@ -1,11 +1,11 @@
 """
-Service layer for the text annotation system.
+文本标注系统的服务层。
 
-This module contains the business logic for:
-- Annotation data management
-- Search and filtering
-- Statistics and analytics
-- Bulk operations
+本模块包含以下业务逻辑：
+- 标注数据管理
+- 搜索和过滤
+- 统计和分析
+- 批量操作
 """
 
 from typing import List, Optional, Dict, Tuple
@@ -16,37 +16,37 @@ import schemas
 
 
 class AnnotationService:
-    """Service class for annotation data operations."""
+    """标注数据操作的服务类。"""
     
     def __init__(self, db: Session):
         """
-        Initialize the annotation service.
+        初始化标注服务。
         
         Args:
-            db: Database session
+            db: 数据库会话
         """
         self.db = db
     
     def create_annotation(self, annotation_data: schemas.AnnotationDataCreate) -> AnnotationData:
         """
-        Create new annotation data.
+        创建新的标注数据。
         
         Args:
-            annotation_data: Annotation data to create
+            annotation_data: 要创建的标注数据
             
         Returns:
-            Created annotation data
+            创建的标注数据
             
         Raises:
-            ValueError: If text already exists
+            ValueError: 如果文本已存在
         """
-        # Check if text already exists
+        # 检查文本是否已存在
         existing = self.db.query(AnnotationData).filter(
             AnnotationData.text == annotation_data.text
         ).first()
         
         if existing:
-            raise ValueError(f"Text already exists with ID: {existing.id}")
+            raise ValueError(f"文本已存在，ID: {existing.id}")
         
         db_annotation = AnnotationData(
             text=annotation_data.text,
@@ -61,13 +61,13 @@ class AnnotationService:
     
     def get_annotation(self, annotation_id: int) -> Optional[AnnotationData]:
         """
-        Get annotation data by ID.
+        根据 ID 获取标注数据。
         
         Args:
-            annotation_id: ID of the annotation
+            annotation_id: 标注的 ID
             
         Returns:
-            Annotation data or None if not found
+            标注数据，如果未找到则返回 None
         """
         return self.db.query(AnnotationData).filter(
             AnnotationData.id == annotation_id
@@ -75,14 +75,14 @@ class AnnotationService:
     
     def update_annotation(self, annotation_id: int, update_data: schemas.AnnotationDataUpdate) -> Optional[AnnotationData]:
         """
-        Update annotation data.
+        更新标注数据。
         
         Args:
-            annotation_id: ID of the annotation to update
-            update_data: Data to update
+            annotation_id: 要更新的标注 ID
+            update_data: 要更新的数据
             
         Returns:
-            Updated annotation data or None if not found
+            更新后的标注数据，如果未找到则返回 None
         """
         annotation = self.get_annotation(annotation_id)
         if not annotation:
@@ -98,13 +98,13 @@ class AnnotationService:
     
     def delete_annotation(self, annotation_id: int) -> bool:
         """
-        Delete annotation data.
+        删除标注数据。
         
         Args:
-            annotation_id: ID of the annotation to delete
+            annotation_id: 要删除的标注 ID
             
         Returns:
-            True if deleted, False if not found
+            如果删除成功返回 True，如果未找到返回 False
         """
         annotation = self.get_annotation(annotation_id)
         if not annotation:
@@ -117,22 +117,22 @@ class AnnotationService:
     
     def search_annotations(self, search_request: schemas.SearchRequest) -> schemas.AnnotationDataList:
         """
-        Search and filter annotation data.
+        搜索和过滤标注数据。
         
         Args:
-            search_request: Search parameters
+            search_request: 搜索参数
             
         Returns:
-            Paginated list of annotation data
+            分页的标注数据列表
         """
         query = self.db.query(AnnotationData)
         
-        # Apply filters
+        # 应用过滤器
         if search_request.query:
             query = query.filter(AnnotationData.text.contains(search_request.query))
         
         if search_request.labels:
-            # Search for any of the specified labels
+            # 搜索指定的任何标签
             label_filters = []
             for label in search_request.labels.split(','):
                 label = label.strip()
@@ -145,10 +145,10 @@ class AnnotationService:
                 AnnotationData.labels == ''
             ))
         
-        # Get total count
+        # 获取总数
         total = query.count()
         
-        # Apply pagination
+        # 应用分页
         offset = (search_request.page - 1) * search_request.per_page
         items = query.offset(offset).limit(search_request.per_page).all()
         
@@ -161,13 +161,13 @@ class AnnotationService:
     
     def bulk_label(self, bulk_request: schemas.BulkLabelRequest) -> int:
         """
-        Apply labels to multiple texts.
+        为多个文本应用标签。
         
         Args:
-            bulk_request: Bulk labeling request
+            bulk_request: 批量标注请求
             
         Returns:
-            Number of texts updated
+            更新的文本数量
         """
         updated_count = 0
         
@@ -182,27 +182,27 @@ class AnnotationService:
     
     def import_texts(self, import_request: schemas.TextImportRequest) -> int:
         """
-        Import multiple texts as unlabeled data.
+        导入多个文本作为未标注数据。
         
         Args:
-            import_request: Text import request
+            import_request: 文本导入请求
             
         Returns:
-            Number of texts imported
+            导入的文本数量
         """
         imported_count = 0
         
         for text in import_request.texts:
             text = text.strip()
             if text:
-                # Check if text already exists
+                # 检查文本是否已存在
                 existing = self.db.query(AnnotationData).filter(
                     AnnotationData.text == text
                 ).first()
                 
                 if not existing:
-                    annotation = AnnotationData(text=text, labels=None)
-                    self.db.add(annotation)
+                    db_annotation = AnnotationData(text=text, labels='')
+                    self.db.add(db_annotation)
                     imported_count += 1
         
         self.db.commit()
@@ -210,52 +210,49 @@ class AnnotationService:
 
 
 class LabelService:
-    """Service class for label management operations."""
+    """标签操作的服务类。"""
     
     def __init__(self, db: Session):
         """
-        Initialize the label service.
+        初始化标签服务。
         
         Args:
-            db: Database session
+            db: 数据库会话
         """
         self.db = db
     
     def create_label(self, label_data: schemas.LabelCreate) -> Label:
         """
-        Create a new label.
+        创建新标签。
         
         Args:
-            label_data: Label data to create
+            label_data: 要创建的标签数据
             
         Returns:
-            Created label
+            创建的标签
             
         Raises:
-            ValueError: If label already exists
+            ValueError: 如果标签已存在
         """
-        # Check if label already exists
+        # 检查标签是否已存在
         existing = self.db.query(Label).filter(
             Label.label == label_data.label
         ).first()
         
         if existing:
-            raise ValueError(f"Label already exists with ID: {existing.id}")
+            raise ValueError(f"标签已存在，ID: {existing.id}")
         
-        # Auto-assign ID if not provided
-        if label_data.id is None:
-            max_id = self.db.query(func.max(Label.id)).scalar() or 0
-            label_id = max_id + 1
-        else:
-            # Check if ID already exists
-            existing_id = self.db.query(Label).filter(
-                Label.id == label_data.id
-            ).first()
+        # 如果提供了ID，检查ID是否重复
+        if hasattr(label_data, 'id') and label_data.id is not None:
+            existing_id = self.db.query(Label).filter(Label.id == label_data.id).first()
             if existing_id:
-                raise ValueError(f"Label ID {label_data.id} already exists")
-            label_id = label_data.id
+                raise ValueError(f"标签 ID {label_data.id} 已存在")
         
-        db_label = Label(id=label_id, label=label_data.label)
+        db_label = Label(
+            id=label_data.id if hasattr(label_data, 'id') else None,
+            label=label_data.label
+        )
+        
         self.db.add(db_label)
         self.db.commit()
         self.db.refresh(db_label)
@@ -264,34 +261,34 @@ class LabelService:
     
     def get_all_labels(self) -> List[Label]:
         """
-        Get all labels.
+        获取所有标签。
         
         Returns:
-            List of all labels
+            所有标签的列表
         """
         return self.db.query(Label).order_by(Label.id).all()
     
     def get_label(self, label_id: int) -> Optional[Label]:
         """
-        Get label by ID.
+        根据 ID 获取标签。
         
         Args:
-            label_id: ID of the label
+            label_id: 标签 ID
             
         Returns:
-            Label or None if not found
+            标签数据，如果未找到则返回 None
         """
         return self.db.query(Label).filter(Label.id == label_id).first()
     
     def delete_label(self, label_id: int) -> bool:
         """
-        Delete a label.
+        删除标签。
         
         Args:
-            label_id: ID of the label to delete
+            label_id: 要删除的标签 ID
             
         Returns:
-            True if deleted, False if not found
+            如果删除成功返回 True，如果未找到返回 False
         """
         label = self.get_label(label_id)
         if not label:
@@ -304,28 +301,28 @@ class LabelService:
 
 
 class StatisticsService:
-    """Service class for statistics and analytics."""
+    """统计信息服务类。"""
     
     def __init__(self, db: Session):
         """
-        Initialize the statistics service.
+        初始化统计服务。
         
         Args:
-            db: Database session
+            db: 数据库会话
         """
         self.db = db
     
     def get_system_stats(self) -> schemas.SystemStats:
         """
-        Get overall system statistics.
+        获取系统统计信息。
         
         Returns:
-            System statistics
+            系统统计数据
         """
-        # Get total texts
+        # 获取总文本数
         total_texts = self.db.query(AnnotationData).count()
         
-        # Get labeled vs unlabeled counts
+        # 获取已标注文本数（有标签且不为空）
         labeled_texts = self.db.query(AnnotationData).filter(
             and_(
                 AnnotationData.labels.isnot(None),
@@ -333,12 +330,13 @@ class StatisticsService:
             )
         ).count()
         
+        # 获取未标注文本数
         unlabeled_texts = total_texts - labeled_texts
         
-        # Get total unique labels
+        # 获取总标签数
         total_labels = self.db.query(Label).count()
         
-        # Get label statistics
+        # 获取标签统计
         label_stats = self._get_label_statistics()
         
         return schemas.SystemStats(
@@ -346,37 +344,38 @@ class StatisticsService:
             labeled_texts=labeled_texts,
             unlabeled_texts=unlabeled_texts,
             total_labels=total_labels,
-            label_stats=label_stats
+            label_statistics=label_stats
         )
     
     def _get_label_statistics(self) -> List[schemas.LabelStats]:
         """
-        Get statistics for each label.
+        获取标签统计信息。
         
         Returns:
-            List of label statistics
+            标签统计列表
         """
-        # Get all annotations with labels
-        annotations = self.db.query(AnnotationData).filter(
+        # 获取所有已标注的文本
+        labeled_annotations = self.db.query(AnnotationData).filter(
             and_(
                 AnnotationData.labels.isnot(None),
                 AnnotationData.labels != ''
             )
         ).all()
         
-        # Count occurrences of each label
+        # 统计每个标签的出现次数
         label_counts = {}
-        for annotation in annotations:
+        for annotation in labeled_annotations:
             if annotation.labels:
                 labels = [label.strip() for label in annotation.labels.split(',')]
                 for label in labels:
                     if label:
                         label_counts[label] = label_counts.get(label, 0) + 1
         
-        # Convert to schema objects and sort by count
+        # 转换为统计对象并按计数排序
         label_stats = [
             schemas.LabelStats(label=label, count=count)
             for label, count in label_counts.items()
         ]
+        label_stats.sort(key=lambda x: x.count, reverse=True)
         
-        return sorted(label_stats, key=lambda x: x.count, reverse=True) 
+        return label_stats 

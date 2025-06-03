@@ -1,12 +1,12 @@
 """
-FastAPI application for text annotation system.
+文本标注系统的 FastAPI 应用程序。
 
-This module provides REST API endpoints for:
-- Annotation data CRUD operations
-- Label management
-- Data import and export
-- Search and filtering
-- Statistics and analytics
+本模块提供以下 REST API 端点：
+- 标注数据的 CRUD 操作
+- 标签管理
+- 数据导入和导出
+- 搜索和过滤
+- 统计和分析
 """
 
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -20,17 +20,17 @@ from services import AnnotationService, LabelService, StatisticsService
 from data_import import DataImporter
 import schemas
 
-# Create FastAPI application
+# 创建 FastAPI 应用程序
 app = FastAPI(
-    title="Text Annotation API",
-    description="Backend API for text annotation and labeling system",
+    title="文本标注 API",
+    description="文本标注和标记系统的后端 API",
     version="1.0.0"
 )
 
-# Add CORS middleware
+# 添加 CORS 中间件
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],  # 生产环境中需要适当配置
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,28 +39,28 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database tables on startup."""
+    """启动时初始化数据库表。"""
     create_tables()
 
 
-# Annotation Data Endpoints
+# 标注数据端点
 @app.post("/annotations/", response_model=schemas.AnnotationDataResponse, status_code=status.HTTP_201_CREATED)
 def create_annotation(
     annotation: schemas.AnnotationDataCreate,
     db: Session = Depends(get_db)
 ):
     """
-    Create new annotation data.
+    创建新的标注数据。
     
     Args:
-        annotation: Annotation data to create
-        db: Database session
+        annotation: 要创建的标注数据
+        db: 数据库会话
         
     Returns:
-        Created annotation data
+        创建的标注数据
         
     Raises:
-        HTTPException: If text already exists
+        HTTPException: 如果文本已存在
     """
     service = AnnotationService(db)
     try:
@@ -76,22 +76,22 @@ def get_annotation(
     db: Session = Depends(get_db)
 ):
     """
-    Get annotation data by ID.
+    根据 ID 获取标注数据。
     
     Args:
-        annotation_id: ID of the annotation
-        db: Database session
+        annotation_id: 标注的 ID
+        db: 数据库会话
         
     Returns:
-        Annotation data
+        标注数据
         
     Raises:
-        HTTPException: If annotation not found
+        HTTPException: 如果标注未找到
     """
     service = AnnotationService(db)
     annotation = service.get_annotation(annotation_id)
     if not annotation:
-        raise HTTPException(status_code=404, detail="Annotation not found")
+        raise HTTPException(status_code=404, detail="标注未找到")
     return annotation
 
 
@@ -102,23 +102,23 @@ def update_annotation(
     db: Session = Depends(get_db)
 ):
     """
-    Update annotation data.
+    更新标注数据。
     
     Args:
-        annotation_id: ID of the annotation to update
-        update_data: Data to update
-        db: Database session
+        annotation_id: 要更新的标注 ID
+        update_data: 要更新的数据
+        db: 数据库会话
         
     Returns:
-        Updated annotation data
+        更新后的标注数据
         
     Raises:
-        HTTPException: If annotation not found
+        HTTPException: 如果标注未找到
     """
     service = AnnotationService(db)
     annotation = service.update_annotation(annotation_id, update_data)
     if not annotation:
-        raise HTTPException(status_code=404, detail="Annotation not found")
+        raise HTTPException(status_code=404, detail="标注未找到")
     return annotation
 
 
@@ -128,18 +128,18 @@ def delete_annotation(
     db: Session = Depends(get_db)
 ):
     """
-    Delete annotation data.
+    删除标注数据。
     
     Args:
-        annotation_id: ID of the annotation to delete
-        db: Database session
+        annotation_id: 要删除的标注 ID
+        db: 数据库会话
         
     Raises:
-        HTTPException: If annotation not found
+        HTTPException: 如果标注未找到
     """
     service = AnnotationService(db)
     if not service.delete_annotation(annotation_id):
-        raise HTTPException(status_code=404, detail="Annotation not found")
+        raise HTTPException(status_code=404, detail="标注未找到")
 
 
 @app.post("/annotations/search", response_model=schemas.AnnotationDataList)
@@ -148,14 +148,14 @@ def search_annotations(
     db: Session = Depends(get_db)
 ):
     """
-    Search and filter annotation data.
+    搜索和过滤标注数据。
     
     Args:
-        search_request: Search parameters
-        db: Database session
+        search_request: 搜索参数
+        db: 数据库会话
         
     Returns:
-        Paginated list of annotation data
+        分页的标注数据列表
     """
     service = AnnotationService(db)
     return service.search_annotations(search_request)
@@ -167,14 +167,14 @@ def bulk_label_annotations(
     db: Session = Depends(get_db)
 ):
     """
-    Apply labels to multiple texts.
+    为多个文本应用标签。
     
     Args:
-        bulk_request: Bulk labeling request
-        db: Database session
+        bulk_request: 批量标注请求
+        db: 数据库会话
         
     Returns:
-        Number of texts updated
+        更新的文本数量
     """
     service = AnnotationService(db)
     updated_count = service.bulk_label(bulk_request)
@@ -187,38 +187,38 @@ def import_texts(
     db: Session = Depends(get_db)
 ):
     """
-    Import multiple texts as unlabeled data.
+    导入多个文本作为未标注数据。
     
     Args:
-        import_request: Text import request
-        db: Database session
+        import_request: 文本导入请求
+        db: 数据库会话
         
     Returns:
-        Number of texts imported
+        导入的文本数量
     """
     service = AnnotationService(db)
     imported_count = service.import_texts(import_request)
     return {"imported_count": imported_count}
 
 
-# Label Management Endpoints
+# 标签端点
 @app.post("/labels/", response_model=schemas.LabelResponse, status_code=status.HTTP_201_CREATED)
 def create_label(
     label: schemas.LabelCreate,
     db: Session = Depends(get_db)
 ):
     """
-    Create a new label.
+    创建新标签。
     
     Args:
-        label: Label data to create
-        db: Database session
+        label: 要创建的标签
+        db: 数据库会话
         
     Returns:
-        Created label
+        创建的标签
         
     Raises:
-        HTTPException: If label already exists
+        HTTPException: 如果标签已存在
     """
     service = LabelService(db)
     try:
@@ -231,13 +231,13 @@ def create_label(
 @app.get("/labels/", response_model=List[schemas.LabelResponse])
 def get_all_labels(db: Session = Depends(get_db)):
     """
-    Get all labels.
+    获取所有标签。
     
     Args:
-        db: Database session
+        db: 数据库会话
         
     Returns:
-        List of all labels
+        标签列表
     """
     service = LabelService(db)
     return service.get_all_labels()
@@ -249,22 +249,22 @@ def get_label(
     db: Session = Depends(get_db)
 ):
     """
-    Get label by ID.
+    根据 ID 获取标签。
     
     Args:
-        label_id: ID of the label
-        db: Database session
+        label_id: 标签 ID
+        db: 数据库会话
         
     Returns:
-        Label data
+        标签数据
         
     Raises:
-        HTTPException: If label not found
+        HTTPException: 如果标签未找到
     """
     service = LabelService(db)
     label = service.get_label(label_id)
     if not label:
-        raise HTTPException(status_code=404, detail="Label not found")
+        raise HTTPException(status_code=404, detail="标签未找到")
     return label
 
 
@@ -274,48 +274,48 @@ def delete_label(
     db: Session = Depends(get_db)
 ):
     """
-    Delete a label.
+    删除标签。
     
     Args:
-        label_id: ID of the label to delete
-        db: Database session
+        label_id: 要删除的标签 ID
+        db: 数据库会话
         
     Raises:
-        HTTPException: If label not found
+        HTTPException: 如果标签未找到
     """
     service = LabelService(db)
     if not service.delete_label(label_id):
-        raise HTTPException(status_code=404, detail="Label not found")
+        raise HTTPException(status_code=404, detail="标签未找到")
 
 
-# Data Import Endpoints
+# 数据导入端点
 @app.post("/import/old-data", response_model=schemas.ImportStats)
 def import_old_data(
     old_data_path: str = "../old-data",
     db: Session = Depends(get_db)
 ):
     """
-    Import old labeled data from directory structure.
+    导入旧的标注数据。
     
     Args:
-        old_data_path: Path to the old-data directory
-        db: Database session
+        old_data_path: 旧数据路径
+        db: 数据库会话
         
     Returns:
-        Import statistics
+        导入统计信息
         
     Raises:
-        HTTPException: If path not found or import fails
+        HTTPException: 如果路径未找到或导入失败
     """
     if not os.path.exists(old_data_path):
-        raise HTTPException(status_code=404, detail=f"Path {old_data_path} not found")
+        raise HTTPException(status_code=404, detail=f"路径 {old_data_path} 未找到")
     
     try:
-        importer = DataImporter(db)
-        stats = importer.import_old_data(old_data_path)
+        importer = DataImporter()
+        stats = importer.import_old_data(old_data_path, db)
         return stats
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"导入失败: {str(e)}")
 
 
 @app.post("/import/label-config")
@@ -324,27 +324,27 @@ def import_label_config(
     db: Session = Depends(get_db)
 ):
     """
-    Import label configuration from YAML file.
+    导入标签配置。
     
     Args:
-        config_path: Path to the label_config.yaml file
-        db: Database session
+        config_path: 配置文件路径
+        db: 数据库会话
         
     Returns:
-        Number of labels imported
+        导入的标签数量
         
     Raises:
-        HTTPException: If file not found or import fails
+        HTTPException: 如果文件未找到或导入失败
     """
     if not os.path.exists(config_path):
-        raise HTTPException(status_code=404, detail=f"Config file {config_path} not found")
+        raise HTTPException(status_code=404, detail=f"配置文件 {config_path} 未找到")
     
     try:
-        importer = DataImporter(db)
-        labels_count = importer.import_label_config(config_path)
-        return {"labels_imported": labels_count}
+        importer = DataImporter()
+        labels_count = importer.import_label_config(config_path, db)
+        return {"imported_labels": labels_count}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"导入失败: {str(e)}")
 
 
 @app.post("/import/text-file")
@@ -353,55 +353,50 @@ def import_text_file(
     db: Session = Depends(get_db)
 ):
     """
-    Import new unlabeled text data from a file.
+    导入文本文件。
     
     Args:
-        import_request: Import request with file path
-        db: Database session
+        import_request: 导入请求
+        db: 数据库会话
         
     Returns:
-        Number of records imported
+        导入的文本数量
         
     Raises:
-        HTTPException: If file not found or import fails
+        HTTPException: 如果文件未找到或导入失败
     """
     if not os.path.exists(import_request.file_path):
-        raise HTTPException(status_code=404, detail=f"File {import_request.file_path} not found")
+        raise HTTPException(status_code=404, detail=f"文件 {import_request.file_path} 未找到")
     
     try:
-        importer = DataImporter(db)
-        records_imported = importer.import_new_text_data(import_request.file_path)
-        return {"records_imported": records_imported}
+        importer = DataImporter()
+        imported_count = importer.import_text_file(import_request.file_path, db)
+        return {"imported_count": imported_count}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"导入失败: {str(e)}")
 
 
-# Statistics Endpoints
+# 统计端点
 @app.get("/stats/system", response_model=schemas.SystemStats)
 def get_system_stats(db: Session = Depends(get_db)):
     """
-    Get overall system statistics.
+    获取系统统计信息。
     
     Args:
-        db: Database session
+        db: 数据库会话
         
     Returns:
-        System statistics
+        系统统计数据
     """
     service = StatisticsService(db)
     return service.get_system_stats()
 
 
-# Health Check Endpoint
+# 健康检查端点
 @app.get("/health")
 def health_check():
-    """
-    Health check endpoint.
-    
-    Returns:
-        Health status
-    """
-    return {"status": "healthy", "message": "Text annotation API is running"}
+    """健康检查端点。"""
+    return {"status": "healthy"}
 
 
 if __name__ == "__main__":

@@ -1,57 +1,88 @@
 #!/usr/bin/env python3
 """
-Script to import old data and initialize the text annotation database.
+数据导入脚本，用于导入旧的标注数据。
 
-This script:
-1. Creates database tables
-2. Imports old labeled data from directory structure
-3. Imports label configuration
-4. Displays import statistics
+运行此脚本来导入现有的标注数据并设置数据库。
 """
 
 import os
 import sys
 from data_import import DataImporter, main as import_main
+from sqlalchemy.orm import Session
+from models import create_tables, get_db
+from services import StatisticsService
 
 
-def run_full_import():
-    """Run the complete data import process."""
+def main():
+    """主导入函数。"""
     print("="*60)
-    print("Text Annotation System - Data Import")
-    print("="*60)
-    
-    # Run the main import function
-    import_main()
-    
-    print("="*60)
-    print("Import process completed!")
+    print("文本标注系统 - 数据导入")
     print("="*60)
     
-    # Display some basic statistics
+    # 创建数据库表
+    create_tables()
+    
+    # 执行数据导入
     try:
-        from models import SessionLocal
-        from services import StatisticsService
-        
-        db = SessionLocal()
+        print("\n开始执行数据导入流程...")
+        import_main()  # 调用 data_import.py 的主函数进行数据导入
+        print("数据导入完成！")
+    except Exception as e:
+        print(f"数据导入过程中出错: {e}")
+        print("继续执行统计信息显示...")
+    
+    print("\n"+"="*60)
+    print("导入流程已完成！")
+    print("="*60)
+    
+    # 显示统计信息
+    display_statistics()
+
+
+def display_statistics():
+    """显示导入后的统计信息。"""
+    try:
+        db = next(get_db())
         stats_service = StatisticsService(db)
         stats = stats_service.get_system_stats()
         
-        print("\nCurrent Database Statistics:")
-        print(f"- Total texts: {stats.total_texts}")
-        print(f"- Labeled texts: {stats.labeled_texts}")
-        print(f"- Unlabeled texts: {stats.unlabeled_texts}")
-        print(f"- Total unique labels: {stats.total_labels}")
+        print("\n当前数据库统计信息:")
+        print(f"- 总文本数: {stats.total_texts}")
+        print(f"- 已标注文本: {stats.labeled_texts}")
+        print(f"- 未标注文本: {stats.unlabeled_texts}")
+        print(f"- 总唯一标签数: {stats.total_labels}")
         
-        if stats.label_stats:
-            print(f"\nTop 10 most common labels:")
-            for i, label_stat in enumerate(stats.label_stats[:10], 1):
-                print(f"  {i:2d}. {label_stat.label}: {label_stat.count} texts")
+        if stats.label_statistics:
+            print(f"\n前10个最常见的标签:")
+            for i, label_stat in enumerate(stats.label_statistics[:10], 1):
+                print(f"  {i:2d}. {label_stat.label}: {label_stat.count} 个文本")
         
         db.close()
         
     except Exception as e:
-        print(f"Error getting statistics: {e}")
+        print(f"获取统计信息时出错: {e}")
+
+
+def check_data_directory():
+    """检查数据目录是否存在并包含必要的文件。"""
+    old_data_path = "./archive/old-data"
+    if not os.path.exists(old_data_path):
+        print(f"警告: 数据目录 {old_data_path} 不存在")
+        print("请确保数据目录结构如下:")
+        print("""
+archive/
+└── old-data/
+    ├── label_config.yaml
+    └── <label_directories>/
+        └── *.txt
+        """)
+        return False
+    return True
 
 
 if __name__ == "__main__":
-    run_full_import() 
+    if check_data_directory():
+        main()
+    else:
+        print("\n请先创建正确的数据目录结构后再运行此脚本。")
+        sys.exit(1) 

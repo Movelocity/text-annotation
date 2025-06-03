@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Demo script for the text annotation system.
+文本标注系统的演示脚本。
 
-This script demonstrates:
-1. Searching for annotations
-2. Creating new annotations
-3. Bulk labeling
-4. Getting statistics
+此脚本演示：
+1. 搜索标注
+2. 创建新标注
+3. 批量标注
+4. 获取统计信息
 """
 
 import requests
 import json
 from typing import List, Dict
 
-# API base URL
+# API 基础 URL
 BASE_URL = "http://localhost:8000"
 
 
 def print_section(title: str):
-    """Print a formatted section header."""
+    """打印格式化的章节标题。"""
     print("\n" + "="*60)
     print(f" {title}")
     print("="*60)
@@ -26,7 +26,7 @@ def print_section(title: str):
 
 def search_annotations(query: str = None, labels: str = None, unlabeled_only: bool = False, 
                       page: int = 1, per_page: int = 5) -> Dict:
-    """Search for annotations with various filters."""
+    """使用各种过滤器搜索标注。"""
     payload = {
         "page": page,
         "per_page": per_page,
@@ -43,7 +43,7 @@ def search_annotations(query: str = None, labels: str = None, unlabeled_only: bo
 
 
 def create_annotation(text: str, labels: str = None) -> Dict:
-    """Create a new annotation."""
+    """创建新标注。"""
     payload = {"text": text}
     if labels:
         payload["labels"] = labels
@@ -53,155 +53,154 @@ def create_annotation(text: str, labels: str = None) -> Dict:
 
 
 def import_texts(texts: List[str]) -> Dict:
-    """Import multiple texts as unlabeled data."""
+    """导入多个文本作为未标注数据。"""
     payload = {"texts": texts}
     response = requests.post(f"{BASE_URL}/annotations/import-texts", json=payload)
     return response.json()
 
 
 def bulk_label(text_ids: List[int], labels: str) -> Dict:
-    """Apply labels to multiple texts."""
+    """为多个文本应用标签。"""
     payload = {"text_ids": text_ids, "labels": labels}
     response = requests.post(f"{BASE_URL}/annotations/bulk-label", json=payload)
     return response.json()
 
 
 def get_system_stats() -> Dict:
-    """Get system statistics."""
+    """获取系统统计信息。"""
     response = requests.get(f"{BASE_URL}/stats/system")
     return response.json()
 
 
 def get_all_labels() -> List[Dict]:
-    """Get all labels."""
+    """获取所有标签。"""
     response = requests.get(f"{BASE_URL}/labels/")
     return response.json()
 
 
 def demo_search_operations():
-    """Demonstrate search operations."""
-    print_section("SEARCH OPERATIONS")
+    """演示搜索操作。"""
+    print_section("搜索操作")
     
-    # Search by text content
-    print("1. Searching for texts containing 'refund':")
+    # 按文本内容搜索
+    print("1. 搜索包含 'refund' 的文本:")
     results = search_annotations(query="refund", per_page=3)
-    print(f"Found {results['total']} texts")
+    print(f"找到 {results['total']} 个文本")
     for item in results['items']:
-        print(f"  ID: {item['id']}, Labels: {item['labels']}")
-        print(f"  Text: {item['text'][:100]}...")
+        print(f"  ID: {item['id']}, 标签: {item['labels']}")
+        print(f"  文本: {item['text'][:100]}...")
     
-    # Search by label
-    print("\n2. Searching for texts with 'angry' label:")
+    # 按标签搜索
+    print("\n2. 搜索带有 'angry' 标签的文本:")
     results = search_annotations(labels="angry", per_page=3)
-    print(f"Found {results['total']} texts with 'angry' label")
+    print(f"找到 {results['total']} 个带有 'angry' 标签的文本")
     for item in results['items']:
-        print(f"  ID: {item['id']}, Text: {item['text'][:80]}...")
+        print(f"  ID: {item['id']}, 文本: {item['text'][:80]}...")
     
-    # Search for unlabeled texts (there shouldn't be any after import)
-    print("\n3. Searching for unlabeled texts:")
+    # 搜索未标注文本（导入后应该没有）
+    print("\n3. 搜索未标注文本:")
     results = search_annotations(unlabeled_only=True, per_page=5)
-    print(f"Found {results['total']} unlabeled texts")
+    print(f"找到 {results['total']} 个未标注文本")
 
 
 def demo_create_and_label():
-    """Demonstrate creating new annotations and labeling."""
-    print_section("CREATE AND LABEL OPERATIONS")
+    """演示创建新标注和标注操作。"""
+    print_section("创建和标注操作")
     
-    # Import some new unlabeled texts
+    # 导入一些新的未标注文本
     new_texts = [
-        "Hello, I need help with my order",
-        "When will my package arrive?",
-        "I want to return this product",
-        "The item is damaged, please send replacement",
-        "Thank you for the fast shipping!"
+        "你好，我需要帮助处理我的订单",
+        "我的包裹什么时候到达？",
+        "我想退回这个产品",
+        "物品损坏了，请发送替换品",
+        "谢谢你们快速的运输！"
     ]
     
-    print("1. Importing new unlabeled texts:")
+    print("1. 导入新的未标注文本:")
     result = import_texts(new_texts)
-    print(f"Imported {result['imported_count']} new texts")
+    print(f"导入了 {result['imported_count']} 个新文本")
     
-    # Search for unlabeled texts
-    print("\n2. Finding newly imported unlabeled texts:")
+    # 搜索未标注文本
+    print("\n2. 查找新导入的未标注文本:")
     results = search_annotations(unlabeled_only=True, per_page=10)
-    print(f"Found {results['total']} unlabeled texts")
+    print(f"找到 {results['total']} 个未标注文本")
     
     if results['items']:
-        # Get IDs of the first few unlabeled texts
+        # 获取前几个未标注文本的 ID
         text_ids = [item['id'] for item in results['items'][:3]]
         
-        print(f"\n3. Bulk labeling texts with IDs: {text_ids}")
+        print(f"\n3. 批量标注 ID 为 {text_ids} 的文本:")
         bulk_result = bulk_label(text_ids, "customer_service,inquiry")
-        print(f"Updated {bulk_result['updated_count']} texts")
+        print(f"更新了 {bulk_result['updated_count']} 个文本")
         
-        # Verify the labeling
-        print("\n4. Verifying the labels were applied:")
+        # 验证标注
+        print("\n4. 验证标签是否已应用:")
         for text_id in text_ids:
             response = requests.get(f"{BASE_URL}/annotations/{text_id}")
             if response.status_code == 200:
                 item = response.json()
-                print(f"  ID: {item['id']}, Labels: {item['labels']}")
-                print(f"  Text: {item['text'][:60]}...")
+                print(f"  ID: {item['id']}, 标签: {item['labels']}")
+                print(f"  文本: {item['text'][:60]}...")
 
 
 def demo_statistics():
-    """Demonstrate statistics operations."""
-    print_section("STATISTICS")
+    """演示统计操作。"""
+    print_section("统计信息")
     
     stats = get_system_stats()
-    print(f"Total texts: {stats['total_texts']:,}")
-    print(f"Labeled texts: {stats['labeled_texts']:,}")
-    print(f"Unlabeled texts: {stats['unlabeled_texts']:,}")
-    print(f"Total unique labels: {stats['total_labels']}")
+    print(f"总文本数: {stats['total_texts']:,}")
+    print(f"已标注文本: {stats['labeled_texts']:,}")
+    print(f"未标注文本: {stats['unlabeled_texts']:,}")
+    print(f"总唯一标签数: {stats['total_labels']}")
     
-    print(f"\nTop 10 most common labels:")
-    for i, label_stat in enumerate(stats['label_stats'][:10], 1):
-        print(f"  {i:2d}. {label_stat['label']}: {label_stat['count']:,} texts")
+    print(f"\n前10个最常见的标签:")
+    for i, label_stat in enumerate(stats['label_statistics'][:10], 1):
+        print(f"  {i:2d}. {label_stat['label']}: {label_stat['count']:,} 个文本")
 
 
 def demo_label_management():
-    """Demonstrate label management."""
-    print_section("LABEL MANAGEMENT")
+    """演示标签管理。"""
+    print_section("标签管理")
     
     labels = get_all_labels()
-    print(f"Total labels in system: {len(labels)}")
+    print(f"系统中的标签总数: {len(labels)}")
     
-    print("\nSample labels:")
+    print("\n标签样例:")
     for label in labels[:10]:
-        print(f"  ID: {label['id']:3d}, Label: {label['label']}")
+        print(f"  ID: {label['id']:3d}, 标签: {label['label']}")
 
 
 def main():
-    """Main demo function."""
-    print("Text Annotation System - API Demo")
-    print("Make sure the server is running at http://localhost:8000")
+    """主演示函数。"""
+    print("文本标注系统 - API 演示")
+    print("确保服务器在 http://localhost:8000 运行")
     
     try:
-        # Test server connectivity
+        # 测试服务器连接
         response = requests.get(f"{BASE_URL}/health")
         if response.status_code != 200:
-            print("ERROR: Server is not responding!")
+            print("错误: 服务器无响应!")
             return
         
-        print("✓ Server is running")
+        print("✓ 服务器正在运行")
         
-        # Run demonstrations
+        # 运行演示
         demo_statistics()
         demo_label_management()
         demo_search_operations()
         demo_create_and_label()
         
-        # Final statistics
+        # 最终统计
         demo_statistics()
         
-        print_section("DEMO COMPLETED")
-        print("API Demo completed successfully!")
-        print("You can explore more endpoints at: http://localhost:8000/docs")
+        print_section("演示完成")
+        print("API 演示已成功完成!")
+        print("你可以在以下地址探索更多端点: http://localhost:8000/docs")
         
     except requests.exceptions.ConnectionError:
-        print("ERROR: Cannot connect to the server!")
-        print("Make sure the server is running: uv run python main.py")
+        print("错误: 无法连接到服务器! 请确保服务器在 http://localhost:8000 运行")
     except Exception as e:
-        print(f"ERROR: {e}")
+        print(f"演示过程中发生错误: {e}")
 
 
 if __name__ == "__main__":

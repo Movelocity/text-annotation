@@ -1,10 +1,10 @@
 """
-Pydantic schemas for the text annotation API.
+文本标注 API 的 Pydantic schemas。
 
-This module defines request and response models for:
-- Annotation data operations
-- Label management
-- Data import operations
+本模块定义了以下请求和响应模型：
+- 标注数据操作
+- 标签管理
+- 数据导入操作
 """
 
 from typing import List, Optional
@@ -12,97 +12,97 @@ from pydantic import BaseModel, Field
 
 
 class AnnotationDataBase(BaseModel):
-    """Base schema for annotation data."""
-    text: str = Field(..., description="The text content")
-    labels: Optional[str] = Field(None, description="Comma-separated labels")
+    """标注数据的基础 schema。"""
+    text: str = Field(..., description="文本内容")
+    labels: Optional[str] = Field(None, description="逗号分隔的标签")
 
 
 class AnnotationDataCreate(AnnotationDataBase):
-    """Schema for creating new annotation data."""
+    """创建新标注数据的 schema。"""
     pass
 
 
 class AnnotationDataUpdate(BaseModel):
-    """Schema for updating annotation data."""
-    labels: Optional[str] = Field(None, description="Comma-separated labels")
+    """更新标注数据的 schema。"""
+    labels: Optional[str] = Field(None, description="逗号分隔的标签")
 
 
 class AnnotationDataResponse(AnnotationDataBase):
-    """Schema for annotation data response."""
-    id: int = Field(..., description="Unique identifier")
+    """标注数据响应的 schema。"""
+    id: int = Field(..., description="唯一标识符")
     
     class Config:
         from_attributes = True
 
 
 class AnnotationDataList(BaseModel):
-    """Schema for paginated annotation data list."""
+    """分页标注数据列表的 schema。"""
     items: List[AnnotationDataResponse]
-    total: int = Field(..., description="Total number of records")
-    page: int = Field(..., description="Current page number")
-    per_page: int = Field(..., description="Records per page")
+    total: int = Field(..., description="记录总数")
+    page: int = Field(..., description="当前页码")
+    per_page: int = Field(..., description="每页记录数")
 
 
 class LabelBase(BaseModel):
-    """Base schema for labels."""
-    label: str = Field(..., description="The label string")
+    """标签的基础 schema。"""
+    label: str = Field(..., description="标签字符串")
 
 
 class LabelCreate(LabelBase):
-    """Schema for creating new labels."""
-    id: Optional[int] = Field(None, description="Optional custom ID")
+    """创建新标签的 schema。"""
+    id: Optional[int] = Field(None, description="可选的自定义 ID")
 
 
 class LabelResponse(LabelBase):
-    """Schema for label response."""
-    id: int = Field(..., description="Unique identifier")
+    """标签响应的 schema。"""
+    id: int = Field(..., description="唯一标识符")
     
     class Config:
         from_attributes = True
 
 
 class ImportStats(BaseModel):
-    """Schema for import operation statistics."""
-    files_processed: int = Field(..., description="Number of files processed")
-    records_imported: int = Field(..., description="Number of records imported")
-    duplicates_merged: int = Field(..., description="Number of duplicates merged")
+    """导入操作统计的 schema。"""
+    files_processed: int = Field(..., description="处理的文件数")
+    records_imported: int = Field(..., description="导入的记录数")
+    duplicates_merged: int = Field(..., description="合并的重复项数")
 
 
 class ImportRequest(BaseModel):
-    """Schema for import request."""
-    file_path: str = Field(..., description="Path to the file to import")
+    """导入请求的 schema。"""
+    file_path: str = Field(..., description="要导入的文件路径")
 
 
 class TextImportRequest(BaseModel):
-    """Schema for text import request."""
-    texts: List[str] = Field(..., description="List of texts to import")
+    """文本导入请求的 schema。"""
+    texts: List[str] = Field(..., description="要导入的文本列表")
 
 
 class BulkLabelRequest(BaseModel):
-    """Schema for bulk labeling request."""
-    text_ids: List[int] = Field(..., description="List of text IDs to label")
-    labels: str = Field(..., description="Comma-separated labels to apply")
+    """批量标注请求的 schema。"""
+    text_ids: List[int] = Field(..., description="要标注的文本 ID 列表")
+    labels: str = Field(..., description="要应用的逗号分隔标签")
 
 
 class SearchRequest(BaseModel):
-    """Schema for text search request."""
-    query: Optional[str] = Field(None, description="Text search query")
-    labels: Optional[str] = Field(None, description="Comma-separated labels to filter by")
-    unlabeled_only: bool = Field(False, description="Only return unlabeled texts")
-    page: int = Field(1, description="Page number", ge=1)
-    per_page: int = Field(50, description="Records per page", ge=1, le=1000)
+    """文本搜索请求的 schema。"""
+    query: Optional[str] = Field(None, description="文本搜索查询")
+    labels: Optional[str] = Field(None, description="要过滤的逗号分隔标签")
+    unlabeled_only: bool = Field(False, description="仅返回未标注文本")
+    page: int = Field(1, description="页码", ge=1)
+    per_page: int = Field(50, description="每页记录数", ge=1, le=1000)
 
 
 class LabelStats(BaseModel):
-    """Schema for label statistics."""
-    label: str = Field(..., description="Label name")
-    count: int = Field(..., description="Number of texts with this label")
+    """标签统计的 schema。"""
+    label: str = Field(..., description="标签名称")
+    count: int = Field(..., description="带有此标签的文本数")
 
 
 class SystemStats(BaseModel):
-    """Schema for system statistics."""
-    total_texts: int = Field(..., description="Total number of texts")
-    labeled_texts: int = Field(..., description="Number of labeled texts")
-    unlabeled_texts: int = Field(..., description="Number of unlabeled texts")
-    total_labels: int = Field(..., description="Total number of unique labels")
-    label_stats: List[LabelStats] = Field(..., description="Statistics per label") 
+    """系统统计的 schema。"""
+    total_texts: int = Field(..., description="总文本数")
+    labeled_texts: int = Field(..., description="已标注文本数")
+    unlabeled_texts: int = Field(..., description="未标注文本数")
+    total_labels: int = Field(..., description="总唯一标签数")
+    label_statistics: List[LabelStats] = Field(..., description="每个标签的统计") 
