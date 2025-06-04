@@ -11,7 +11,8 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "uvicorn[standard]>=0.34.3",
     "loguru>=0.7.0",
-    "requests>=2.31.0",  # demo脚本需要
+    "requests>=2.31.0", # demo脚本需要
+    "tqdm>=4.67.1",
 ]
 
 [project.optional-dependencies]

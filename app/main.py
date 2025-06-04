@@ -14,11 +14,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 import os
+import logging
 
 from .models import get_db, create_tables
 from .services import AnnotationService, LabelService, StatisticsService
 from scripts.data_import import DataImporter
 from . import schemas
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # 创建 FastAPI 应用程序
 app = FastAPI(
@@ -353,26 +358,72 @@ def import_text_file(
     db: Session = Depends(get_db)
 ):
     """
-    导入文本文件。
+    导入文本文件（高性能批量版本 + 进度跟踪）。
     
     Args:
         import_request: 导入请求
         db: 数据库会话
         
     Returns:
-        导入的文本数量
+        导入的文本数量和相关统计信息
         
     Raises:
         HTTPException: 如果文件未找到或导入失败
     """
-    if not os.path.exists(import_request.file_path):
-        raise HTTPException(status_code=404, detail=f"文件 {import_request.file_path} 未找到")
+    file_path = import_request.file_path
+    
+    # 文件存在性检查
+    if not os.path.exists(file_path):
+        logger.error(f"文件未找到: {file_path}")
+        raise HTTPException(status_code=404, detail=f"文件 {file_path} 未找到")
+    
+    # 文件权限检查
+    if not os.access(file_path, os.R_OK):
+        logger.error(f"文件无读取权限: {file_path}")
+        raise HTTPException(status_code=403, detail=f"文件 {file_path} 无读取权限")
+    
+    # 文件大小检查 (可选，防止过大文件)
+    try:
+        file_size = os.path.getsize(file_path)
+        if file_size > 100 * 1024 * 1024:  # 100MB 限制
+            logger.warning(f"文件过大: {file_path}, 大小: {file_size} bytes")
+            raise HTTPException(status_code=413, detail=f"文件过大，请确保文件小于 100MB")
+    except OSError as e:
+        logger.error(f"获取文件大小失败: {file_path}, 错误: {str(e)}")
+        raise HTTPException(status_code=500, detail="无法访问文件")
     
     try:
-        importer = DataImporter()
-        imported_count = importer.import_text_file(import_request.file_path, db)
-        return {"imported_count": imported_count}
+        logger.info(f"开始导入文件: {file_path}")
+        service = AnnotationService(db)
+        imported_count = service.import_text_file(file_path)
+        
+        logger.info(f"文件导入完成: {file_path}, 导入记录数: {imported_count}")
+        return {
+            "imported_count": imported_count,
+            "file_path": file_path,
+            "file_size": file_size,
+            "status": "success"
+        }
+        
+    except FileNotFoundError as e:
+        logger.error(f"文件读取时未找到: {file_path}, 错误: {str(e)}")
+        raise HTTPException(status_code=404, detail=f"文件读取失败，文件可能已被移动或删除")
+        
+    except PermissionError as e:
+        logger.error(f"文件权限错误: {file_path}, 错误: {str(e)}")
+        raise HTTPException(status_code=403, detail=f"文件权限不足: {str(e)}")
+        
+    except UnicodeDecodeError as e:
+        logger.error(f"文件编码错误: {file_path}, 错误: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"文件编码错误，请确保文件为 UTF-8 编码")
+        
     except Exception as e:
+        logger.error(f"导入失败: {file_path}, 错误: {str(e)}", exc_info=True)
+        # 回滚数据库事务（如果需要）
+        try:
+            db.rollback()
+        except:
+            pass
         raise HTTPException(status_code=500, detail=f"导入失败: {str(e)}")
 
 
@@ -423,7 +474,7 @@ def main():
         "app.main:app",
         host=HOST,
         port=PORT,
-        reload=True,
+        # reload=True,
         log_level="info"
     )
 
