@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+当前项目: text-annotation
+项目路径: C:/projects/data/intents-dataset/
+OS: Windows 11
+Shell: CMD
+Python: 3.12 (included by uv, .venv/Scripts/python.exe)
+项目管理: 必须使用项目已有, 必须使用uv运行项目
+项目需求: 个人PC上进行数据标注和数据管理, 不设计用户, 不设计任何权限。本地运行后端, 通过浏览器交互。
+操作规范：
+1. 移动文件必须使用绝对路径，使用 move 而不是 copy, 因为有git管理版本, 错误操作可以回退
+2. 如果移动代码文件，移动后务必检查双向引用，及时调整引用路径
+3. 使用 uv 安装依赖, 不使用 requirements.txt
+4. 使用 uv 运行项目
+
+最佳实践：
+- context7 工具可以帮助你查询任何项目的最新文档，避免错误使用
+- seuqentialthinking 工具可以在进行复杂流程的时候帮你记录思考过程，梳理思路
+
+- 本项目使用AI+程序员协同工作, memo/* 路径可用于记录和查找设计思路, 方便后续的AI或程序员快速理解和上手。每次完成工作后, 可以把优化建议和项目状况写到该路径下。
