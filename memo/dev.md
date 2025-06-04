@@ -342,61 +342,31 @@ text-annotation/
 
 ### 2.2 配置管理改进
 
-当前配置硬编码在代码中。建议创建配置管理模块：
+**❌ 已移除 - 对个人项目过度设计**
 
-**`src/text_annotation/core/config.py`**:
-```python
-from pydantic import BaseSettings
-from typing import Optional
-
-class Settings(BaseSettings):
-    app_name: str = "文本标注 API"
-    debug: bool = False
-    database_url: str = "sqlite:///./annotation.db"
-    cors_origins: list[str] = ["*"]
-    
-    # 服务器配置
-    host: str = "0.0.0.0"
-    port: int = 8000
-    
-    # 分页配置
-    default_page_size: int = 50
-    max_page_size: int = 1000
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
-settings = Settings()
-```
+当前项目的配置需求简单（数据库路径、端口等），硬编码配置已经满足需求。
+对于个人使用的本地应用，复杂的配置管理系统属于过度设计，不符合"实用性优先"原则。
 
 ## 3. 数据库优化
 
 ### 3.1 模型改进
 
+**✅ 部分保留 - 仅保留索引优化**
+
 当前模型设计基本合理，建议以下改进：
 
-1. **添加时间戳字段**：
-```python
-from sqlalchemy import Column, Integer, String, Text, DateTime, create_engine
-from sqlalchemy.sql import func
-
-class AnnotationData(Base):
-    __tablename__ = "annotation_data"
-    
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    text = Column(Text, nullable=False, unique=True, index=True)
-    labels = Column(String, nullable=True, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-```
-
-2. **添加数据库索引**：
+1. **添加数据库索引**（保留）：
 ```python
 # 在文本和标签字段上添加索引以提高查询性能
+# 对于11万+数据量，索引是必需的性能优化
 text = Column(Text, nullable=False, unique=True, index=True)
 labels = Column(String, nullable=True, index=True)
 ```
+
+2. **~~添加时间戳字段~~**（已移除）：
+- 数据标注场景下主要是一次性导入，时间戳字段价值有限
+- 对个人使用场景来说增加了不必要的复杂性
+- 不符合"实用性优先"原则
 
 ### 3.2 数据库迁移
 
@@ -812,9 +782,9 @@ if __name__ == "__main__":
 基于项目当前状态，建议按以下优先级实施：
 
 ### 高优先级 (立即实施)
-1. **依赖管理优化** - 更新 pyproject.toml 配置
+1. **数据库索引** - 添加查询索引（必需，显著提升性能）
 2. **错误处理改进** - 统一异常处理
-3. **数据库索引** - 添加查询索引
+3. **依赖管理优化** - 更新 pyproject.toml 配置
 4. **日志配置** - 结构化日志
 
 ### 中优先级 (短期内实施)
