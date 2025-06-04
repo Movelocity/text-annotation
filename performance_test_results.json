@@ -1,0 +1,87 @@
+{
+  "timestamp": "2025-06-04 21:51:09",
+  "summary": {
+    "total_tests": 8,
+    "passed_tests": 0,
+    "pass_rate": 0.0
+  },
+  "details": [
+    {
+      "test": "大页面查询",
+      "time": 2.033609628677368,
+      "expected": 1.0,
+      "passed": false,
+      "info": {
+        "total": 1,
+        "returned": 200
+      }
+    },
+    {
+      "test": "未标注数据查询",
+      "time": 2.037126064300537,
+      "expected": 1.0,
+      "passed": false,
+      "info": {
+        "total": 0,
+        "returned": 0
+      }
+    },
+    {
+      "test": "分页查询（前50条）",
+      "time": 2.0421650409698486,
+      "expected": 0.5,
+      "passed": false,
+      "info": {
+        "total": 1,
+        "returned": 50
+      }
+    },
+    {
+      "test": "分页查询（中间页）",
+      "time": 2.0541911125183105,
+      "expected": 0.5,
+      "passed": false,
+      "info": {
+        "total": 1,
+        "returned": 50
+      }
+    },
+    {
+      "test": "标签搜索",
+      "time": 2.0877223014831543,
+      "expected": 1.0,
+      "passed": false,
+      "info": {
+        "total": 0,
+        "returned": 0
+      }
+    },
+    {
+      "test": "文本搜索（通用关键词）",
+      "time": 2.090001344680786,
+      "expected": 1.0,
+      "passed": false,
+      "info": {
+        "total": 57203,
+        "returned": 20
+      }
+    },
+    {
+      "test": "复合搜索",
+      "time": 2.1245758533477783,
+      "expected": 1.5,
+      "passed": false,
+      "info": {
+        "total": 0,
+        "returned": 0
+      }
+    },
+    {
+      "test": "获取系统统计",
+      "time": 2.4291138648986816,
+      "expected": 1.0,
+      "passed": false,
+      "info": {}
+    }
+  ]
+}

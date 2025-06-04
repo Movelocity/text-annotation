@@ -145,8 +145,9 @@ class AnnotationService:
                 AnnotationData.labels == ''
             ))
         
-        # 获取总数
-        total = query.count()
+        # 优化总数查询 - 使用 count() 子查询而非直接 count()
+        total_subquery = query.statement.with_only_columns(func.count()).order_by(None)
+        total = self.db.execute(total_subquery).scalar()
         
         # 应用分页
         offset = (search_request.page - 1) * search_request.per_page
@@ -161,7 +162,7 @@ class AnnotationService:
     
     def bulk_label(self, bulk_request: schemas.BulkLabelRequest) -> int:
         """
-        为多个文本应用标签。
+        为多个文本应用标签（优化版本）。
         
         Args:
             bulk_request: 批量标注请求
@@ -169,20 +170,20 @@ class AnnotationService:
         Returns:
             更新的文本数量
         """
-        updated_count = 0
-        
-        for text_id in bulk_request.text_ids:
-            annotation = self.get_annotation(text_id)
-            if annotation:
-                annotation.labels = bulk_request.labels
-                updated_count += 1
+        # 优化版本：使用批量更新而非逐个更新
+        updated_count = self.db.query(AnnotationData).filter(
+            AnnotationData.id.in_(bulk_request.text_ids)
+        ).update(
+            {AnnotationData.labels: bulk_request.labels},
+            synchronize_session=False
+        )
         
         self.db.commit()
         return updated_count
     
     def import_texts(self, import_request: schemas.TextImportRequest) -> int:
         """
-        导入多个文本作为未标注数据。
+        导入多个文本作为未标注数据（优化版本）。
         
         Args:
             import_request: 文本导入请求
@@ -190,23 +191,76 @@ class AnnotationService:
         Returns:
             导入的文本数量
         """
-        imported_count = 0
-        
+        # 预处理文本列表
+        texts_to_import = []
         for text in import_request.texts:
             text = text.strip()
             if text:
-                # 检查文本是否已存在
-                existing = self.db.query(AnnotationData).filter(
-                    AnnotationData.text == text
-                ).first()
-                
-                if not existing:
-                    db_annotation = AnnotationData(text=text, labels='')
-                    self.db.add(db_annotation)
-                    imported_count += 1
+                texts_to_import.append(text)
         
-        self.db.commit()
-        return imported_count
+        if not texts_to_import:
+            return 0
+        
+        # 批量检查重复文本
+        existing_texts = set()
+        if texts_to_import:
+            existing_records = self.db.query(AnnotationData.text).filter(
+                AnnotationData.text.in_(texts_to_import)
+            ).all()
+            existing_texts = {record.text for record in existing_records}
+        
+        # 准备批量插入数据
+        new_annotations = []
+        for text in texts_to_import:
+            if text not in existing_texts:
+                new_annotations.append({
+                    'text': text,
+                    'labels': ''
+                })
+        
+        # 批量插入
+        if new_annotations:
+            self.db.bulk_insert_mappings(AnnotationData, new_annotations)
+            self.db.commit()
+        
+        return len(new_annotations)
+
+    def batch_create_annotations(self, annotations_data: List[schemas.AnnotationDataCreate]) -> int:
+        """
+        批量创建标注数据（新增方法）。
+        
+        Args:
+            annotations_data: 标注数据列表
+            
+        Returns:
+            成功创建的数量
+        """
+        # 收集所有要检查的文本
+        texts_to_check = [data.text for data in annotations_data]
+        
+        # 批量检查重复
+        existing_texts = set()
+        if texts_to_check:
+            existing_records = self.db.query(AnnotationData.text).filter(
+                AnnotationData.text.in_(texts_to_check)
+            ).all()
+            existing_texts = {record.text for record in existing_records}
+        
+        # 准备新数据
+        new_annotations = []
+        for data in annotations_data:
+            if data.text not in existing_texts:
+                new_annotations.append({
+                    'text': data.text,
+                    'labels': data.labels or ''
+                })
+        
+        # 批量插入
+        if new_annotations:
+            self.db.bulk_insert_mappings(AnnotationData, new_annotations)
+            self.db.commit()
+        
+        return len(new_annotations)
 
 
 class LabelService:
@@ -349,13 +403,13 @@ class StatisticsService:
     
     def _get_label_statistics(self) -> List[schemas.LabelStats]:
         """
-        获取标签统计信息。
+        获取标签统计信息（优化版本）。
         
         Returns:
             标签统计列表
         """
-        # 获取所有已标注的文本
-        labeled_annotations = self.db.query(AnnotationData).filter(
+        # 优化版本：只查询labels字段而非全部字段
+        labeled_annotations = self.db.query(AnnotationData.labels).filter(
             and_(
                 AnnotationData.labels.isnot(None),
                 AnnotationData.labels != ''
@@ -364,9 +418,10 @@ class StatisticsService:
         
         # 统计每个标签的出现次数
         label_counts = {}
-        for annotation in labeled_annotations:
-            if annotation.labels:
-                labels = [label.strip() for label in annotation.labels.split(',')]
+        for row in labeled_annotations:
+            labels_str = row.labels
+            if labels_str:
+                labels = [label.strip() for label in labels_str.split(',')]
                 for label in labels:
                     if label:
                         label_counts[label] = label_counts.get(label, 0) + 1
@@ -378,4 +433,30 @@ class StatisticsService:
         ]
         label_stats.sort(key=lambda x: x.count, reverse=True)
         
-        return label_stats 
+        return label_stats
+    
+    def get_label_usage_stats(self) -> Dict[str, int]:
+        """
+        获取标签使用统计（新增优化方法）。
+        
+        Returns:
+            标签使用次数字典
+        """
+        # 使用数据库聚合查询优化大数据量的统计
+        # 对于SQLite，这种方法在大数据量时更高效
+        labeled_records = self.db.query(AnnotationData.labels).filter(
+            and_(
+                AnnotationData.labels.isnot(None),
+                AnnotationData.labels != ''
+            )
+        ).all()
+        
+        label_counts = {}
+        for record in labeled_records:
+            if record.labels:
+                for label in record.labels.split(','):
+                    label = label.strip()
+                    if label:
+                        label_counts[label] = label_counts.get(label, 0) + 1
+        
+        return label_counts 

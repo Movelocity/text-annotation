@@ -33,6 +33,10 @@ import-data = "scripts.run_import:main"
 text-annotation-demo = "scripts.demo:main"
 demo = "scripts.demo:main"
 
+# 数据库迁移命令
+migrate-db = "scripts.migrate_db:main"
+db-migrate = "scripts.migrate_db:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

@@ -377,6 +377,21 @@ def import_text_file(
 
 
 # 统计端点
+@app.get("/stats", response_model=schemas.SystemStats)
+def get_stats_alias(db: Session = Depends(get_db)):
+    """
+    获取系统统计信息（别名）。
+    
+    Args:
+        db: 数据库会话
+        
+    Returns:
+        系统统计数据
+    """
+    service = StatisticsService(db)
+    return service.get_system_stats()
+
+
 @app.get("/stats/system", response_model=schemas.SystemStats)
 def get_system_stats(db: Session = Depends(get_db)):
     """
