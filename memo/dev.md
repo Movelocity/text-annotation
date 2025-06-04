@@ -178,9 +178,16 @@ text-annotation/
 4. 添加基础测试
 
 **运行方式**：
-- 启动服务器：`python start_server.py` 或 `uv run python start_server.py`
+现已在 `pyproject.toml` 中注册快捷命令，简化使用：
+
+- 启动服务器：`uv run server`（推荐）或 `uv run text-annotation-server`
+- 数据导入：`uv run import-data`（推荐）或 `uv run text-annotation-import`
+- API演示：`uv run demo`（推荐）或 `uv run text-annotation-demo`（需要服务器运行）
+
+传统方式仍然可用：
+- 启动服务器：`python start_server.py` 或 `uv run python -m app.main`
 - 数据导入：`uv run python -m scripts.run_import`
-- API演示：`uv run python -m scripts.demo`（需要服务器运行）
+- API演示：`uv run python -m scripts.demo`
 
 ## 1. 项目配置优化
 

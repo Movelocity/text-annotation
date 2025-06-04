@@ -11,6 +11,7 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "uvicorn[standard]>=0.34.3",
     "loguru>=0.7.0",
+    "requests>=2.31.0",  # demo脚本需要
 ]
 
 [project.optional-dependencies]
@@ -20,8 +21,17 @@ dev = [
 ]
 
 [project.scripts]
+# 服务器启动命令
+text-annotation-server = "app.main:main"
 server = "app.main:main"
+
+# 数据导入命令
+text-annotation-import = "scripts.run_import:main"
 import-data = "scripts.run_import:main"
+
+# API演示命令
+text-annotation-demo = "scripts.demo:main"
+demo = "scripts.demo:main"
 
 [build-system]
 requires = ["hatchling"]
