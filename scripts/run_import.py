@@ -7,10 +7,10 @@
 
 import os
 import sys
-from data_import import DataImporter, main as import_main
+from scripts.data_import import DataImporter, main as import_main
 from sqlalchemy.orm import Session
-from models import create_tables, get_db
-from services import StatisticsService
+from app.models import create_tables, get_db
+from app.services import StatisticsService
 
 
 def main():

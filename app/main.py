@@ -15,10 +15,10 @@ from sqlalchemy.orm import Session
 from typing import List
 import os
 
-from models import get_db, create_tables
-from services import AnnotationService, LabelService, StatisticsService
-from data_import import DataImporter
-import schemas
+from .models import get_db, create_tables
+from .services import AnnotationService, LabelService, StatisticsService
+from scripts.data_import import DataImporter
+from . import schemas
 
 # 创建 FastAPI 应用程序
 app = FastAPI(
@@ -396,9 +396,22 @@ def get_system_stats(db: Session = Depends(get_db)):
 @app.get("/health")
 def health_check():
     """健康检查端点。"""
-    return {"status": "healthy"}
+    return {"status": "healthy", "message": "文本标注 API 正在运行"}
+
+
+def main():
+    """启动服务器的主函数。"""
+    import uvicorn
+    from .config import HOST, PORT
+    
+    uvicorn.run(
+        "app.main:app",
+        host=HOST,
+        port=PORT,
+        reload=True,
+        log_level="info"
+    )
 
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    main()

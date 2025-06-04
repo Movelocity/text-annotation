@@ -11,7 +11,7 @@ import os
 import yaml
 from typing import Dict, List, Set
 from sqlalchemy.orm import Session
-from models import AnnotationData, Label, SessionLocal, create_tables
+from app.models import AnnotationData, Label, SessionLocal, create_tables
 
 
 class DataImporter:

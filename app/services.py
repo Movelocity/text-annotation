@@ -11,8 +11,8 @@
 from typing import List, Optional, Dict, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, and_
-from models import AnnotationData, Label
-import schemas
+from .models import AnnotationData, Label
+from . import schemas
 
 
 class AnnotationService:
