@@ -1,31 +1,8 @@
 <template>
   <div class="home-page">
     <div class="hero-section">
-      <div class="hero-content">
-        <h1 class="gradient-text">文本标注系统</h1>
-        <p class="hero-subtitle">高效、准确、智能的数据标注工作平台</p>
-        <div class="hero-actions">
-          <el-button 
-            type="primary" 
-            size="large"
-            @click="goToAnnotation"
-            class="hero-btn transform-hover"
-          >
-            <i class="fas fa-rocket"></i>
-            立即开始标注
-          </el-button>
-        </div>
-      </div>
-      <div class="floating-icons">
-        <div class="icon-item" style="animation-delay: 0s;"><i class="fas fa-brain"></i></div>
-        <div class="icon-item" style="animation-delay: 0.5s;"><i class="fas fa-tags"></i></div>
-        <div class="icon-item" style="animation-delay: 1s;"><i class="fas fa-chart-line"></i></div>
-        <div class="icon-item" style="animation-delay: 1.5s;"><i class="fas fa-magic"></i></div>
-      </div>
-    </div>
-    
-    <el-container>
-      <el-header class="header">
+      <!-- Hero Header -->
+      <div class="hero-header">
         <div class="header-left">
           <div class="breadcrumb">
             <i class="fas fa-home"></i>
@@ -36,7 +13,7 @@
           <el-button 
             @click="checkHealth"
             :loading="healthLoading"
-            class="modern-btn shadow-hover"
+            class="hero-header-btn"
           >
             <div class="status-indicator" :class="healthLoading ? 'warning pulse' : 'success'"></div>
             检查连接
@@ -44,14 +21,40 @@
           <el-button 
             @click="appStore.toggleTheme"
             :icon="appStore.theme === 'light' ? 'Moon' : 'Sunny'"
-            class="modern-btn shadow-hover"
+            class="hero-header-btn"
           >
             切换主题
           </el-button>
         </div>
-      </el-header>
-      
-      <el-main class="main-content">
+      </div>
+
+      <!-- Hero Content -->
+      <div class="hero-content">
+        <h1 class="gradient-text">文本标注系统</h1>
+        <p class="hero-subtitle">高效、准确、智能的数据标注工作平台</p>
+        <div class="hero-actions">
+          <!-- <el-button 
+            type="primary" 
+            size="large"
+            @click="goToAnnotation"
+            class="hero-btn transform-hover"
+          >
+            <i class="fas fa-rocket"></i>
+            立即开始标注
+          </el-button> -->
+        </div>
+      </div>
+      <div class="floating-icons">
+        <div class="icon-item" style="animation-delay: 0s;"><i class="fas fa-brain"></i></div>
+        <div class="icon-item" style="animation-delay: 0.5s;"><i class="fas fa-tags"></i></div>
+        <div class="icon-item" style="animation-delay: 1s;"><i class="fas fa-chart-line"></i></div>
+        <div class="icon-item" style="animation-delay: 1.5s;"><i class="fas fa-magic"></i></div>
+      </div>
+    </div>
+    
+    <!-- Content Section with smooth transition -->
+    <div class="content-section">
+      <div class="main-content">
         <el-row :gutter="24">
           <el-col :span="8">
             <div class="stat-card modern-card transform-hover">
@@ -222,8 +225,8 @@
             </div>
           </el-col>
         </el-row>
-      </el-main>
-    </el-container>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -320,10 +323,82 @@ onMounted(() => {
 
 /* Hero Section */
 .hero-section {
-  padding: 80px 20px 120px;
+  /* padding: 0 0 60px; */
+  padding: 0 0 40px;
   text-align: center;
   position: relative;
   overflow: hidden;
+}
+
+/* Hero Header */
+.hero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 32px;
+  position: relative;
+  z-index: 10;
+}
+
+.hero-header .breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.hero-header .header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.hero-header-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) ease;
+}
+
+.hero-header-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Status Indicator */
+.status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.status-indicator.success {
+  background: #67C23A;
+}
+
+.status-indicator.warning {
+  background: #E6A23C;
+}
+
+.status-indicator.pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Hero Content */
+.hero-content {
+  padding: 60px 20px 0;
 }
 
 .hero-content h1 {
@@ -410,42 +485,18 @@ onMounted(() => {
   66% { transform: translateY(10px) rotate(-5deg); }
 }
 
-/* Header */
-.header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 32px;
-  box-shadow: var(--shadow-sm);
-}
-
-.header-left .breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.modern-btn {
-  border-radius: var(--radius-md);
-  border: 1px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-  transition: all var(--duration-fast) ease;
-}
-
-.modern-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+/* Content Section - smooth transition from hero */
+.content-section {
+  background: linear-gradient(to bottom, 
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 30%,
+    rgba(255, 255, 255, 0.8) 60%,
+    #ffffff 100%
+  );
+  position: relative;
+  z-index: 1;
+  margin-top: -60px;
+  padding-top: 60px;
 }
 
 /* Main Content */
@@ -453,6 +504,7 @@ onMounted(() => {
   padding: 40px 32px;
   position: relative;
   z-index: 1;
+  background: transparent;
 }
 
 /* Card Styles */
@@ -782,7 +834,11 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 60px 20px 80px;
+    padding: 0 0 80px;
+  }
+  
+  .hero-content {
+    padding: 40px 20px 0;
   }
   
   .hero-content h1 {
@@ -798,8 +854,8 @@ onMounted(() => {
     font-size: 16px;
   }
   
-  .header {
-    padding: 0 16px;
+  .hero-header {
+    padding: 16px;
   }
   
   .main-content {

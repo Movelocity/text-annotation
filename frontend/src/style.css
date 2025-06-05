@@ -128,22 +128,6 @@ button:active {
   transform: translateY(-2px);
 }
 
-.modern-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-primary);
-  opacity: 0;
-  transition: opacity var(--duration-normal) ease;
-}
-
-.modern-card:hover::before {
-  opacity: 1;
-}
-
 /* 毛玻璃面板 */
 .glass-panel {
   background: var(--glass-bg);
