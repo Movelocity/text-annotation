@@ -129,6 +129,7 @@
           :key="label.id"
           :label="label"
           :stats="labelStore.getLabelStats(label.label)"
+          :maxUsageCount="maxUsageCount"
           @delete="handleDeleteLabel"
         />
       </div>
@@ -209,6 +210,21 @@ const displayLabels = computed(() => {
     // 按ID排序（近似创建时间）
     return [...labels].sort((a, b) => b.id - a.id)
   }
+})
+
+// 计算所有标签中的最大使用次数，用于百分比计算
+const maxUsageCount = computed(() => {
+  if (!labelStore.hasLabels) return 0
+  
+  let maxCount = 0
+  labelStore.labels.forEach((label: LabelResponse) => {
+    const stats = labelStore.getLabelStats(label.label)
+    if (stats && stats.count > maxCount) {
+      maxCount = stats.count
+    }
+  })
+  
+  return maxCount
 })
 
 // 方法

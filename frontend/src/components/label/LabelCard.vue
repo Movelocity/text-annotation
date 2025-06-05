@@ -1,13 +1,21 @@
 <template>
-  <el-card class="label-card" :class="{ 'unused': isUnused }">
-    <div class="label-header">
-      <div class="label-info">
-        <div class="label-name">{{ label.label }}</div>
-        <div class="label-id">ID: {{ label.id }}</div>
+  <el-card class="label-card" :class="{ 'unused': isUnused }" @click="handleCardClick">
+    <!-- 主要信息：始终显示 -->
+    <div class="label-main">
+      <div class="label-name">{{ label.label }}</div>
+      <div class="label-status">
+        <el-tag :type="isUnused ? 'warning' : 'success'" size="small">
+          {{ usageCount }}次
+        </el-tag>
       </div>
-      <div class="label-actions">
-        <el-dropdown @command="handleCommand">
-          <el-button type="text" class="action-btn">
+    </div>
+
+    <!-- 次要信息：默认展开 -->
+    <div class="label-details">
+      <div class="label-meta">
+        <span class="label-id">ID: {{ label.id }}</span>
+        <el-dropdown @command="handleCommand" @click.stop>
+          <el-button type="text" class="action-btn" size="small">
             <el-icon><MoreFilled /></el-icon>
           </el-button>
           <template #dropdown>
@@ -20,43 +28,25 @@
           </template>
         </el-dropdown>
       </div>
-    </div>
 
-    <div class="label-stats">
-      <div class="stat-item">
-        <div class="stat-label">使用次数</div>
-        <div class="stat-value" :class="{ 'zero': usageCount === 0 }">
-          {{ usageCount }}
+      <div v-if="!isUnused" class="usage-indicator">
+        <div class="usage-bar-mini">
+          <div class="usage-fill" :style="{ width: `${usagePercentage}%`, backgroundColor: progressColor }"></div>
         </div>
+        <span class="usage-text">{{ usagePercentage }}%</span>
       </div>
-      <div class="stat-item">
-        <div class="stat-label">状态</div>
-        <el-tag :type="isUnused ? 'warning' : 'success'" size="small">
-          {{ isUnused ? '未使用' : '已使用' }}
-        </el-tag>
+
+      <div class="label-actions">
+        <el-button 
+          type="primary" 
+          size="small" 
+          @click.stop="handleViewUsage"
+          :disabled="isUnused"
+          plain
+        >
+          查看详情
+        </el-button>
       </div>
-    </div>
-
-    <div v-if="!isUnused" class="usage-bar">
-      <div class="usage-bar-label">使用频率</div>
-      <el-progress 
-        :percentage="usagePercentage" 
-        :stroke-width="6"
-        :show-text="false"
-        :color="progressColor"
-      />
-      <div class="usage-bar-text">{{ usagePercentage }}%</div>
-    </div>
-
-    <div class="label-footer">
-      <el-button 
-        type="primary" 
-        size="small" 
-        @click="handleViewUsage"
-        :disabled="isUnused"
-      >
-        查看使用详情
-      </el-button>
     </div>
   </el-card>
 </template>
@@ -70,6 +60,7 @@ import type { LabelResponse, LabelStats } from '@/types/api'
 interface Props {
   label: LabelResponse
   stats: LabelStats | null
+  maxUsageCount?: number // 所有标签中的最大使用次数，用于计算相对百分比
 }
 
 interface Emits {
@@ -83,13 +74,27 @@ const emit = defineEmits<Emits>()
 const usageCount = computed(() => props.stats?.count || 0)
 const isUnused = computed(() => usageCount.value === 0)
 
-// 计算使用百分比（相对于最高使用量）
+// 优化后的百分比计算
 const usagePercentage = computed(() => {
   if (isUnused.value) return 0
-  // 这里可以传入最大使用量来计算相对百分比
-  // 暂时使用简单的计算方式
-  const maxCount = Math.max(usageCount.value, 100) // 假设最大值为100或当前值
-  return Math.round((usageCount.value / maxCount) * 100)
+  
+  // 如果传入了最大使用次数，则基于此计算相对百分比
+  if (props.maxUsageCount && props.maxUsageCount > 0) {
+    return Math.round((usageCount.value / props.maxUsageCount) * 100)
+  }
+  
+  // 备用计算方式：基于一个合理的基准值
+  // 如果使用次数小于10，基准为20；如果小于50，基准为100；否则基准为使用次数的1.5倍
+  let baseCount: number
+  if (usageCount.value <= 10) {
+    baseCount = 20
+  } else if (usageCount.value <= 50) {
+    baseCount = 100
+  } else {
+    baseCount = Math.ceil(usageCount.value * 1.5)
+  }
+  
+  return Math.min(Math.round((usageCount.value / baseCount) * 100), 100)
 })
 
 const progressColor = computed(() => {
@@ -116,122 +121,137 @@ const handleViewUsage = () => {
   // 这里可以跳转到标注页面并筛选该标签
   ElMessage.info('功能开发中：查看标签使用详情')
 }
+
+const handleCardClick = () => {
+  // 点击卡片的默认行为，可以用于快速选择或预览
+  console.log('Label card clicked:', props.label.label)
+}
 </script>
 
 <style scoped>
 .label-card {
   border: none;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.25s ease;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .label-card:hover {
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 .label-card.unused {
-  border-left: 4px solid #e6a23c;
+  border-left: 3px solid #e6a23c;
 }
 
-.label-header {
+/* .label-card:not(.unused) {
+  border-left: 3px solid #67c23a;
+} */
+
+/* 主要信息区域 */
+.label-main {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.label-info {
-  flex: 1;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .label-name {
   font-size: 18px;
   font-weight: 600;
   color: #303133;
-  margin-bottom: 4px;
   word-break: break-all;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.label-status {
+  flex-shrink: 0;
+}
+
+/* 次要信息区域：默认展开 */
+.label-details {
+  opacity: 1;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  transition: all 0.25s ease;
+}
+
+.label-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .label-id {
-  font-size: 12px;
-  color: #909399;
-}
-
-.label-actions {
-  flex-shrink: 0;
-  margin-left: 8px;
+  font-size: 11px;
+  color: #c0c4cc;
 }
 
 .action-btn {
-  padding: 4px;
-  color: #909399;
+  padding: 2px 4px;
+  color: #c0c4cc;
+  opacity: 0.7;
 }
 
 .action-btn:hover {
   color: #409eff;
+  opacity: 1;
 }
 
 .delete-item {
   color: #f56c6c;
 }
 
-.label-stats {
+/* 简化的使用率指示器 */
+.usage-indicator {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  padding: 12px;
-  background-color: #f8f9fa;
-  border-radius: 6px;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #909399;
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 600;
-  color: #409eff;
-}
-
-.stat-value.zero {
-  color: #e6a23c;
-}
-
-.usage-bar {
-  margin-bottom: 16px;
-}
-
-.usage-bar-label {
-  font-size: 12px;
-  color: #909399;
+  align-items: center;
   margin-bottom: 8px;
+  gap: 8px;
 }
 
-.usage-bar-text {
-  font-size: 12px;
-  color: #606266;
+.usage-bar-mini {
+  flex: 1;
+  height: 3px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.usage-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.usage-text {
+  font-size: 11px;
+  color: #909399;
+  min-width: 30px;
   text-align: right;
-  margin-top: 4px;
 }
 
-.label-footer {
-  text-align: center;
+.label-actions {
+  text-align: right;
 }
 
-:deep(.el-progress-bar__outer) {
-  border-radius: 3px;
-}
-
-:deep(.el-progress-bar__inner) {
-  border-radius: 3px;
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .label-name {
+    font-size: 14px;
+  }
+  
+  .label-main {
+    margin-bottom: 8px;
+  }
+  
+  .label-details {
+    padding-top: 8px;
+  }
 }
 </style> 
