@@ -116,11 +116,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useLabelStore } from '../../stores/label'
-import { useAnnotationStore } from '../../stores/annotation'
-import type { AnnotationDataResponse } from '../../types/api'
+import { useLabelStore } from '@/stores/label'
+import { useAnnotationStore } from '@/stores/annotation'
+import type { AnnotationDataResponse } from '@/types/api'
 import { ElMessage } from 'element-plus'
-import ModernButton from '../common/ModernButton.vue'
+import ModernButton from '@/components/common/ModernButton.vue'
 
 // Props
 interface Props {

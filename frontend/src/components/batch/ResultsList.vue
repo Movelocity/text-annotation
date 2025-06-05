@@ -78,8 +78,8 @@
 </template>
 
 <script setup lang="ts">
-import type { AnnotationDataResponse } from '../../types/api'
-import { parseLabels } from '../../utils/labelUtils'
+import type { AnnotationDataResponse } from '@/types/api'
+import { parseLabels } from '@/utils/labelUtils'
 
 // Props
 interface Props {
@@ -91,7 +91,7 @@ interface Props {
   isSelected: (id: number) => boolean
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 // Emits
 interface Emits {

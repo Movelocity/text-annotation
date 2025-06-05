@@ -147,7 +147,7 @@
                   </div>
                 </div>
                 
-                <div class="action-item" @click="loadLabels">
+                <div class="action-item" @click="goToLabelManage">
                   <div class="action-icon-wrapper success">
                     <i class="fas fa-tags"></i>
                   </div>
@@ -235,16 +235,16 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 // import { EditPen } from '@element-plus/icons-vue'
-import { useAppStore } from '../stores/app'
+import { useAppStore } from '@/stores/app'
 // import { useAnnotationStore } from '../stores/annotation'
-import { useLabelStore } from '../stores/label'
-import { statsApi, healthApi } from '../services/api'
-import type { SystemStats } from '../types/api'
+// import { useLabelStore } from '@/stores/label'
+import { statsApi, healthApi } from '@/services/api'
+import type { SystemStats } from '@/types/api'
 
 const router = useRouter()
 const appStore = useAppStore()
 // const annotationStore = useAnnotationStore()
-const labelStore = useLabelStore()
+// const labelStore = useLabelStore()
 
 const stats = ref<SystemStats | null>(null)
 const statsLoading = ref(false)
@@ -286,15 +286,7 @@ const checkHealth = async () => {
 //   }
 // }
 
-const loadLabels = async () => {
-  try {
-    await labelStore.fetchLabels()
-    ElMessage.success(`加载了 ${labelStore.labels.length} 个标签`)
-  } catch (error) {
-    console.error('加载标签失败:', error)
-    ElMessage.error('加载标签失败')
-  }
-}
+
 
 const refreshStats = async () => {
   await loadStats()
@@ -307,6 +299,10 @@ const goToAnnotation = () => {
 
 const goToBatchAnnotation = () => {
   router.push('/batch-annotation')
+}
+
+const goToLabelManage = () => {
+  router.push('/label-manage')
 }
 
 onMounted(() => {

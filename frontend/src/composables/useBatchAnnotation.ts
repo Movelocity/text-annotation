@@ -5,15 +5,15 @@
 
 import { computed, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import { batchApi } from '../services/batchAnnotation'
+import { batchApi } from '@/services/batchAnnotation'
 import type {
   BatchFilterOptions,
   BatchUpdateOptions
-} from '../services/batchAnnotation'
+} from '@/services/batchAnnotation'
 import type {
   AnnotationDataResponse,
   // BulkUpdateLabelsResponse
-} from '../types/api'
+} from '@/types/api'
 
 export interface BatchState {
   // 筛选条件

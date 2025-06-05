@@ -4,7 +4,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { annotationApi } from '../services/api'
+import { annotationApi } from '@/services/api'
 import type {
   AnnotationDataResponse,
   AnnotationDataList,
@@ -13,7 +13,7 @@ import type {
   SearchRequest,
   BulkLabelRequest,
   TextImportRequest
-} from '../types/api'
+} from '@/types/api'
 
 export const useAnnotationStore = defineStore('annotation', () => {
   // 状态

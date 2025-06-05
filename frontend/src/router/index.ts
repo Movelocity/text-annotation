@@ -33,6 +33,14 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '批量标注工具'
     }
+  },
+  {
+    path: '/label-manage',
+    name: 'LabelManage',
+    component: () => import('@/pages/LabelManagePage.vue'),
+    meta: {
+      title: '标签管理'
+    }
   }
 ]
 

@@ -3,9 +3,9 @@
  * 展示如何使用批量筛选和更新标签功能
  */
 
-import { batchApi } from '../services/batchAnnotation'
-import { annotationApi } from '../services/api'
-import type { BatchFilterOptions, BatchUpdateOptions } from '../services/batchAnnotation'
+import { batchApi } from '@/services/batchAnnotation'
+import { annotationApi } from '@/services/api'
+import type { BatchFilterOptions, BatchUpdateOptions } from '@/services/batchAnnotation'
 
 // 示例：筛选包含"客服"关键词但不包含"测试"的文本
 export async function exampleFilterCustomerService() {

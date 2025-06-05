@@ -103,11 +103,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { useBatchAnnotation } from '../composables/useBatchAnnotation'
-import ModernButton from '../components/common/ModernButton.vue'
-import FilterPanel from '../components/batch/FilterPanel.vue'
-import ResultsList from '../components/batch/ResultsList.vue'
-import BatchActions from '../components/batch/BatchActions.vue'
+import { useBatchAnnotation } from '@/composables/useBatchAnnotation'
+import ModernButton from '@/components/common/ModernButton.vue'
+import FilterPanel from '@/components/batch/FilterPanel.vue'
+import ResultsList from '@/components/batch/ResultsList.vue'
+import BatchActions from '@/components/batch/BatchActions.vue'
 
 // Router
 const router = useRouter()

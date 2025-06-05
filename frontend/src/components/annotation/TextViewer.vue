@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { AnnotationDataResponse } from '../../types/api'
+import type { AnnotationDataResponse } from '@/types/api'
 
 // Props
 interface Props {

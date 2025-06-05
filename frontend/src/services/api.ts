@@ -21,7 +21,7 @@ import type {
   ImportStats,
   SystemStats,
   ApiError
-} from '../types/api'
+} from '@/types/api'
 
 class ApiService {
   private axiosInstance: AxiosInstance

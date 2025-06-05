@@ -98,7 +98,7 @@ interface Emits {
   'update:operationMode': [mode: 'selected' | 'filtered']
 }
 
-const emit = defineEmits<Emits>()
+defineEmits<Emits>()
 
 // 表单数据
 const labelInput = ref('')

@@ -91,11 +91,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 // import { Search } from '@element-plus/icons-vue'
-import { useAnnotationStore } from '../../stores/annotation'
-import type { AnnotationDataResponse } from '../../types/api'
-import TextItem from './TextItem.vue'
-import Pagination from '../common/Pagination.vue'
-import ModernButton from '../common/ModernButton.vue'
+import { useAnnotationStore } from '@/stores/annotation'
+import type { AnnotationDataResponse } from '@/types/api'
+import TextItem from '@/components/annotation/TextItem.vue'
+import Pagination from '@/components/common/Pagination.vue'
+import ModernButton from '@/components/common/ModernButton.vue'
 
 // Props
 interface Props {

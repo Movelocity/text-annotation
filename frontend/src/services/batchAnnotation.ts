@@ -3,14 +3,14 @@
  * 提供批量筛选和更新标签的便利方法
  */
 
-import { annotationApi } from './api'
+import { annotationApi } from '@/services/api'
 import type {
   AdvancedSearchRequest,
   BulkUpdateLabelsRequest,
   BulkUpdateLabelsResponse,
   AnnotationDataList,
   AnnotationDataResponse
-} from '../types/api'
+} from '@/types/api'
 
 export interface BatchFilterOptions {
   // 包含关键词
