@@ -20,8 +20,8 @@
             v-for="label in itemLabels.slice(0, 2)"
             :key="label"
             type="success"
-            size="small"
-            class="item-label"
+            size="medium"
+            style="font-size: 14px; font-weight: bold;"
           >
             {{ label }}
           </el-tag>
@@ -126,10 +126,6 @@ const handleClick = () => {
   max-width: 60%;
 }
 
-.item-label {
-  font-size: 11px;
-}
-
 .more-labels {
   font-size: 11px;
   color: var(--el-text-color-secondary);
@@ -165,7 +161,7 @@ const handleClick = () => {
   margin: 0;
   color: var(--el-text-color-primary);
   line-height: 1.5;
-  font-size: 14px;
+  font-size: 16px;
   word-break: break-word;
 }
 

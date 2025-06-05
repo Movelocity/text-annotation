@@ -8,16 +8,17 @@
       :stats="headerStats"
       home-route="/home"
     >
-      <template #actions>
-        <ModernButton
-          text="新增标签"
-          icon="fas fa-plus"
-          type="primary"
-          :loading="labelStore.loading"
-          @click="showCreateDialog = true"
-        />
-      </template>
     </PageHeader>
+
+    <div class="create-btn-section">
+      <ModernButton
+        text="新增标签"
+        icon="fas fa-plus"
+        type="primary"
+        :loading="labelStore.loading"
+        @click="showCreateDialog = true"
+      />
+    </div>
 
     <!-- 搜索和过滤 -->
     <div class="search-section">
@@ -137,18 +138,11 @@ const headerStats = computed<StatItem[]>(() => {
   
   return [
     {
-      key: 'total',
-      label: '总标签数',
-      value: labelStore.statsOverview.totalLabels,
-      type: 'total',
-      icon: 'fas fa-tags'
-    },
-    {
-      key: 'used',
-      label: '已使用',
-      value: labelStore.statsOverview.usedLabels,
-      type: 'success',
-      icon: 'fas fa-check'
+      key: 'texts',
+      label: '已标注文本',
+      value: labelStore.statsOverview.labeledTexts,
+      type: 'info',
+      icon: 'fas fa-file-text'
     },
     {
       key: 'unused',
@@ -158,11 +152,18 @@ const headerStats = computed<StatItem[]>(() => {
       icon: 'fas fa-exclamation-triangle'
     },
     {
-      key: 'texts',
-      label: '已标注文本',
-      value: labelStore.statsOverview.labeledTexts,
-      type: 'info',
-      icon: 'fas fa-file-text'
+      key: 'used',
+      label: '已使用',
+      value: labelStore.statsOverview.usedLabels,
+      type: 'success',
+      icon: 'fas fa-check'
+    },
+    {
+      key: 'total',
+      label: '总标签数',
+      value: labelStore.statsOverview.totalLabels,
+      type: 'total',
+      icon: 'fas fa-tags'
     }
   ]
 })
@@ -294,9 +295,15 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
+  min-height: 0;
+  max-height: 60vh;
+  overflow: auto;
 }
 
-
+.create-btn-section {
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
 
 .card-header {
   display: flex;

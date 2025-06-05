@@ -50,6 +50,7 @@
               :key="label"
               type="success"
               size="large"
+              style="font-size: 14px; font-weight: bold;"
               closable
               @close="handleRemoveLabel(label)"
               class="label-tag"
@@ -327,10 +328,6 @@ onUnmounted(() => {
   gap: 8px;
 }
 
-.label-tag {
-  margin: 2px 0;
-}
-
 .no-label {
   color: var(--el-text-color-secondary);
   font-style: italic;
@@ -362,7 +359,7 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 8px;
-  max-height: 300px;
+  max-height: 360px;
   overflow-y: auto;
 }
 

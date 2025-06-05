@@ -336,18 +336,9 @@ watch(() => annotationStore.searchParams, (newParams) => {
 .search-input :deep(.el-input__wrapper) {
   padding-left: 40px;
   border-radius: var(--radius-md);
-  border: 2px solid var(--el-border-color-light);
   transition: all var(--duration-fast) ease;
 }
 
-.search-input :deep(.el-input__wrapper):hover {
-  border-color: var(--el-color-primary-light-5);
-}
-
-.search-input :deep(.el-input__wrapper.is-focus) {
-  border-color: var(--el-color-primary);
-  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
-}
 
 .filter-options {
   display: flex;

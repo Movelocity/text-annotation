@@ -261,6 +261,10 @@ const handleRemoveLabels = async (label: string) => {
   overflow: auto;
 }
 
+.left-panel {
+  padding-bottom: 32px;
+}
+
 .right-panel {
   height: 100%;
 }
@@ -270,7 +274,6 @@ const handleRemoveLabels = async (label: string) => {
   display: flex;
   justify-content: center;
   flex-shrink: 0;
-  border-top: 1px solid var(--el-border-color-lighter);
 }
 
 /* 删除了已移到子组件的样式 */

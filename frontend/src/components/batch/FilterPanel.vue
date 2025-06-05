@@ -39,7 +39,8 @@
             :key="`include-${index}`"
             closable
             type="success"
-            size="large"
+            size="medium"
+            style="font-size: 14px; font-weight: bold;"
             @close="removeIncludeKeyword(index)"
           >
             {{ keyword }}
@@ -74,7 +75,8 @@
             :key="`exclude-${index}`"
             closable
             type="danger"
-            size="large"
+            size="medium"
+            style="font-size: 14px; font-weight: bold;"
             @close="removeExcludeKeyword(index)"
           >
             {{ keyword }}
@@ -109,7 +111,8 @@
             :key="`include-label-${index}`"
             closable
             type="success"
-            size="large"
+            size="medium"
+            style="font-size: 14px; font-weight: bold;"
             @close="removeIncludeLabel(index)"
           >
             {{ label }}
@@ -143,8 +146,9 @@
             :key="`exclude-label-${index}`"
             closable
             type="danger"
-            size="large"
+            size="medium"
             @close="removeExcludeLabel(index)"
+            style="font-size: 14px; font-weight: bold;"
           >
             {{ label }}
           </el-tag>

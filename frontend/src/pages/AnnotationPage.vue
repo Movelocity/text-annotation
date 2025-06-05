@@ -333,7 +333,7 @@ onMounted(async () => {
 .center-panel:hover,
 .right-panel:hover {
   box-shadow: var(--shadow-xl);
-  transform: translateY(-2px);
+  /* transform: translateY(-2px); */
 }
 
 .left-panel {

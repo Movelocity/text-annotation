@@ -34,6 +34,7 @@
               :key="label"
               type="success"
               size="large"
+              style="font-size: 14px; font-weight: bold;"
               class="label-tag"
             >
               {{ label }}
@@ -154,7 +155,7 @@ const wordCount = computed(() => {
   background: var(--el-bg-color-page);
   border: 1px solid var(--el-border-color-light);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--el-text-color-primary);
   white-space: pre-wrap;

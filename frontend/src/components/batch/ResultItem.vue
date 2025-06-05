@@ -22,7 +22,7 @@
           v-for="label in getLabelsArray(item.labels)"
           :key="label"
           size="small"
-          type="info"
+          type="primary"
         >
           {{ label }}
         </el-tag>

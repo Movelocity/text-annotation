@@ -136,6 +136,7 @@ const handleCardClick = () => {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  border-radius: var(--radius-lg);
 }
 
 .label-card:hover {
