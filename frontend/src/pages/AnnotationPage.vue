@@ -5,37 +5,14 @@
 <template>
   <div class="annotation-page">
     <!-- 页面头部 -->
-    <div class="page-header glass-panel">
-      <div class="header-left">
-        <div class="header-breadcrumb">
-          <i class="fas fa-home"></i>
-          <span class="breadcrumb-separator">/</span>
-          <span class="current-page">标注工作台</span>
-        </div>
-        <h1 class="page-title">
-          <i class="fas fa-magic"></i>
-          数据标注工作台
-        </h1>
-        <div class="quick-stats" v-if="!annotationStore.loading">
-          <div class="stat-badge total">
-            <i class="fas fa-file-text"></i>
-            <span>总计：{{ annotationStore.total }} 条</span>
-          </div>
-          <div class="stat-badge success">
-            <i class="fas fa-check-circle"></i>
-            <span>已标注：{{ labeledCount }}</span>
-          </div>
-          <div class="stat-badge warning">
-            <i class="fas fa-clock"></i>
-            <span>未标注：{{ unlabeledCount }}</span>
-          </div>
-          <div v-if="currentIndex >= 0" class="stat-badge primary">
-            <i class="fas fa-crosshairs"></i>
-            <span>当前：{{ currentIndex + 1 }} / {{ annotationStore.annotations.length }}</span>
-          </div>
-        </div>
-      </div>
-      <div class="header-right">
+    <PageHeader
+      title="数据标注工作台"
+      title-icon="fas fa-magic"
+      :breadcrumbs="breadcrumbs"
+      :stats="headerStats"
+      home-route="/home"
+    >
+      <template #actions>
         <ModernButton
           text="刷新"
           icon="fas fa-sync-alt"
@@ -43,13 +20,8 @@
           :spinning="annotationStore.loading"
           @click="handleRefresh"
         />
-        <ModernButton
-          text="返回首页"
-          icon="fas fa-home"
-          @click="goToHome"
-        />
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- 主工作区域 -->
     <div class="work-area">
@@ -121,6 +93,7 @@ import TextList from '../components/annotation/TextList.vue'
 import TextViewer from '../components/annotation/TextViewer.vue'
 import LabelSelector from '../components/annotation/LabelSelector.vue'
 import ModernButton from '../components/common/ModernButton.vue'
+import PageHeader from '../components/common/PageHeader.vue'
 import type { AnnotationDataResponse } from '../types/api'
 import { ElMessage } from 'element-plus'
 
@@ -134,6 +107,11 @@ const annotationStore = useAnnotationStore()
 const currentItem = ref<AnnotationDataResponse | null>(null)
 const currentIndex = ref(-1)
 
+// 面包屑导航配置
+const breadcrumbs = [
+  { text: '标注工作台' }
+]
+
 // 计算属性
 const labeledCount = computed(() => 
   annotationStore.annotations.filter(item => item.labels).length
@@ -142,6 +120,57 @@ const labeledCount = computed(() =>
 const unlabeledCount = computed(() => 
   annotationStore.annotations.filter(item => !item.labels).length
 )
+
+// 定义统计项类型
+interface StatItem {
+  key: string
+  label: string
+  value: string | number
+  type?: 'total' | 'success' | 'warning' | 'primary' | 'info' | 'danger' | 'default'
+  icon?: string
+}
+
+// 头部统计信息
+const headerStats = computed<StatItem[]>(() => {
+  if (annotationStore.loading) return []
+  
+  const stats: StatItem[] = [
+    {
+      key: 'total',
+      label: '总计',
+      value: `${annotationStore.total} 条`,
+      type: 'total',
+      icon: 'fas fa-file-text'
+    },
+    {
+      key: 'labeled',
+      label: '已标注',
+      value: labeledCount.value,
+      type: 'success',
+      icon: 'fas fa-check-circle'
+    },
+    {
+      key: 'unlabeled',
+      label: '未标注',
+      value: unlabeledCount.value,
+      type: 'warning',
+      icon: 'fas fa-clock'
+    }
+  ]
+  
+  // 如果当前有选中项，添加当前位置信息
+  if (currentIndex.value >= 0) {
+    stats.push({
+      key: 'current',
+      label: '当前',
+      value: `${currentIndex.value + 1} / ${annotationStore.annotations.length}`,
+      type: 'primary',
+      icon: 'fas fa-crosshairs'
+    })
+  }
+  
+  return stats
+})
 
 // 方法
 const handleItemSelect = (item: AnnotationDataResponse, index: number) => {
@@ -214,9 +243,7 @@ const handleRefresh = async () => {
   }
 }
 
-const goToHome = () => {
-  router.push('/home')
-}
+
 
 // 生命周期
 onMounted(async () => {
@@ -274,110 +301,7 @@ onMounted(async () => {
   position: relative;
 }
 
-/* 页面头部 */
-.page-header {
-  flex-shrink: 0;
-  padding: 20px 32px;
-  margin: 16px;
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(20px);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-}
 
-.header-left {
-  flex: 1;
-}
-
-.header-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.breadcrumb-separator {
-  color: var(--el-border-color);
-}
-
-.current-page {
-  color: var(--el-color-primary);
-  font-weight: 500;
-}
-
-.page-title {
-  margin: 0 0 16px 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--el-text-color-primary);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.page-title i {
-  color: var(--el-color-primary);
-  font-size: 1.5rem;
-}
-
-.quick-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.stat-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 2px solid transparent;
-  transition: all var(--duration-fast) ease;
-}
-
-.stat-badge.total {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  box-shadow: var(--shadow-sm);
-}
-
-.stat-badge.success {
-  background: var(--el-color-success-light-9);
-  color: var(--el-color-success-dark-2);
-  border-color: var(--el-color-success-light-5);
-}
-
-.stat-badge.warning {
-  background: var(--el-color-warning-light-9);
-  color: var(--el-color-warning-dark-2);
-  border-color: var(--el-color-warning-light-5);
-}
-
-.stat-badge.primary {
-  background: var(--el-color-primary-light-9);
-  color: var(--el-color-primary-dark-2);
-  border-color: var(--el-color-primary-light-5);
-}
-
-.stat-badge:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.header-right {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
 
 
 
@@ -509,15 +433,6 @@ onMounted(async () => {
   .work-area {
     grid-template-columns: 320px 1fr 350px;
   }
-  
-  .page-header {
-    margin: 12px;
-    padding: 16px 24px;
-  }
-  
-  .page-title {
-    font-size: 1.5rem;
-  }
 }
 
 @media (max-width: 1200px) {
@@ -541,38 +456,9 @@ onMounted(async () => {
   .right-panel {
     transform: none !important;
   }
-  
-  .page-header {
-    margin: 8px;
-    padding: 12px 16px;
-  }
-  
-  .header-left,
-  .header-right {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .quick-stats {
-    justify-content: flex-start;
-  }
 }
 
 @media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .quick-stats {
-    flex-direction: column;
-  }
-  
-  .header-right {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-  
   .navigation-controls {
     flex-direction: column;
     gap: 12px;

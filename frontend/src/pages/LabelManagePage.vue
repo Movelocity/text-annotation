@@ -1,83 +1,25 @@
 <template>
   <div class="label-manage-page">
     <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-left">
-        <h1 class="page-title">
-          <el-icon><Collection /></el-icon>
-          标签管理
-        </h1>
-        <p class="page-description">管理和查看所有标签的使用情况</p>
-      </div>
-      <div class="header-right">
-        <el-button 
-          type="primary" 
-          @click="showCreateDialog = true"
+    <PageHeader
+      title="标签管理"
+      title-icon="fas fa-tags"
+      :breadcrumbs="breadcrumbs"
+      :stats="headerStats"
+      home-route="/home"
+    >
+      <template #actions>
+        <ModernButton
+          text="新增标签"
+          icon="fas fa-plus"
+          type="primary"
           :loading="labelStore.loading"
-        >
-          <el-icon><Plus /></el-icon>
-          新增标签
-        </el-button>
-      </div>
-    </div>
+          @click="showCreateDialog = true"
+        />
+      </template>
+    </PageHeader>
 
-    <!-- 统计概览 -->
-    <div class="stats-overview">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card class="stats-card">
-            <div class="stats-item">
-              <div class="stats-icon total">
-                <el-icon><Collection /></el-icon>
-              </div>
-              <div class="stats-content">
-                <div class="stats-number">{{ labelStore.statsOverview.totalLabels }}</div>
-                <div class="stats-label">总标签数</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stats-card">
-            <div class="stats-item">
-              <div class="stats-icon used">
-                <el-icon><Check /></el-icon>
-              </div>
-              <div class="stats-content">
-                <div class="stats-number">{{ labelStore.statsOverview.usedLabels }}</div>
-                <div class="stats-label">已使用标签</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stats-card">
-            <div class="stats-item">
-              <div class="stats-icon unused">
-                <el-icon><Warning /></el-icon>
-              </div>
-              <div class="stats-content">
-                <div class="stats-number">{{ labelStore.statsOverview.unusedLabels }}</div>
-                <div class="stats-label">未使用标签</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stats-card">
-            <div class="stats-item">
-              <div class="stats-icon texts">
-                <el-icon><Document /></el-icon>
-              </div>
-              <div class="stats-content">
-                <div class="stats-number">{{ labelStore.statsOverview.labeledTexts }}</div>
-                <div class="stats-label">已标注文本</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
+
 
     <!-- 搜索和过滤 -->
     <div class="search-section">
@@ -159,17 +101,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  Collection, 
-  Plus, 
-  Check, 
-  Warning, 
-  Document, 
   Search 
 } from '@element-plus/icons-vue'
 import { useLabelStore } from '@/stores/label'
+import PageHeader from '@/components/common/PageHeader.vue'
 import LabelCard from '@/components/label/LabelCard.vue'
 import LabelStatsChart from '@/components/label/LabelStatsChart.vue'
 import CreateLabelDialog from '@/components/label/CreateLabelDialog.vue'
+import ModernButton from '@/components/common/ModernButton.vue'
 import type { LabelResponse } from '@/types/api'
 
 const labelStore = useLabelStore()
@@ -179,6 +118,56 @@ const showCreateDialog = ref(false)
 const searchQuery = ref('')
 const sortBy = ref('usage')
 const filterBy = ref('all')
+
+// 面包屑导航配置
+const breadcrumbs = [
+  { text: '标签管理' }
+]
+
+// 定义统计项类型
+interface StatItem {
+  key: string
+  label: string
+  value: string | number
+  type?: 'total' | 'success' | 'warning' | 'primary' | 'info' | 'danger' | 'default'
+  icon?: string
+}
+
+// 头部统计信息
+const headerStats = computed<StatItem[]>(() => {
+  if (labelStore.loading) return []
+  
+  return [
+    {
+      key: 'total',
+      label: '总标签数',
+      value: labelStore.statsOverview.totalLabels,
+      type: 'total',
+      icon: 'fas fa-tags'
+    },
+    {
+      key: 'used',
+      label: '已使用',
+      value: labelStore.statsOverview.usedLabels,
+      type: 'success',
+      icon: 'fas fa-check'
+    },
+    {
+      key: 'unused',
+      label: '未使用',
+      value: labelStore.statsOverview.unusedLabels,
+      type: 'warning',
+      icon: 'fas fa-exclamation-triangle'
+    },
+    {
+      key: 'texts',
+      label: '已标注文本',
+      value: labelStore.statsOverview.labeledTexts,
+      type: 'info',
+      icon: 'fas fa-file-text'
+    }
+  ]
+})
 
 // 计算属性
 const displayLabels = computed(() => {
@@ -278,109 +267,21 @@ onMounted(async () => {
 
 <style scoped>
 .label-manage-page {
-  padding: 24px;
-  background-color: #f5f7fa;
-  min-height: 100vh;
-}
-
-.page-header {
+  height: 100vh;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-.header-left {
-  flex: 1;
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.page-description {
-  margin: 0;
-  color: #606266;
-  font-size: 14px;
-}
-
-.header-right {
-  flex-shrink: 0;
-}
-
-.stats-overview {
-  margin-bottom: 24px;
-}
-
-.stats-card {
-  border: none;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.stats-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.stats-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: white;
-}
-
-.stats-icon.total {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stats-icon.used {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stats-icon.unused {
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-  color: #e6a23c;
-}
-
-.stats-icon.texts {
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-  color: #409eff;
-}
-
-.stats-content {
-  flex: 1;
-}
-
-.stats-number {
-  font-size: 24px;
-  font-weight: 600;
-  color: #303133;
-  line-height: 1;
-}
-
-.stats-label {
-  font-size: 14px;
-  color: #909399;
-  margin-top: 4px;
+.search-section,
+.labels-section,
+.chart-section {
+  padding: 0 16px;
+  margin-bottom: 16px;
 }
 
 .search-section {
-  margin-bottom: 24px;
-}
-
-.labels-section {
-  margin-bottom: 24px;
+  margin-top: 0;
 }
 
 .loading-container,
@@ -397,9 +298,7 @@ onMounted(async () => {
   gap: 16px;
 }
 
-.chart-section {
-  margin-bottom: 24px;
-}
+
 
 .card-header {
   display: flex;
@@ -409,13 +308,14 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    gap: 16px;
-  }
-
   .labels-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .search-section,
+  .labels-section,
+  .chart-section {
+    padding: 0 8px;
   }
 }
 </style> 

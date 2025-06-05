@@ -5,45 +5,21 @@
 <template>
   <div class="batch-annotation-page">
     <!-- 页面头部 -->
-    <div class="page-header glass-panel">
-      <div class="header-left">
-        <div class="header-breadcrumb">
-          <i class="fas fa-home"></i>
-          <span class="breadcrumb-separator">/</span>
-          <span class="current-page">批量标注</span>
-        </div>
-        <h1 class="page-title">
-          <i class="fas fa-layer-group"></i>
-          批量标注工具
-        </h1>
-        <div class="quick-stats" v-if="!state.isLoading">
-          <div class="stat-badge total">
-            <i class="fas fa-search"></i>
-            <span>筛选结果：{{ state.totalCount }} 条</span>
-          </div>
-          <div class="stat-badge success" v-if="hasSelection">
-            <i class="fas fa-check-square"></i>
-            <span>已选择：{{ selectedTextsCount }} 条</span>
-          </div>
-          <div class="stat-badge info" v-if="state.isPreviewMode">
-            <i class="fas fa-eye"></i>
-            <span>预览模式</span>
-          </div>
-        </div>
-      </div>
-      <div class="header-right">
+    <PageHeader
+      title="批量标注工具"
+      title-icon="fas fa-layer-group"
+      :breadcrumbs="breadcrumbs"
+      :stats="headerStats"
+      home-route="/home"
+    >
+      <template #actions>
         <ModernButton
           text="重置"
           icon="fas fa-undo"
           @click="resetState"
         />
-        <ModernButton
-          text="返回首页"
-          icon="fas fa-home"
-          @click="goToHome"
-        />
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- 主工作区域 -->
     <div class="work-area">
@@ -100,17 +76,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { useBatchAnnotation } from '@/composables/useBatchAnnotation'
 import ModernButton from '@/components/common/ModernButton.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import FilterPanel from '@/components/batch/FilterPanel.vue'
 import ResultsList from '@/components/batch/ResultsList.vue'
 import BatchActions from '@/components/batch/BatchActions.vue'
 
-// Router
-const router = useRouter()
 
 // Composable
 const {
@@ -138,10 +112,58 @@ const {
 
 const operationMode = ref<'selected' | 'filtered'>('selected')
 
-// 方法
-const goToHome = () => {
-  router.push('/home')
+// 面包屑导航配置
+const breadcrumbs = [
+  { text: '批量标注' }
+]
+
+// 定义统计项类型
+interface StatItem {
+  key: string
+  label: string
+  value: string | number
+  type?: 'total' | 'success' | 'warning' | 'primary' | 'info' | 'danger' | 'default'
+  icon?: string
 }
+
+// 头部统计信息
+const headerStats = computed<StatItem[]>(() => {
+  if (state.isLoading) return []
+  
+  const stats: StatItem[] = [
+    {
+      key: 'filtered',
+      label: '筛选结果',
+      value: `${state.totalCount} 条`,
+      type: 'total',
+      icon: 'fas fa-search'
+    }
+  ]
+  
+  // 如果有选择，添加已选择信息
+  if (hasSelection.value) {
+    stats.push({
+      key: 'selected',
+      label: '已选择',
+      value: `${selectedTextsCount.value} 条`,
+      type: 'success',
+      icon: 'fas fa-check-square'
+    })
+  }
+  
+  // 如果是预览模式，添加预览标识
+  if (state.isPreviewMode) {
+    stats.push({
+      key: 'preview',
+      label: '预览模式',
+      value: '',
+      type: 'info',
+      icon: 'fas fa-eye'
+    })
+  }
+  
+  return stats
+})
 
 // 批量操作
 const handleAddLabels = async (label: string) => {
@@ -195,98 +217,22 @@ const handleRemoveLabels = async (label: string) => {
 
 <style scoped>
 .batch-annotation-page {
-  padding: var(--spacing-lg);
-  min-height: 100vh;
-  background: var(--el-bg-color-page);
-}
-
-/* 页面头部 */
-.page-header {
+  height: 100vh;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-lg);
+  flex-direction: column;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-.header-left {
-  flex: 1;
-}
 
-.header-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-  font-size: 14px;
-  color: var(--el-text-color-regular);
-}
-
-.breadcrumb-separator {
-  color: var(--el-text-color-placeholder);
-}
-
-.current-page {
-  color: var(--el-color-primary);
-  font-weight: 500;
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin: 0 0 var(--spacing-md) 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-
-.quick-stats {
-  display: flex;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-}
-
-.stat-badge {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 500;
-  border: 1px solid;
-}
-
-.stat-badge.total {
-  background: var(--el-color-info-light-9);
-  border-color: var(--el-color-info-light-7);
-  color: var(--el-color-info);
-}
-
-.stat-badge.success {
-  background: var(--el-color-success-light-9);
-  border-color: var(--el-color-success-light-7);
-  color: var(--el-color-success);
-}
-
-.stat-badge.info {
-  background: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary-light-7);
-  color: var(--el-color-primary);
-}
-
-.header-right {
-  display: flex;
-  gap: var(--spacing-md);
-}
 
 /* 工作区域 */
 .work-area {
+  flex: 1;
   display: grid;
   grid-template-columns: 400px 1fr;
-  gap: var(--spacing-lg);
-  height: calc(100vh - 200px);
+  gap: 16px;
+  padding: 0 16px 16px;
+  min-height: 0;
 }
 
 .left-panel, .right-panel {
