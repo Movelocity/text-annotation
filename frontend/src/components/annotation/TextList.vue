@@ -57,75 +57,27 @@
       </div>
       
       <div v-else class="text-items">
-        <div
+        <TextItem
           v-for="(item, index) in annotations"
           :key="item.id"
-          class="text-item modern-card transform-hover"
-          :class="{ 
-            'selected': selectedItem?.id === item.id,
-            'labeled': item.labels,
-            'unlabeled': !item.labels
-          }"
-          @click="handleItemClick(item, index)"
-        >
-          <div class="item-indicator">
-            <div class="status-dot" :class="{ 'completed': item.labels, 'pending': !item.labels }"></div>
-          </div>
-          
-          <div class="item-main">
-            <div class="item-header">
-              <div class="item-id">
-                <i class="fas fa-hashtag"></i>
-                {{ item.id }}
-              </div>
-              <div class="item-status">
-                <div v-if="item.labels" class="status-badge success">
-                  <i class="fas fa-check-circle"></i>
-                  {{ item.labels }}
-                </div>
-                <div v-else class="status-badge pending">
-                  <i class="fas fa-clock"></i>
-                  待标注
-                </div>
-              </div>
-            </div>
-            
-            <div class="item-content">
-              <p class="content-preview">{{ truncateText(item.text, 120) }}</p>
-            </div>
-            
-            <div class="item-meta">
-              <div class="meta-item">
-                <i class="fas fa-font"></i>
-                <span>{{ item.text.length }} 字符</span>
-              </div>
-              <div class="meta-item">
-                <i class="fas fa-layer-group"></i>
-                <span>{{ item.text.split('\n').length }} 行</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="item-actions">
-            <div class="select-indicator">
-              <i class="fas fa-chevron-right"></i>
-            </div>
-          </div>
-        </div>
+          :item="item"
+          :index="index"
+          :is-selected="selectedItem?.id === item.id"
+          @click="handleItemClick"
+        />
       </div>
     </div>
 
     <!-- 分页区域 -->
     <div class="pagination-section" v-if="hasAnnotations">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
+      <Pagination
+        :current-page="currentPage"
+        :page-size="pageSize"
         :page-sizes="[20, 50, 100, 200]"
         :total="total"
         :disabled="loading"
-        layout="total, sizes, prev, pager, next, jumper"
+        @page-change="handleCurrentChange"
         @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
       />
     </div>
   </div>
@@ -136,6 +88,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 // import { Search } from '@element-plus/icons-vue'
 import { useAnnotationStore } from '../../stores/annotation'
 import type { AnnotationDataResponse } from '../../types/api'
+import TextItem from './TextItem.vue'
+import Pagination from '../common/Pagination.vue'
 
 // Props
 interface Props {
@@ -170,11 +124,6 @@ const currentPage = computed(() => annotationStore.searchParams.page || 1)
 const pageSize = computed(() => annotationStore.searchParams.per_page || 50)
 
 // 方法
-const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength) + '...'
-}
-
 // const formatTime = (timeStr: string): string => {
 //   const date = new Date(timeStr)
 //   return date.toLocaleString('zh-CN')
@@ -436,187 +385,7 @@ watch(() => props.selectedItem, () => {
   gap: 12px;
 }
 
-/* 文本项 */
-.text-item {
-  display: flex;
-  align-items: stretch;
-  background: var(--el-bg-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all var(--duration-normal) ease;
-  overflow: hidden;
-  position: relative;
-}
 
-.text-item:hover {
-  border-color: var(--el-color-primary-light-7);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.text-item.selected {
-  border-color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-
-.text-item.selected::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(135deg, var(--el-color-primary), var(--el-color-primary-light-3));
-}
-
-.item-indicator {
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  background: var(--el-bg-color-page);
-}
-
-.status-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  position: relative;
-  transition: all var(--duration-fast) ease;
-}
-
-.status-dot.completed {
-  background: var(--el-color-success);
-  box-shadow: 0 0 0 3px rgba(103, 194, 58, 0.2);
-}
-
-.status-dot.pending {
-  background: var(--el-color-warning);
-  box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.2);
-}
-
-.status-dot.completed::before {
-  content: '\f00c';
-  font-family: 'Font Awesome 6 Free';
-  font-weight: 900;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 8px;
-}
-
-.item-main {
-  flex: 1;
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.item-id {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-}
-
-.item-id i {
-  font-size: 0.75rem;
-  color: var(--el-color-primary);
-}
-
-.status-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--radius-md);
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.status-badge.success {
-  background: var(--el-color-success-light-9);
-  color: var(--el-color-success-dark-2);
-  border: 1px solid var(--el-color-success-light-5);
-}
-
-.status-badge.pending {
-  background: var(--el-color-warning-light-9);
-  color: var(--el-color-warning-dark-2);
-  border: 1px solid var(--el-color-warning-light-5);
-}
-
-.item-content {
-  flex: 1;
-}
-
-.content-preview {
-  margin: 0;
-  color: var(--el-text-color-primary);
-  line-height: 1.6;
-  font-size: 0.875rem;
-  word-break: break-word;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.item-meta {
-  display: flex;
-  gap: 16px;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
-}
-
-.meta-item i {
-  font-size: 0.675rem;
-  opacity: 0.8;
-}
-
-.item-actions {
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  background: var(--el-bg-color-page);
-}
-
-.select-indicator {
-  color: var(--el-text-color-placeholder);
-  font-size: 16px;
-  transition: all var(--duration-fast) ease;
-}
-
-.text-item:hover .select-indicator {
-  color: var(--el-color-primary);
-  transform: translateX(4px);
-}
-
-.text-item.selected .select-indicator {
-  color: var(--el-color-primary);
-  transform: translateX(4px);
-}
 
 /* 分页区域 */
 .pagination-section {
@@ -624,13 +393,6 @@ watch(() => props.selectedItem, () => {
   border-top: 2px solid var(--el-border-color-lighter);
   flex-shrink: 0;
   background: var(--el-bg-color);
-  display: flex;
-  justify-content: center;
-}
-
-.pagination-section :deep(.el-pagination) {
-  --el-pagination-button-color: var(--el-text-color-regular);
-  --el-pagination-hover-color: var(--el-color-primary);
 }
 
 /* 响应式设计 */
@@ -646,23 +408,6 @@ watch(() => props.selectedItem, () => {
   
   .list-container {
     padding: 12px;
-  }
-  
-  .text-item {
-    flex-direction: column;
-  }
-  
-  .item-indicator {
-    padding: 8px 12px;
-  }
-  
-  .item-main {
-    padding: 12px 16px;
-  }
-  
-  .item-actions {
-    padding: 8px 16px;
-    justify-content: center;
   }
   
   .pagination-section {
