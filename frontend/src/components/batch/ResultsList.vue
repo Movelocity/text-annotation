@@ -57,14 +57,14 @@
         </div>
         <div 
           class="item-content"
-          :class="{ expandable: text.text.length > 100, expanded: expandedItems.has(text.id) }"
+          :class="{ expandable: text.text.length > 200, expanded: expandedItems.has(text.id) }"
           @click.stop="toggleExpanded(text.id)"
         >
           <div class="text-content">
             {{ getDisplayText(text) }}
           </div>
           <div 
-            v-if="text.text.length > 100" 
+            v-if="text.text.length > 200" 
             class="expand-indicator"
             :title="expandedItems.has(text.id) ? '点击收起' : '点击展开全文'"
           >

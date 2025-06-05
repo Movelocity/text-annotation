@@ -199,15 +199,21 @@
           variant="primary"
           :loading="isLoading"
           :disabled="!hasFilterConditions"
-          @click="$emit('filter')"
+          @click="handleFilter"
         />
+      </div>
+      
+      <!-- 快捷键提示 -->
+      <div class="shortcut-hint">
+        <i class="fas fa-keyboard"></i>
+        <span>快捷键：Ctrl + Enter 执行筛选</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, onMounted, onUnmounted, ref } from 'vue'
 import { useLabelStore } from '@/stores/label'
 import ModernButton from '../common/ModernButton.vue'
 
@@ -246,6 +252,9 @@ const emit = defineEmits<Emits>()
 // Store
 const labelStore = useLabelStore()
 
+// 防抖定时器
+const debounceTimer = ref<number | null>(null)
+
 // 表单数据
 const keywordInput = reactive({
   include: '',
@@ -275,6 +284,33 @@ const availableLabelOptions = computed(() => {
     !props.excludeLabels.includes(option.value)
   )
 })
+
+// 带防抖的筛选执行函数
+const handleFilter = () => {
+  if (!hasFilterConditions.value || props.isLoading) {
+    return
+  }
+  
+  // 清除之前的定时器
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value)
+  }
+  
+  // 设置新的防抖定时器
+  debounceTimer.value = setTimeout(() => {
+    emit('filter')
+    debounceTimer.value = null
+  }, 800) // 0.8秒防抖
+}
+
+// 键盘事件处理函数
+const handleKeydown = (event: KeyboardEvent) => {
+  // 检查是否为 Ctrl + Enter 组合键
+  if (event.ctrlKey && event.key === 'Enter') {
+    event.preventDefault()
+    handleFilter()
+  }
+}
 
 // 关键词管理
 const addIncludeKeyword = () => {
@@ -346,6 +382,19 @@ onMounted(async () => {
   if (!labelStore.hasLabels) {
     await labelStore.fetchLabels()
   }
+  
+  // 添加全局键盘事件监听
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  // 清理定时器
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value)
+  }
+  
+  // 移除全局键盘事件监听
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -406,7 +455,6 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-xs);
-  margin-top: var(--spacing-xs);
 }
 
 .filter-actions {
@@ -415,5 +463,22 @@ onMounted(async () => {
   gap: var(--spacing-md);
   padding-top: var(--spacing-lg);
   border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.shortcut-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-extra-light);
+  border-radius: var(--el-border-radius-base);
+  margin-top: var(--spacing-md);
+}
+
+.shortcut-hint i {
+  font-size: 14px;
 }
 </style> 
