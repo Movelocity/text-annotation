@@ -155,7 +155,6 @@ watch(() => props.pageSize, (newVal) => {
   display: flex;
   flex-direction: row;
   gap: 8px;
-  padding: 12px 0;
   color: var(--el-text-color-regular);
   font-size: 0.8rem;
 }

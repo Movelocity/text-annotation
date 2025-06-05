@@ -66,11 +66,21 @@ export function useBatchAnnotation() {
 
   const hasSelection = computed(() => selectedTextsCount.value > 0)
 
+  // 分页相关计算属性
+  const currentPage = computed(() => state.filterOptions.page || 1)
+  const pageSize = computed(() => state.filterOptions.perPage || 50)
+  const totalPages = computed(() => Math.ceil(state.totalCount / pageSize.value))
+
   // 筛选方法
-  const filterTexts = async () => {
+  const filterTexts = async (resetPage = false) => {
     if (!hasFilterConditions.value) {
       ElMessage.warning('请设置筛选条件')
       return
+    }
+
+    // 如果需要重置页码（新的筛选条件）
+    if (resetPage) {
+      state.filterOptions.page = 1
     }
 
     state.isLoading = true
@@ -78,8 +88,12 @@ export function useBatchAnnotation() {
       const result = await batchApi.filter(state.filterOptions)
       state.filteredTexts = result.items
       state.totalCount = result.total
-      state.selectedTextIds = [] // 清空选择
-      
+
+      // 只在重置页码时清空选择
+      if (resetPage) {
+        state.selectedTextIds = []
+      }
+
       ElMessage.success(`找到 ${result.total} 条匹配的文本`)
     } catch (error: any) {
       ElMessage.error(`筛选失败: ${error.detail || error.message}`)
@@ -127,7 +141,7 @@ export function useBatchAnnotation() {
       
       // 刷新筛选结果
       await filterTexts()
-      
+
       return result
     } catch (error: any) {
       ElMessage.error(`批量更新失败: ${error.detail || error.message}`)
@@ -149,7 +163,7 @@ export function useBatchAnnotation() {
     try {
       const result = await batchApi.updateByIds(state.selectedTextIds, updateOptions)
       ElMessage.success(result.message)
-      
+
       // 刷新筛选结果
       await filterTexts()
       
@@ -243,19 +257,34 @@ export function useBatchAnnotation() {
     state.filterOptions.unlabeledOnly = unlabeledOnly
   }
 
+  // 分页相关方法
+  const handlePageChange = async (page: number) => {
+    state.filterOptions.page = page
+    await filterTexts()
+  }
+
+  const handlePageSizeChange = async (size: number) => {
+    state.filterOptions.perPage = size
+    state.filterOptions.page = 1 // 重置到第一页
+    await filterTexts()
+  }
+
   return {
     // 状态
     state,
-    
+
     // 计算属性
     hasFilterConditions,
     selectedTextsCount,
     hasSelection,
-    
+    currentPage,
+    pageSize,
+    totalPages,
+
     // 筛选方法
     filterTexts,
     previewFilter,
-    
+
     // 更新方法
     updateLabelsByFilter,
     updateLabelsBySelection,
@@ -263,13 +292,17 @@ export function useBatchAnnotation() {
     removeLabelsFromFiltered,
     addLabelsToSelected,
     removeLabelsFromSelected,
-    
+
     // 选择管理
     selectAll,
     clearSelection,
     toggleSelection,
     isSelected,
-    
+
+    // 分页管理
+    handlePageChange,
+    handlePageSizeChange,
+
     // 工具方法
     resetState,
     setIncludeKeywords,

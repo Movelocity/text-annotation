@@ -449,13 +449,13 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
+  /* gap: var(--spacing-sm); */
   padding: var(--spacing-sm);
   font-size: 12px;
   color: var(--el-text-color-secondary);
-  background: var(--el-fill-color-extra-light);
+  /* background: var(--el-fill-color-extra-light); */
   border-radius: var(--el-border-radius-base);
-  margin-top: var(--spacing-md);
+  /* margin-top: var(--spacing-md); */
 }
 
 .shortcut-hint i {

@@ -38,7 +38,7 @@
           @update:exclude-labels="setExcludeLabels"
           @update:unlabeled-only="setUnlabeledOnly"
           @preview="previewFilter"
-          @filter="filterTexts"
+          @filter="() => filterTexts(true)"
         />
 
         <!-- 批量操作 -->
@@ -70,6 +70,19 @@
           @clear-selection="clearSelection"
           @toggle-selection="toggleSelection"
         />
+
+        <!-- 分页组件 -->
+        <div class="pagination-section" v-if="state.filteredTexts.length > 0">
+          <Pagination
+            :current-page="currentPage"
+            :page-size="pageSize"
+            :page-sizes="[20, 50, 100, 200]"
+            :total="state.totalCount"
+            :disabled="state.isLoading"
+            @page-change="handlePageChange"
+            @size-change="handlePageSizeChange"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -84,6 +97,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import FilterPanel from '@/components/batch/FilterPanel.vue'
 import ResultsList from '@/components/batch/ResultsList.vue'
 import BatchActions from '@/components/batch/BatchActions.vue'
+import Pagination from '@/components/common/Pagination.vue'
 
 
 // Composable
@@ -92,6 +106,9 @@ const {
   hasFilterConditions,
   selectedTextsCount,
   hasSelection,
+  currentPage,
+  pageSize,
+  totalPages,
   filterTexts,
   previewFilter,
   addLabelsToFiltered,
@@ -102,6 +119,8 @@ const {
   clearSelection,
   toggleSelection,
   isSelected,
+  handlePageChange,
+  handlePageSizeChange,
   resetState,
   setIncludeKeywords,
   setExcludeKeywords,
@@ -244,6 +263,14 @@ const handleRemoveLabels = async (label: string) => {
 
 .right-panel {
   height: 100%;
+}
+
+/* 分页区域 */
+.pagination-section {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  border-top: 1px solid var(--el-border-color-lighter);
 }
 
 /* 删除了已移到子组件的样式 */
