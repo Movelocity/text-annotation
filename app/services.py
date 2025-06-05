@@ -535,7 +535,9 @@ class LabelService:
         
         db_label = Label(
             id=label_data.id if hasattr(label_data, 'id') else None,
-            label=label_data.label
+            label=label_data.label,
+            description=label_data.description,
+            groups=label_data.groups
         )
         
         self.db.add(db_label)

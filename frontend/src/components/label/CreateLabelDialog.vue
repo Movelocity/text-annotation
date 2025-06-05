@@ -146,7 +146,8 @@ const handleSubmit = async () => {
     loading.value = true
     
     const labelData: LabelCreate = {
-      label: form.label.trim()
+      label: form.label.trim(),
+      description: form.description?.trim() || null
     }
 
     await labelStore.createLabel(labelData)

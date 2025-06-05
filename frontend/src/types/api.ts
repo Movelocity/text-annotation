@@ -29,6 +29,7 @@ export interface AnnotationDataList {
 // 标签相关类型
 export interface LabelBase {
   label: string
+  description?: string | null
 }
 
 export interface LabelCreate extends LabelBase {

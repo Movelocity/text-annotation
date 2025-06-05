@@ -39,15 +39,18 @@ class AnnotationData(Base):
 class Label(Base):
     """
     标签管理的模型。
-    
+
     Attributes:
         id: 标签的唯一标识符
         label: 标签字符串（已建立唯一索引）
+        description: 标签描述（可选）
     """
     __tablename__ = "labels"
-    
+
     id = Column(Integer, primary_key=True)
     label = Column(String, nullable=False, unique=True, index=True)  # 添加索引
+    description = Column(Text, nullable=True)  # 标签描述
+    groups = Column(Text, nullable=True)  # 标签分组 aaa/bbb/ccc
 
 from .config import DATABASE_URL
 

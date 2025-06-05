@@ -57,6 +57,8 @@ class AnnotationDataList(BaseModel):
 class LabelBase(BaseModel):
     """标签的基础 schema。"""
     label: str = Field(..., description="标签字符串")
+    description: Optional[str] = Field(None, description="标签描述")
+    groups: Optional[str] = Field(None, description="标签分组 aaa/bbb/ccc")
 
 
 class LabelCreate(LabelBase):

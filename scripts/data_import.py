@@ -101,7 +101,7 @@ class DataImporter:
                 # 检查标签是否已存在
                 existing = self.db.query(Label).filter(Label.id == int(label_id)).first()
                 if not existing:
-                    label = Label(id=int(label_id), label=label_name)
+                    label = Label(id=int(label_id), label=label_name, description=None)
                     self.db.add(label)
                     labels_imported += 1
         
@@ -170,7 +170,7 @@ class DataImporter:
         for label_name in unique_labels:
             existing = self.db.query(Label).filter(Label.label == label_name).first()
             if not existing:
-                label = Label(id=next_id, label=label_name)
+                label = Label(id=next_id, label=label_name, description=None)
                 self.db.add(label)
                 next_id += 1
                 new_labels_count += 1

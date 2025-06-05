@@ -2,7 +2,12 @@
   <el-card class="label-card" :class="{ 'unused': isUnused }" @click="handleCardClick">
     <!-- 主要信息：始终显示 -->
     <div class="label-main">
-      <div class="label-name">{{ label.label }}</div>
+      <div class="label-info">
+        <div class="label-name">{{ label.label }}</div>
+        <div v-if="label.description" class="label-description">
+          {{ label.description }}
+        </div>
+      </div>
       <div class="label-status">
         <el-tag :type="isUnused ? 'warning' : 'success'" size="small">
           {{ usageCount }}次
@@ -156,8 +161,13 @@ const handleCardClick = () => {
 .label-main {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
+}
+
+.label-info {
+  flex: 1;
+  margin-right: 12px;
 }
 
 .label-name {
@@ -165,8 +175,14 @@ const handleCardClick = () => {
   font-weight: 600;
   color: #303133;
   word-break: break-all;
-  flex: 1;
-  margin-right: 12px;
+  margin-bottom: 4px;
+}
+
+.label-description {
+  font-size: 13px;
+  color: #909399;
+  line-height: 1.4;
+  word-break: break-all;
 }
 
 .label-status {
