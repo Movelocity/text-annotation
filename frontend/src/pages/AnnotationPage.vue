@@ -36,18 +36,18 @@
         </div>
       </div>
       <div class="header-right">
-        <el-button 
-          @click="handleRefresh" 
+        <ModernButton
+          text="刷新"
+          icon="fas fa-sync-alt"
           :loading="annotationStore.loading"
-          class="modern-btn shadow-hover"
-        >
-          <i class="fas fa-sync-alt" :class="{ 'fa-spin': annotationStore.loading }"></i>
-          刷新
-        </el-button>
-        <el-button @click="goToHome" class="modern-btn shadow-hover">
-          <i class="fas fa-home"></i>
-          返回首页
-        </el-button>
+          :spinning="annotationStore.loading"
+          @click="handleRefresh"
+        />
+        <ModernButton
+          text="返回首页"
+          icon="fas fa-home"
+          @click="goToHome"
+        />
       </div>
     </div>
 
@@ -68,24 +68,19 @@
         <!-- 导航控制 -->
         <div class="navigation-controls glass-panel" v-if="currentItem">
           <div class="nav-buttons">
-            <el-button 
-              @click="handlePrevious"
+            <ModernButton
+              text="上一条"
+              icon="fas fa-chevron-left"
               :disabled="currentIndex <= 0"
-              class="nav-btn shadow-hover"
-              :class="{ disabled: currentIndex <= 0 }"
-            >
-              <i class="fas fa-chevron-left"></i>
-              上一条
-            </el-button>
-            <el-button 
-              @click="handleNext"
+              @click="handlePrevious"
+            />
+            <ModernButton
+              text="下一条"
+              icon="fas fa-chevron-right"
+              :icon-right="true"
               :disabled="currentIndex >= annotationStore.annotations.length - 1"
-              class="nav-btn shadow-hover"
-              :class="{ disabled: currentIndex >= annotationStore.annotations.length - 1 }"
-            >
-              下一条
-              <i class="fas fa-chevron-right"></i>
-            </el-button>
+              @click="handleNext"
+            />
           </div>
           
           <div class="position-info">
@@ -125,6 +120,7 @@ import { useAnnotationStore } from '../stores/annotation'
 import TextList from '../components/annotation/TextList.vue'
 import TextViewer from '../components/annotation/TextViewer.vue'
 import LabelSelector from '../components/annotation/LabelSelector.vue'
+import ModernButton from '../components/common/ModernButton.vue'
 import type { AnnotationDataResponse } from '../types/api'
 import { ElMessage } from 'element-plus'
 
@@ -361,24 +357,7 @@ onMounted(async () => {
   align-items: flex-start;
 }
 
-.modern-btn {
-  border-radius: var(--radius-md);
-  padding: 10px 16px;
-  font-weight: 500;
-  border: 1px solid var(--el-border-color-light);
-  background: rgba(255, 255, 255, 0.9);
-  transition: all var(--duration-fast) ease;
-}
 
-.modern-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  background: white;
-}
-
-.modern-btn i {
-  margin-right: 6px;
-}
 
 /* 工作区域 */
 .work-area {
@@ -446,31 +425,7 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.nav-btn {
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--el-border-color-light);
-  background: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  transition: all var(--duration-fast) ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
-.nav-btn:not(.disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  background: white;
-  border-color: var(--el-color-primary);
-  color: var(--el-color-primary);
-}
-
-.nav-btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: var(--el-bg-color-page);
-}
 
 .position-info {
   display: flex;

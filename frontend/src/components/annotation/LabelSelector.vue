@@ -7,22 +7,19 @@
     <div class="selector-header">
       <h3>标签选择</h3>
       <div class="quick-actions">
-        <el-button 
-          type="primary" 
-          size="small" 
-          @click="handleSave"
+        <ModernButton
+          text="保存标注"
+          icon="fas fa-save"
           :disabled="!currentItem || saving"
           :loading="saving"
-        >
-          保存标注
-        </el-button>
-        <el-button 
-          size="small" 
-          @click="handleSkip"
+          @click="handleSave"
+        />
+        <ModernButton
+          text="跳过"
+          icon="fas fa-step-forward"
           :disabled="!currentItem"
-        >
-          跳过
-        </el-button>
+          @click="handleSkip"
+        />
       </div>
     </div>
 
@@ -107,6 +104,7 @@ import { useLabelStore } from '../../stores/label'
 import { useAnnotationStore } from '../../stores/annotation'
 import type { AnnotationDataResponse } from '../../types/api'
 import { ElMessage } from 'element-plus'
+import ModernButton from '../common/ModernButton.vue'
 
 // Props
 interface Props {

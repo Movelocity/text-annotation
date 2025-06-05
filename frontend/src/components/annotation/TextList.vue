@@ -30,22 +30,27 @@
         
         <div class="filter-options">
           <div class="status-filter">
-            <el-radio-group v-model="filterForm.unlabeled_only" @change="handleFilterChange" class="status-radio">
-              <el-radio-button :label="false">
-                <i class="fas fa-list-ul"></i>
-                全部
-              </el-radio-button>
-              <el-radio-button :label="true">
-                <i class="fas fa-clock"></i>
-                未标注
-              </el-radio-button>
-            </el-radio-group>
+            <div class="status-buttons">
+              <ModernButton
+                text="全部"
+                icon="fas fa-list-ul"
+                :class="{ active: !filterForm.unlabeled_only }"
+                @click="() => { filterForm.unlabeled_only = false; handleFilterChange(); }"
+              />
+              <ModernButton
+                text="未标注"
+                icon="fas fa-clock"
+                :class="{ active: filterForm.unlabeled_only }"
+                @click="() => { filterForm.unlabeled_only = true; handleFilterChange(); }"
+              />
+            </div>
           </div>
           
-          <el-button @click="handleReset" class="reset-btn" size="small">
-            <i class="fas fa-undo"></i>
-            重置
-          </el-button>
+          <ModernButton
+            text="重置"
+            icon="fas fa-undo"
+            @click="handleReset"
+          />
         </div>
       </div>
     </div>
@@ -90,6 +95,7 @@ import { useAnnotationStore } from '../../stores/annotation'
 import type { AnnotationDataResponse } from '../../types/api'
 import TextItem from './TextItem.vue'
 import Pagination from '../common/Pagination.vue'
+import ModernButton from '../common/ModernButton.vue'
 
 // Props
 interface Props {
@@ -313,55 +319,26 @@ watch(() => props.selectedItem, () => {
   flex: 1;
 }
 
-.status-radio {
+.status-buttons {
+  display: flex;
+  gap: 8px;
   width: 100%;
 }
 
-.status-radio :deep(.el-radio-button) {
+.status-buttons :deep(.modern-btn) {
   flex: 1;
 }
 
-.status-radio :deep(.el-radio-button__inner) {
-  width: 100%;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-  transition: all var(--duration-fast) ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.status-radio :deep(.el-radio-button__inner):hover {
-  border-color: var(--el-color-primary-light-5);
-  background: var(--el-color-primary-light-9);
-}
-
-.status-radio :deep(.el-radio-button.is-active .el-radio-button__inner) {
+.status-buttons :deep(.modern-btn.active) {
   background: var(--el-color-primary);
   border-color: var(--el-color-primary);
   color: white;
   box-shadow: var(--shadow-sm);
 }
 
-.reset-btn {
-  border-radius: var(--radius-md);
-  border: 2px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-  transition: all var(--duration-fast) ease;
-}
-
-.reset-btn:hover {
-  border-color: var(--el-color-warning);
-  background: var(--el-color-warning-light-9);
-  color: var(--el-color-warning-dark-2);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.reset-btn i {
-  margin-right: 4px;
+.status-buttons :deep(.modern-btn.active:hover) {
+  transform: none;
+  background: var(--el-color-primary-dark-2);
 }
 
 /* 列表区域 */
@@ -389,8 +366,9 @@ watch(() => props.selectedItem, () => {
 
 /* 分页区域 */
 .pagination-section {
-  padding: 20px;
-  border-top: 2px solid var(--el-border-color-lighter);
+  padding: 5px;
+  display: flex;
+  justify-content: center;
   flex-shrink: 0;
   background: var(--el-bg-color);
 }

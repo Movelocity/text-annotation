@@ -22,24 +22,20 @@
     
     <!-- 底部：导航控制 -->
     <div class="pagination-controls">
-      <button 
-        class="pagination-btn"
-        :class="{ disabled: currentPage <= 1 }"
+      <ModernButton
+        icon="fas fa-chevron-left"
         :disabled="disabled || currentPage <= 1"
         @click="handlePrevious"
-        title="上一页"
-      >
-        <i class="fas fa-chevron-left"></i>
-      </button>
+        class="pagination-nav-btn"
+      />
       
       <div class="page-info">
         <input 
-          v-model.number="inputPage"
+          v-model="inputPageText"
           @keyup.enter="handleJumpPage"
           @blur="handleJumpPage"
-          type="number"
-          :min="1"
-          :max="totalPages"
+          @input="handlePageInput"
+          type="text"
           class="page-input"
           :disabled="disabled"
           :placeholder="currentPage.toString()"
@@ -48,21 +44,19 @@
         <span class="total-pages">{{ totalPages }}</span>
       </div>
       
-      <button 
-        class="pagination-btn"
-        :class="{ disabled: currentPage >= totalPages }"
+      <ModernButton
+        icon="fas fa-chevron-right"
         :disabled="disabled || currentPage >= totalPages"
         @click="handleNext"
-        title="下一页"
-      >
-        <i class="fas fa-chevron-right"></i>
-      </button>
+        class="pagination-nav-btn"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import ModernButton from './ModernButton.vue'
 
 // Props
 interface Props {
@@ -89,6 +83,7 @@ const emit = defineEmits<Emits>()
 // 响应式数据
 const currentPageSize = ref(props.pageSize)
 const inputPage = ref(props.currentPage)
+const inputPageText = ref(props.currentPage.toString())
 
 // 计算属性
 const totalPages = computed(() => Math.ceil(props.total / props.pageSize))
@@ -106,9 +101,35 @@ const handleNext = () => {
   }
 }
 
+const handlePageInput = () => {
+  // 只允许输入数字，限制长度避免过长输入
+  const filtered = inputPageText.value.replace(/[^\d]/g, '').slice(0, 6)
+  if (filtered !== inputPageText.value) {
+    inputPageText.value = filtered
+  }
+}
+
 const handleJumpPage = () => {
-  const page = Math.max(1, Math.min(totalPages.value, inputPage.value || 1))
+  // 如果输入为空，重置为当前页码
+  if (!inputPageText.value.trim()) {
+    inputPageText.value = props.currentPage.toString()
+    return
+  }
+  
+  // 将文本转换为数字并进行有效性检查
+  const pageNum = parseInt(inputPageText.value, 10)
+  
+  if (isNaN(pageNum) || pageNum < 1) {
+    // 如果输入无效，重置为当前页码
+    inputPageText.value = props.currentPage.toString()
+    return
+  }
+  
+  // 将页码限制在有效范围内
+  const page = Math.max(1, Math.min(totalPages.value, pageNum))
   inputPage.value = page
+  inputPageText.value = page.toString()
+  
   if (page !== props.currentPage) {
     emit('page-change', page)
   }
@@ -121,6 +142,7 @@ const handlePageSizeChange = () => {
 // 监听器
 watch(() => props.currentPage, (newVal) => {
   inputPage.value = newVal
+  inputPageText.value = newVal.toString()
 })
 
 watch(() => props.pageSize, (newVal) => {
@@ -155,17 +177,18 @@ watch(() => props.pageSize, (newVal) => {
 .page-size-select {
   padding: 2px 6px;
   border: 1px solid var(--el-border-color-light);
-  border-radius: 3px;
-  background: var(--el-bg-color);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.9);
   color: var(--el-text-color-primary);
   font-size: 0.75rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-fast) ease;
   min-width: 55px;
 }
 
 .page-size-select:hover:not(:disabled) {
   border-color: var(--el-color-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .page-size-select:disabled {
@@ -181,34 +204,21 @@ watch(() => props.pageSize, (newVal) => {
   gap: 8px;
 }
 
-.pagination-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 28px;
-  border: 1px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-  color: var(--el-text-color-primary);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.pagination-nav-btn {
+  width: 32px !important;
+  height: 28px !important;
+  min-width: 32px !important;
+  padding: 0 !important;
   font-size: 0.75rem;
 }
 
-.pagination-btn:hover:not(.disabled):not(:disabled) {
-  border-color: var(--el-color-primary);
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
+.pagination-nav-btn :deep(.el-button) {
+  width: 100%;
+  height: 100%;
+  padding: 0;
 }
 
-.pagination-btn.disabled,
-.pagination-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.pagination-btn i {
+.pagination-nav-btn :deep(i) {
   font-size: 0.7rem;
 }
 
@@ -226,18 +236,18 @@ watch(() => props.pageSize, (newVal) => {
   height: 24px;
   padding: 2px 4px;
   border: 1px solid var(--el-border-color-light);
-  border-radius: 3px;
-  background: var(--el-bg-color);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.9);
   color: var(--el-text-color-primary);
   text-align: center;
   font-size: 0.75rem;
-  transition: all 0.2s ease;
+  transition: all var(--duration-fast) ease;
 }
 
 .page-input:focus {
   outline: none;
   border-color: var(--el-color-primary);
-  box-shadow: 0 0 0 1px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
 }
 
 .page-input:disabled {
