@@ -59,7 +59,35 @@ export interface BulkLabelRequest {
   labels: string
 }
 
-// 搜索相关类型
+// 高级搜索相关类型（增强版）
+export interface AdvancedSearchRequest {
+  query?: string | null              // 必须包含的关键词
+  exclude_query?: string | null      // 不能包含的关键词
+  labels?: string | null             // 必须包含的标签（逗号分隔）
+  exclude_labels?: string | null     // 不能包含的标签（逗号分隔）
+  unlabeled_only?: boolean
+  page?: number
+  per_page?: number
+}
+
+// 批量标签更新相关类型
+export interface BulkUpdateLabelsRequest {
+  // 方式1：通过搜索条件筛选
+  search_criteria?: AdvancedSearchRequest
+  // 方式2：通过ID列表
+  text_ids?: number[]
+  // 要添加的标签
+  labels_to_add?: string | null
+  // 要删除的标签
+  labels_to_remove?: string | null
+}
+
+export interface BulkUpdateLabelsResponse {
+  updated_count: number
+  message: string
+}
+
+// 搜索相关类型（保持向后兼容）
 export interface SearchRequest {
   query?: string | null
   labels?: string | null

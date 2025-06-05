@@ -12,8 +12,11 @@ import type {
   LabelCreate,
   LabelResponse,
   SearchRequest,
+  AdvancedSearchRequest,
   TextImportRequest,
   BulkLabelRequest,
+  BulkUpdateLabelsRequest,
+  BulkUpdateLabelsResponse,
   ImportRequest,
   ImportStats,
   SystemStats,
@@ -95,8 +98,20 @@ class ApiService {
     return response.data
   }
 
+  // 高级搜索（支持排除条件）
+  async advancedSearchAnnotations(searchParams: AdvancedSearchRequest): Promise<AnnotationDataList> {
+    const response = await this.axiosInstance.post<AnnotationDataList>('/annotations/search', searchParams)
+    return response.data
+  }
+
   async bulkLabelAnnotations(data: BulkLabelRequest): Promise<{ updated_count: number }> {
     const response = await this.axiosInstance.post<{ updated_count: number }>('/annotations/bulk-label', data)
+    return response.data
+  }
+
+  // 批量标签更新（增删标签）
+  async bulkUpdateLabels(data: BulkUpdateLabelsRequest): Promise<BulkUpdateLabelsResponse> {
+    const response = await this.axiosInstance.post<BulkUpdateLabelsResponse>('/annotations/bulk-update-labels', data)
     return response.data
   }
 
@@ -173,7 +188,9 @@ export const annotationApi = {
   update: (id: number, data: AnnotationDataUpdate) => apiService.updateAnnotation(id, data),
   delete: (id: number) => apiService.deleteAnnotation(id),
   search: (params: SearchRequest) => apiService.searchAnnotations(params),
+  advancedSearch: (params: AdvancedSearchRequest) => apiService.advancedSearchAnnotations(params),
   bulkLabel: (data: BulkLabelRequest) => apiService.bulkLabelAnnotations(data),
+  bulkUpdateLabels: (data: BulkUpdateLabelsRequest) => apiService.bulkUpdateLabels(data),
   importTexts: (data: TextImportRequest) => apiService.importTexts(data)
 }
 
