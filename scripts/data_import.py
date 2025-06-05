@@ -12,7 +12,7 @@ import yaml
 from typing import Dict, List, Set
 from sqlalchemy.orm import Session
 from app.models import AnnotationData, Label, SessionLocal, create_tables
-
+from tqdm import tqdm
 
 class DataImporter:
     """处理导入和处理标注数据。"""
@@ -54,17 +54,18 @@ class DataImporter:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         for line in f:
                             text = line.strip()
-                            if text:  # 跳过空行
-                                if text in text_labels_map:
-                                    text_labels_map[text].add(label_name)
-                                    stats["duplicates_merged"] += 1
-                                else:
-                                    text_labels_map[text] = {label_name}
+                            if not text: 
+                                continue # 跳过空行
+                            if text in text_labels_map:
+                                text_labels_map[text].add(label_name)
+                                stats["duplicates_merged"] += 1
+                            else:
+                                text_labels_map[text] = {label_name}
                     
                     stats["files_processed"] += 1
         
         # 将数据插入数据库
-        for text, labels in text_labels_map.items():
+        for text, labels in tqdm(text_labels_map.items(), desc="数据插入数据库", total=len(text_labels_map)):
             labels_str = ','.join(sorted(labels))  # 排序以保持一致性
             
             # 检查文本是否已存在
