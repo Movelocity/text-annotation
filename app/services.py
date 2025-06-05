@@ -158,33 +158,8 @@ class AnnotationService:
         Returns:
             分页的标注数据列表
         """
-        query = self.db.query(AnnotationData)
-        
-        # 应用过滤器
-        if search_request.query:
-            query = query.filter(AnnotationData.text.contains(search_request.query))
-        
-        if search_request.labels:
-            # 搜索指定的任何标签 - 使用更精确的匹配
-            label_filters = []
-            for label in search_request.labels.split(','):
-                label = label.strip()
-                if label:
-                    # 使用精确匹配模式：标签必须完全匹配（考虑逗号和空格）
-                    label_filters.extend([
-                        AnnotationData.labels == label,  # 单标签完全匹配
-                        AnnotationData.labels.like(f"{label},%"),  # 开头匹配
-                        AnnotationData.labels.like(f"%, {label}"),  # 结尾匹配  
-                        AnnotationData.labels.like(f"%, {label},%")  # 中间匹配
-                    ])
-            if label_filters:
-                query = query.filter(or_(*label_filters))
-        
-        if search_request.unlabeled_only:
-            query = query.filter(or_(
-                AnnotationData.labels.is_(None),
-                AnnotationData.labels == ''
-            ))
+        # 使用复用的查询构建方法
+        query = self._build_search_query(search_request)
         
         # 优化总数查询 - 使用 count() 子查询而非直接 count()
         total_subquery = query.statement.with_only_columns(func.count()).order_by(None)
@@ -377,6 +352,146 @@ class AnnotationService:
             print("没有新记录需要导入")
         
         return len(new_annotations)
+
+    def _build_search_query(self, search_request: schemas.SearchRequest):
+        """
+        构建搜索查询（从search_annotations方法提取的复用逻辑）。
+        
+        Args:
+            search_request: 搜索参数
+            
+        Returns:
+            SQLAlchemy查询对象
+        """
+        query = self.db.query(AnnotationData)
+        
+        # 应用包含过滤器
+        if search_request.query:
+            query = query.filter(AnnotationData.text.contains(search_request.query))
+        
+        # 应用排除关键词过滤器
+        if search_request.exclude_query:
+            query = query.filter(~AnnotationData.text.contains(search_request.exclude_query))
+        
+        if search_request.labels:
+            # 搜索指定的任何标签 - 使用更精确的匹配
+            label_filters = []
+            for label in search_request.labels.split(','):
+                label = label.strip()
+                if label:
+                    # 使用精确匹配模式：标签必须完全匹配（考虑逗号和空格）
+                    label_filters.extend([
+                        AnnotationData.labels == label,  # 单标签完全匹配
+                        AnnotationData.labels.like(f"{label},%"),  # 开头匹配
+                        AnnotationData.labels.like(f"%, {label}"),  # 结尾匹配  
+                        AnnotationData.labels.like(f"%, {label},%")  # 中间匹配
+                    ])
+            if label_filters:
+                query = query.filter(or_(*label_filters))
+        
+        # 应用排除标签过滤器
+        if search_request.exclude_labels:
+            # 排除包含指定标签的记录
+            exclude_label_filters = []
+            for label in search_request.exclude_labels.split(','):
+                label = label.strip()
+                if label:
+                    # 构建排除条件：记录不能包含这些标签
+                    exclude_label_filters.extend([
+                        AnnotationData.labels == label,  # 单标签完全匹配
+                        AnnotationData.labels.like(f"{label},%"),  # 开头匹配
+                        AnnotationData.labels.like(f"%, {label}"),  # 结尾匹配
+                        AnnotationData.labels.like(f"%, {label},%")  # 中间匹配
+                    ])
+            if exclude_label_filters:
+                # 使用NOT来排除匹配的记录
+                query = query.filter(~or_(*exclude_label_filters))
+        
+        if search_request.unlabeled_only:
+            query = query.filter(or_(
+                AnnotationData.labels.is_(None),
+                AnnotationData.labels == ''
+            ))
+        
+        return query
+
+    def bulk_update_labels(self, request: schemas.BulkLabelUpdateRequest) -> schemas.BulkLabelUpdateResponse:
+        """
+        批量更新标签（添加或删除）。
+        
+        Args:
+            request: 批量标签更新请求
+            
+        Returns:
+            更新操作的结果
+        """
+        # 1. 获取目标记录
+        if request.search_criteria:
+            # 通过搜索条件获取记录
+            query = self._build_search_query(request.search_criteria)
+            records = query.all()
+        else:
+            # 通过ID列表获取记录
+            records = self.db.query(AnnotationData).filter(
+                AnnotationData.id.in_(request.text_ids)
+            ).all()
+        
+        if not records:
+            return schemas.BulkLabelUpdateResponse(
+                updated_count=0,
+                message="没有找到匹配的记录"
+            )
+        
+        # 2. 准备标签操作
+        labels_to_add = parse_labels(request.labels_to_add) if request.labels_to_add else []
+        labels_to_remove = parse_labels(request.labels_to_remove) if request.labels_to_remove else []
+        
+        # 3. 处理每条记录的标签更新
+        updates = {}
+        for record in records:
+            current_labels = parse_labels(record.labels)
+            
+            # 添加新标签
+            if labels_to_add:
+                current_labels.extend(labels_to_add)
+            
+            # 删除指定标签
+            if labels_to_remove:
+                current_labels = [label for label in current_labels if label not in labels_to_remove]
+            
+            # 去重并格式化
+            updated_labels = format_labels(current_labels)
+            
+            # 只有当标签确实发生变化时才记录更新
+            if record.labels != updated_labels:
+                updates[record.id] = updated_labels
+        
+        # 4. 批量更新数据库
+        if updates:
+            for record_id, new_labels in updates.items():
+                self.db.query(AnnotationData).filter(
+                    AnnotationData.id == record_id
+                ).update(
+                    {AnnotationData.labels: new_labels},
+                    synchronize_session=False
+                )
+            
+            self.db.commit()
+        
+        # 5. 构建响应消息
+        operation_parts = []
+        if labels_to_add:
+            operation_parts.append(f"添加标签: {', '.join(labels_to_add)}")
+        if labels_to_remove:
+            operation_parts.append(f"删除标签: {', '.join(labels_to_remove)}")
+        
+        operation_desc = "; ".join(operation_parts)
+        message = f"批量更新完成。操作: {operation_desc}。更新了 {len(updates)} 条记录。"
+        
+        return schemas.BulkLabelUpdateResponse(
+            updated_count=len(updates),
+            message=message
+        )
 
 
 class LabelService:

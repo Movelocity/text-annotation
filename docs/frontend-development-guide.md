@@ -322,25 +322,169 @@ const apiCall = async (url, options) => {
 };
 ```
 
+## 新增功能使用指南
+
+### 1. 高级搜索功能
+新的搜索API支持更精确的筛选条件：
+
+```javascript
+// 高级搜索示例
+const searchWithAdvancedFilters = async () => {
+  const searchParams = {
+    query: "客服",                    // 必须包含"客服"
+    exclude_query: "测试",            // 不能包含"测试"
+    labels: "客户服务,咨询",           // 必须包含这些标签之一
+    exclude_labels: "已处理,已关闭",   // 不能包含这些标签
+    unlabeled_only: false,
+    page: 1,
+    per_page: 50
+  };
+
+  const response = await fetch('/annotations/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(searchParams)
+  });
+
+  return response.json();
+};
+```
+
+#### 前端界面建议：
+- 提供"包含关键词"和"排除关键词"两个输入框
+- 提供"必须包含标签"和"排除标签"的多选组件
+- 添加"仅显示未标注"的复选框
+
+### 2. 批量标签更新功能
+新的批量更新API支持增加或删除标签，而不是完全覆盖：
+
+```javascript
+// 基于搜索条件的批量更新
+const bulkUpdateBySearch = async () => {
+  const updateRequest = {
+    search_criteria: {
+      query: "客服问题",
+      labels: "待处理",
+      page: 1,
+      per_page: 1000  // 确保获取所有匹配的记录
+    },
+    labels_to_add: "已审核,质量确认",     // 添加新标签
+    labels_to_remove: "待处理"           // 删除指定标签
+  };
+
+  const response = await fetch('/annotations/bulk-update-labels', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updateRequest)
+  });
+
+  return response.json();
+};
+
+// 基于ID列表的批量更新
+const bulkUpdateByIds = async (selectedIds) => {
+  const updateRequest = {
+    text_ids: selectedIds,
+    labels_to_add: "已审核",
+    labels_to_remove: "待处理"
+  };
+
+  const response = await fetch('/annotations/bulk-update-labels', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updateRequest)
+  });
+
+  return response.json();
+};
+```
+
+#### 推荐的工作流程：
+1. **标注员筛选模式**：
+   - 使用高级搜索找到需要处理的文本
+   - 对搜索结果进行人工审核
+   - 确认后批量添加标签
+
+2. **质量控制模式**：
+   - 筛选已标注但未审核的文本
+   - 审核后批量添加"已审核"标签
+   - 对有问题的文本批量添加"需修改"标签
+
+#### 前端界面建议：
+
+```jsx
+// React 组件示例
+function BatchLabelUpdate() {
+  const [searchCriteria, setSearchCriteria] = useState({});
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [labelsToAdd, setLabelsToAdd] = useState('');
+  const [labelsToRemove, setLabelsToRemove] = useState('');
+
+  const handleBatchUpdate = async () => {
+    const request = {
+      ...(selectedIds.length > 0 
+        ? { text_ids: selectedIds } 
+        : { search_criteria: searchCriteria }
+      ),
+      labels_to_add: labelsToAdd || undefined,
+      labels_to_remove: labelsToRemove || undefined
+    };
+
+    try {
+      const result = await bulkUpdateLabels(request);
+      alert(`成功更新 ${result.updated_count} 条记录`);
+    } catch (error) {
+      alert(`更新失败: ${error.message}`);
+    }
+  };
+
+  return (
+    <div>
+      {/* 搜索条件或ID选择 */}
+      {/* 标签添加/删除输入框 */}
+      <button onClick={handleBatchUpdate}>批量更新</button>
+    </div>
+  );
+}
+```
+
+### 3. 工作流程优化建议
+
+#### 标注员工作流：
+1. **初步筛选**：使用高级搜索找到相似文本
+2. **批量预览**：显示搜索结果供确认
+3. **批量标注**：对确认的文本批量添加标签
+4. **逐个微调**：对需要特殊处理的文本单独标注
+
+#### 质量控制流程：
+1. **筛选待审核**：查找已标注但未审核的文本
+2. **审核标注**：人工检查标注质量
+3. **批量确认**：对合格的文本批量添加"已审核"标签
+4. **问题标记**：对有问题的文本添加"需修改"标签
+
 ## 用户体验建议
 
 ### 1. 加载状态
 - 为所有异步操作显示加载指示器
 - 长时间操作显示进度条
+- 批量操作时显示操作进度和预估完成时间
 
 ### 2. 操作反馈
 - 成功操作显示提示信息
 - 失败操作显示错误详情
 - 关键操作需要确认对话框
+- 批量操作前显示将要影响的记录数量
 
 ### 3. 键盘快捷键
 - `Ctrl+S`: 保存当前标注
 - `Tab`: 切换到下一个文本
 - `Shift+Tab`: 切换到上一个文本
+- `Ctrl+A`: 全选当前页的文本（用于批量操作）
 
 ### 4. 响应式设计
 - 支持移动设备访问
 - 适配不同屏幕尺寸
+- 移动端优化批量操作界面
 
 ## 开发环境设置
 

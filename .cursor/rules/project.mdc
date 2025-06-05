@@ -19,6 +19,7 @@ Frontend: pnpm Vue3 Typescript element-plus
 4. 后端使用 uv 运行项目
 5. 在CMD中, 多条命令使用 & 而不是 && 拼接
 6. 开发前端时，不要使用 npm, 只允许使用 pnpm 安装依赖和运行
+7. api文档位于 docs/api.md, docs/api-quick-reference.md
 
 最佳实践：
 - context7 工具可以帮助你查询任何项目的最新文档，避免错误使用开发工具和依赖

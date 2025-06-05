@@ -186,6 +186,43 @@ def bulk_label_annotations(
     return {"updated_count": updated_count}
 
 
+@app.post("/annotations/bulk-update-labels", response_model=schemas.BulkLabelUpdateResponse)
+def bulk_update_labels(
+    update_request: schemas.BulkLabelUpdateRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    批量更新标签（添加或删除）。
+    
+    支持两种操作方式：
+    1. 通过搜索条件筛选数据后批量更新
+    2. 通过指定文本ID列表批量更新
+    
+    支持两种标签操作：
+    1. 添加标签：将新标签添加到现有标签中（不删除现有标签）
+    2. 删除标签：从现有标签中删除指定标签（保留其他标签）
+    
+    Args:
+        update_request: 批量标签更新请求
+        db: 数据库会话
+        
+    Returns:
+        更新操作的结果，包含更新的记录数量和操作描述
+        
+    Raises:
+        HTTPException: 如果请求参数无效
+    """
+    service = AnnotationService(db)
+    try:
+        result = service.bulk_update_labels(update_request)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"批量更新标签失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"批量更新失败: {str(e)}")
+
+
 @app.post("/annotations/import-texts")
 def import_texts(
     import_request: schemas.TextImportRequest,

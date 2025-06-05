@@ -8,7 +8,7 @@
 """
 
 from typing import List, Optional, Union
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, model_validator
 
 
 class AnnotationDataBase(BaseModel):
@@ -110,8 +110,10 @@ class BulkLabelRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     """文本搜索请求的 schema。"""
-    query: Optional[str] = Field(None, description="文本搜索查询")
-    labels: Optional[str] = Field(None, description="要过滤的逗号分隔标签")
+    query: Optional[str] = Field(None, description="文本必须包含的关键词")
+    exclude_query: Optional[str] = Field(None, description="文本不能包含的关键词")
+    labels: Optional[str] = Field(None, description="文本必须包含的逗号分隔标签")
+    exclude_labels: Optional[str] = Field(None, description="文本不能包含的逗号分隔标签")
     unlabeled_only: bool = Field(False, description="仅返回未标注文本")
     page: int = Field(1, description="页码", ge=1)
     per_page: int = Field(50, description="每页记录数", ge=1, le=1000)
@@ -129,4 +131,61 @@ class SystemStats(BaseModel):
     labeled_texts: int = Field(..., description="已标注文本数")
     unlabeled_texts: int = Field(..., description="未标注文本数")
     total_labels: int = Field(..., description="总唯一标签数")
-    label_statistics: List[LabelStats] = Field(..., description="每个标签的统计") 
+    label_statistics: List[LabelStats] = Field(..., description="每个标签的统计")
+
+
+class BulkLabelUpdateRequest(BaseModel):
+    """批量标签更新请求的 schema。"""
+    search_criteria: Optional[SearchRequest] = Field(None, description="搜索条件（与text_ids二选一）")
+    text_ids: Optional[List[int]] = Field(None, description="要更新的文本ID列表（与search_criteria二选一）")
+    labels_to_add: Optional[str] = Field(None, description="要添加的标签，逗号分隔")
+    labels_to_remove: Optional[str] = Field(None, description="要删除的标签，逗号分隔")
+    
+    @validator('labels_to_add')
+    def validate_labels_to_add(cls, v):
+        """验证要添加的标签格式"""
+        if v is None or v == '':
+            return None
+        # 清理标签
+        labels = [label.strip() for label in v.split(',')]
+        labels = [label for label in labels if label]
+        if not labels:
+            return None
+        labels = list(dict.fromkeys(labels))  # 去重
+        return ', '.join(labels)
+    
+    @validator('labels_to_remove')
+    def validate_labels_to_remove(cls, v):
+        """验证要删除的标签格式"""
+        if v is None or v == '':
+            return None
+        # 清理标签
+        labels = [label.strip() for label in v.split(',')]
+        labels = [label for label in labels if label]
+        if not labels:
+            return None
+        labels = list(dict.fromkeys(labels))  # 去重
+        return ', '.join(labels)
+    
+    @model_validator(mode='after')
+    def validate_operation(self):
+        """验证操作参数的完整性"""
+        # 必须提供搜索条件或ID列表之一
+        if not self.search_criteria and not self.text_ids:
+            raise ValueError('必须提供search_criteria或text_ids之一')
+        
+        # text_ids如果提供则不能为空
+        if self.text_ids is not None and len(self.text_ids) == 0:
+            raise ValueError('text_ids不能为空列表')
+        
+        # 必须提供添加或删除操作之一
+        if not self.labels_to_add and not self.labels_to_remove:
+            raise ValueError('必须提供labels_to_add或labels_to_remove之一')
+        
+        return self
+
+
+class BulkLabelUpdateResponse(BaseModel):
+    """批量标签更新响应的 schema。"""
+    updated_count: int = Field(..., description="更新的记录数量")
+    message: str = Field(..., description="操作结果描述") 
