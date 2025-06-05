@@ -13,6 +13,8 @@
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  min-height: 100vh;
 }
 
 * {
@@ -23,5 +25,6 @@
 
 html, body {
   height: 100%;
+  width: 100%;
 }
 </style>
