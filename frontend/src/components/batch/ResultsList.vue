@@ -115,6 +115,7 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -153,8 +154,10 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
 .results-list {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   margin-top: var(--spacing-md);
-  padding-right: 4px;
+  padding-right: 8px;
+  min-height: 0;
 }
 
 .result-item {
@@ -230,5 +233,25 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
 .loading-state i {
   color: var(--el-color-primary);
   opacity: 0.8;
+}
+
+/* 自定义滚动条样式 */
+.results-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.results-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.results-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  transition: background var(--duration-fast) ease;
+}
+
+.results-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
 </style> 

@@ -31,8 +31,15 @@
         {{ title }}
       </h1>
       
-      <!-- 统计信息 -->
-      <div class="quick-stats" v-if="stats && stats.length > 0">
+      <!-- 操作按钮 -->
+      <!-- <div class="header-actions" v-if="$slots.actions">
+        <slot name="actions"></slot>
+      </div> -->
+    </div>
+    
+    <!-- 右侧统计信息 -->
+    <div class="header-right" v-if="stats && stats.length > 0">
+      <div class="quick-stats">
         <div 
           v-for="stat in stats" 
           :key="stat.key"
@@ -42,11 +49,6 @@
           <span>{{ stat.label }}：{{ stat.value }}</span>
         </div>
       </div>
-    </div>
-    
-    <!-- 右侧操作按钮 -->
-    <div class="header-right" v-if="$slots.actions">
-      <slot name="actions"></slot>
     </div>
   </div>
 </template>
@@ -163,6 +165,13 @@ const handleHomeClick = () => {
   font-size: 1.5rem;
 }
 
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+
 .quick-stats {
   display: flex;
   flex-wrap: wrap;
@@ -230,8 +239,10 @@ const handleHomeClick = () => {
 
 .header-right {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: flex-end;
+  align-self: self-end;
+  gap: 8px;
 }
 
 /* 响应式布局 */
@@ -253,8 +264,13 @@ const handleHomeClick = () => {
     gap: 8px;
   }
   
+  .header-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
   .quick-stats {
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
   
   .page-header {
@@ -269,13 +285,18 @@ const handleHomeClick = () => {
     align-items: stretch;
   }
   
+  .header-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  
   .quick-stats {
     flex-direction: column;
   }
   
   .header-right {
-    flex-direction: row;
-    justify-content: space-between;
+    align-items: flex-end;
   }
 }
 </style> 

@@ -233,12 +233,19 @@ const handleRemoveLabels = async (label: string) => {
   gap: 16px;
   padding: 0 16px 16px;
   min-height: 0;
+  overflow: hidden;
 }
 
 .left-panel, .right-panel {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.right-panel {
+  height: 100%;
 }
 
 /* 删除了已移到子组件的样式 */
@@ -253,6 +260,11 @@ const handleRemoveLabels = async (label: string) => {
 @media (max-width: 768px) {
   .work-area {
     grid-template-columns: 1fr;
+    overflow: auto;
+  }
+  
+  .left-panel, .right-panel {
+    overflow: visible;
     height: auto;
   }
   
