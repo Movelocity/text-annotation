@@ -332,7 +332,8 @@ onUnmounted(() => {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: var(--el-bg-color);
+  background: var(--el-fill-color-lighter);
+  color: var(--el-text-color-primary);
   position: relative;
 }
 

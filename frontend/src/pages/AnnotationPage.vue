@@ -5,31 +5,47 @@
 <template>
   <div class="annotation-page">
     <!-- 页面头部 -->
-    <div class="page-header">
+    <div class="page-header glass-panel">
       <div class="header-left">
-        <h1>数据标注工作台</h1>
+        <div class="header-breadcrumb">
+          <i class="fas fa-home"></i>
+          <span class="breadcrumb-separator">/</span>
+          <span class="current-page">标注工作台</span>
+        </div>
+        <h1 class="page-title">
+          <i class="fas fa-magic"></i>
+          数据标注工作台
+        </h1>
         <div class="quick-stats" v-if="!annotationStore.loading">
-          <el-tag type="info" size="small">
-            总计：{{ annotationStore.total }} 条
-          </el-tag>
-          <el-tag type="success" size="small">
-            已标注：{{ labeledCount }}
-          </el-tag>
-          <el-tag type="warning" size="small">
-            未标注：{{ unlabeledCount }}
-          </el-tag>
-          <el-tag type="primary" size="small">
-            当前：{{ currentIndex + 1 }} / {{ annotationStore.annotations.length }}
-          </el-tag>
+          <div class="stat-badge total">
+            <i class="fas fa-file-text"></i>
+            <span>总计：{{ annotationStore.total }} 条</span>
+          </div>
+          <div class="stat-badge success">
+            <i class="fas fa-check-circle"></i>
+            <span>已标注：{{ labeledCount }}</span>
+          </div>
+          <div class="stat-badge warning">
+            <i class="fas fa-clock"></i>
+            <span>未标注：{{ unlabeledCount }}</span>
+          </div>
+          <div v-if="currentIndex >= 0" class="stat-badge primary">
+            <i class="fas fa-crosshairs"></i>
+            <span>当前：{{ currentIndex + 1 }} / {{ annotationStore.annotations.length }}</span>
+          </div>
         </div>
       </div>
       <div class="header-right">
-        <el-button @click="handleRefresh" :loading="annotationStore.loading">
-          <el-icon><Refresh /></el-icon>
+        <el-button 
+          @click="handleRefresh" 
+          :loading="annotationStore.loading"
+          class="modern-btn shadow-hover"
+        >
+          <i class="fas fa-sync-alt" :class="{ 'fa-spin': annotationStore.loading }"></i>
           刷新
         </el-button>
-        <el-button @click="goToHome">
-          <el-icon><House /></el-icon>
+        <el-button @click="goToHome" class="modern-btn shadow-hover">
+          <i class="fas fa-home"></i>
           返回首页
         </el-button>
       </div>
@@ -50,28 +66,41 @@
         <TextViewer :current-item="currentItem" />
         
         <!-- 导航控制 -->
-        <div class="navigation-controls" v-if="currentItem">
-          <el-button-group>
+        <div class="navigation-controls glass-panel" v-if="currentItem">
+          <div class="nav-buttons">
             <el-button 
               @click="handlePrevious"
               :disabled="currentIndex <= 0"
-              size="small"
+              class="nav-btn shadow-hover"
+              :class="{ disabled: currentIndex <= 0 }"
             >
-              <el-icon><ArrowLeft /></el-icon>
+              <i class="fas fa-chevron-left"></i>
               上一条
             </el-button>
             <el-button 
               @click="handleNext"
               :disabled="currentIndex >= annotationStore.annotations.length - 1"
-              size="small"
+              class="nav-btn shadow-hover"
+              :class="{ disabled: currentIndex >= annotationStore.annotations.length - 1 }"
             >
               下一条
-              <el-icon><ArrowRight /></el-icon>
+              <i class="fas fa-chevron-right"></i>
             </el-button>
-          </el-button-group>
+          </div>
           
           <div class="position-info">
-            {{ currentIndex + 1 }} / {{ annotationStore.annotations.length }}
+            <div class="position-indicator">
+              <i class="fas fa-map-marker-alt"></i>
+              <span class="current-position">{{ currentIndex + 1 }}</span>
+              <span class="separator">/</span>
+              <span class="total-count">{{ annotationStore.annotations.length }}</span>
+            </div>
+            <div class="progress-bar">
+              <div 
+                class="progress-fill" 
+                :style="{ width: `${((currentIndex + 1) / annotationStore.annotations.length) * 100}%` }"
+              ></div>
+            </div>
           </div>
         </div>
       </div>
@@ -92,7 +121,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnnotationStore } from '../stores/annotation'
-import { Refresh, House, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+// import { Refresh, House, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import TextList from '../components/annotation/TextList.vue'
 import TextViewer from '../components/annotation/TextViewer.vue'
 import LabelSelector from '../components/annotation/LabelSelector.vue'
@@ -223,103 +252,357 @@ onMounted(async () => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--el-bg-color);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  position: relative;
 }
 
+/* 页面头部 */
 .page-header {
   flex-shrink: 0;
-  padding: 16px 24px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-light);
+  padding: 20px 32px;
+  margin: 16px;
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 24px;
 }
 
-.header-left h1 {
-  margin: 0 0 8px 0;
-  font-size: 20px;
+.header-left {
+  flex: 1;
+}
+
+.header-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.breadcrumb-separator {
+  color: var(--el-border-color);
+}
+
+.current-page {
+  color: var(--el-color-primary);
+  font-weight: 500;
+}
+
+.page-title {
+  margin: 0 0 16px 0;
+  font-size: 1.75rem;
+  font-weight: 700;
   color: var(--el-text-color-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-title i {
+  color: var(--el-color-primary);
+  font-size: 1.5rem;
 }
 
 .quick-stats {
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stat-badge {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 2px solid transparent;
+  transition: all var(--duration-fast) ease;
+}
+
+.stat-badge.total {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-badge.success {
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success-dark-2);
+  border-color: var(--el-color-success-light-5);
+}
+
+.stat-badge.warning {
+  background: var(--el-color-warning-light-9);
+  color: var(--el-color-warning-dark-2);
+  border-color: var(--el-color-warning-light-5);
+}
+
+.stat-badge.primary {
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary-dark-2);
+  border-color: var(--el-color-primary-light-5);
+}
+
+.stat-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .header-right {
   display: flex;
   gap: 12px;
+  align-items: flex-start;
 }
 
+.modern-btn {
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-weight: 500;
+  border: 1px solid var(--el-border-color-light);
+  background: rgba(255, 255, 255, 0.9);
+  transition: all var(--duration-fast) ease;
+}
+
+.modern-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: white;
+}
+
+.modern-btn i {
+  margin-right: 6px;
+}
+
+/* 工作区域 */
 .work-area {
   flex: 1;
   display: grid;
-  grid-template-columns: 350px 1fr 400px;
-  gap: 1px;
-  background: var(--el-border-color-light);
+  grid-template-columns: 380px 1fr 420px;
+  gap: 16px;
+  padding: 0 16px 16px;
   min-height: 0;
 }
 
 .left-panel,
 .center-panel,
 .right-panel {
-  background: var(--el-bg-color);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: all var(--duration-normal) ease;
+}
+
+.left-panel:hover,
+.center-panel:hover,
+.right-panel:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-2px);
 }
 
 .left-panel {
-  min-width: 300px;
+  min-width: 320px;
 }
 
 .center-panel {
   min-width: 400px;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .right-panel {
-  min-width: 350px;
+  min-width: 380px;
 }
 
+/* 导航控制 */
 .navigation-controls {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
+  flex-shrink: 0;
+  margin: 20px;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: var(--el-bg-color);
+  gap: 20px;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-btn {
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--el-border-color-light);
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  transition: all var(--duration-fast) ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn:not(.disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: white;
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+}
+
+.nav-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--el-bg-color-page);
 }
 
 .position-info {
-  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.position-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.position-indicator i {
+  color: var(--el-color-primary);
+}
+
+.current-position {
+  color: var(--el-color-primary);
+  font-size: 1rem;
+}
+
+.separator {
   color: var(--el-text-color-secondary);
-  font-weight: 500;
+  margin: 0 2px;
+}
+
+.total-count {
+  color: var(--el-text-color-secondary);
+}
+
+.progress-bar {
+  width: 120px;
+  height: 4px;
+  background: var(--el-border-color-lighter);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--el-color-primary), var(--el-color-primary-light-3));
+  border-radius: 2px;
+  transition: width 0.3s ease;
 }
 
 /* 响应式布局 */
+@media (max-width: 1600px) {
+  .work-area {
+    grid-template-columns: 350px 1fr 380px;
+  }
+}
+
 @media (max-width: 1400px) {
   .work-area {
-    grid-template-columns: 300px 1fr 350px;
+    grid-template-columns: 320px 1fr 350px;
+  }
+  
+  .page-header {
+    margin: 12px;
+    padding: 16px 24px;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 1200px) {
+  .annotation-page {
+    background: var(--el-bg-color-page);
+  }
+  
   .work-area {
     grid-template-columns: 1fr;
-    grid-template-rows: 40% 35% 25%;
+    grid-template-rows: 35% 40% 25%;
   }
   
   .navigation-controls {
     position: static;
+    margin: 16px;
     margin-top: auto;
+  }
+  
+  .left-panel,
+  .center-panel,
+  .right-panel {
+    transform: none !important;
+  }
+  
+  .page-header {
+    margin: 8px;
+    padding: 12px 16px;
+  }
+  
+  .header-left,
+  .header-right {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .quick-stats {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .quick-stats {
+    flex-direction: column;
+  }
+  
+  .header-right {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .navigation-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .position-info {
+    align-items: center;
   }
 }
 </style> 
