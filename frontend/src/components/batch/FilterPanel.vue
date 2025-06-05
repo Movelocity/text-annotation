@@ -88,31 +88,21 @@
           <i class="fas fa-tag"></i>
           包含标签
         </label>
-        <div class="keyword-input">
-          <el-select
-            v-model="labelInput.include"
-            placeholder="请选择标签"
-            size="medium"
-            filterable
-            clearable
-            style="flex: 1"
-          >
-            <el-option
-              v-for="option in availableLabelOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-          <el-button
-            type="primary"
-            size="medium"
-            @click="addIncludeLabel"
-            :disabled="!labelInput.include"
-          >
-            添加
-          </el-button>
-        </div>
+        <el-select
+          v-model="labelInput.include"
+          placeholder="请选择标签，选择后自动添加"
+          size="medium"
+          filterable
+          clearable
+          @change="addIncludeLabel"
+        >
+          <el-option
+            v-for="option in availableLabelOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
+        </el-select>
         <div class="keyword-tags" v-if="includeLabels.length > 0">
           <el-tag
             v-for="(label, index) in includeLabels"
@@ -132,31 +122,21 @@
           <i class="fas fa-ban"></i>
           不包含标签
         </label>
-        <div class="keyword-input">
-          <el-select
-            v-model="labelInput.exclude"
-            placeholder="请选择标签"
-            size="medium"
-            filterable
-            clearable
-            style="flex: 1"
-          >
-            <el-option
-              v-for="option in availableLabelOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-          <el-button
-            type="danger"
-            size="medium"
-            @click="addExcludeLabel"
-            :disabled="!labelInput.exclude"
-          >
-            添加
-          </el-button>
-        </div>
+        <el-select
+          v-model="labelInput.exclude"
+          placeholder="请选择标签，选择后自动添加"
+          size="medium"
+          filterable
+          clearable
+          @change="addExcludeLabel"
+        >
+          <el-option
+            v-for="option in availableLabelOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
+        </el-select>
         <div class="keyword-tags" v-if="excludeLabels.length > 0">
           <el-tag
             v-for="(label, index) in excludeLabels"
@@ -342,8 +322,8 @@ const removeExcludeKeyword = (index: number) => {
 }
 
 // 标签管理
-const addIncludeLabel = () => {
-  const label = labelInput.include
+const addIncludeLabel = (value?: string) => {
+  const label = value || labelInput.include
   if (label && !props.includeLabels.includes(label)) {
     emit('update:includeLabels', [...props.includeLabels, label])
     labelInput.include = ''
@@ -356,8 +336,8 @@ const removeIncludeLabel = (index: number) => {
   emit('update:includeLabels', current)
 }
 
-const addExcludeLabel = () => {
-  const label = labelInput.exclude
+const addExcludeLabel = (value?: string) => {
+  const label = value || labelInput.exclude
   if (label && !props.excludeLabels.includes(label)) {
     emit('update:excludeLabels', [...props.excludeLabels, label])
     labelInput.exclude = ''
