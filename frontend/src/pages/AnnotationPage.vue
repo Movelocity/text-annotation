@@ -220,13 +220,35 @@ const goToHome = () => {
 
 // 生命周期
 onMounted(async () => {
-  // 如果还没有数据，先加载
-  if (!annotationStore.hasAnnotations) {
-    try {
-      await annotationStore.searchAnnotations()
-    } catch (error) {
-      console.error('加载数据失败:', error)
-      ElMessage.error('加载数据失败')
+  // 检查URL参数
+  const route = router.currentRoute.value
+  const labelParam = route.query.label as string
+  
+     // 如果有标签参数，优先进行标签搜索
+   if (labelParam) {
+     try {
+       await annotationStore.searchAnnotations({
+         labels: labelParam,
+         page: 1,
+         per_page: 50
+       })
+       ElMessage.success(`已筛选标签"${labelParam}"的数据`)
+       
+       // 清除URL参数，避免刷新时重复搜索
+       router.replace({ path: '/annotation' })
+     } catch (error) {
+       console.error('标签搜索失败:', error)
+       ElMessage.error('标签搜索失败')
+     }
+  } else {
+    // 如果还没有数据，先加载
+    if (!annotationStore.hasAnnotations) {
+      try {
+        await annotationStore.searchAnnotations()
+      } catch (error) {
+        console.error('加载数据失败:', error)
+        ElMessage.error('加载数据失败')
+      }
     }
   }
 

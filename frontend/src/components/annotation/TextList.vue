@@ -28,6 +28,17 @@
           />
         </div>
         
+        <div class="label-search-wrapper">
+          <i class="fas fa-tags search-icon"></i>
+          <el-input
+            v-model="filterForm.labels"
+            placeholder="搜索标签/分类 (多个用逗号分隔)..."
+            clearable
+            @input="handleLabelInput"
+            class="search-input"
+          />
+        </div>
+        
         <div class="filter-options">
           <div class="status-filter">
             <div class="status-buttons">
@@ -116,7 +127,8 @@ const annotationStore = useAnnotationStore()
 // 响应式数据
 const filterForm = ref({
   unlabeled_only: false,
-  query: ''
+  query: '',
+  labels: ''
 })
 
 const searchTimeout = ref<number | null>(null)
@@ -153,13 +165,24 @@ const handleQueryInput = () => {
   }, 500)
 }
 
+const handleLabelInput = () => {
+  // 防抖搜索
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value)
+  }
+  searchTimeout.value = setTimeout(() => {
+    handleSearch()
+  }, 500)
+}
+
 const handleSearch = async () => {
   try {
     await annotationStore.searchAnnotations({
       page: 1,
       per_page: pageSize.value,
       unlabeled_only: filterForm.value.unlabeled_only,
-      query: filterForm.value.query || undefined
+      query: filterForm.value.query || undefined,
+      labels: filterForm.value.labels || undefined
     })
   } catch (error) {
     console.error('搜索失败:', error)
@@ -169,7 +192,8 @@ const handleSearch = async () => {
 const handleReset = () => {
   filterForm.value = {
     unlabeled_only: false,
-    query: ''
+    query: '',
+    labels: ''
   }
   annotationStore.resetSearch()
   loadData()
@@ -213,6 +237,22 @@ onMounted(() => {
 watch(() => props.selectedItem, () => {
   // 当外部选择的项目改变时，可以添加额外的逻辑
 }, { deep: true })
+
+// 监听store的searchParams变化，同步到本地filterForm
+watch(() => annotationStore.searchParams, (newParams) => {
+  if (newParams) {
+    // 只有在值真正不同时才更新，避免无限循环
+    if (filterForm.value.query !== (newParams.query || '')) {
+      filterForm.value.query = newParams.query || ''
+    }
+    if (filterForm.value.labels !== (newParams.labels || '')) {
+      filterForm.value.labels = newParams.labels || ''
+    }
+    if (filterForm.value.unlabeled_only !== (newParams.unlabeled_only || false)) {
+      filterForm.value.unlabeled_only = newParams.unlabeled_only || false
+    }
+  }
+}, { deep: true, immediate: true })
 </script>
 
 <style scoped>
@@ -274,7 +314,8 @@ watch(() => props.selectedItem, () => {
   gap: 12px;
 }
 
-.search-wrapper {
+.search-wrapper,
+.label-search-wrapper {
   position: relative;
 }
 
