@@ -89,17 +89,26 @@
           包含标签
         </label>
         <div class="keyword-input">
-          <el-input
+          <el-select
             v-model="labelInput.include"
-            placeholder="输入标签，按回车添加"
-            @keydown.enter="addIncludeLabel"
+            placeholder="请选择标签"
             size="small"
-          />
+            filterable
+            clearable
+            style="flex: 1"
+          >
+            <el-option
+              v-for="option in availableLabelOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
           <el-button
             type="primary"
             size="small"
             @click="addIncludeLabel"
-            :disabled="!labelInput.include.trim()"
+            :disabled="!labelInput.include"
           >
             添加
           </el-button>
@@ -124,17 +133,26 @@
           不包含标签
         </label>
         <div class="keyword-input">
-          <el-input
+          <el-select
             v-model="labelInput.exclude"
-            placeholder="输入标签，按回车添加"
-            @keydown.enter="addExcludeLabel"
+            placeholder="请选择标签"
             size="small"
-          />
+            filterable
+            clearable
+            style="flex: 1"
+          >
+            <el-option
+              v-for="option in availableLabelOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
           <el-button
             type="danger"
             size="small"
             @click="addExcludeLabel"
-            :disabled="!labelInput.exclude.trim()"
+            :disabled="!labelInput.exclude"
           >
             添加
           </el-button>
@@ -186,7 +204,8 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { reactive, computed, onMounted } from 'vue'
+import { useLabelStore } from '@/stores/label'
 import ModernButton from '../common/ModernButton.vue'
 
 // Props
@@ -221,6 +240,9 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
+// Store
+const labelStore = useLabelStore()
+
 // 表单数据
 const keywordInput = reactive({
   include: '',
@@ -240,6 +262,14 @@ const hasFilterConditions = computed(() => {
     props.includeLabels.length ||
     props.excludeLabels.length ||
     props.unlabeledOnly
+  )
+})
+
+// 可用标签选项
+const availableLabelOptions = computed(() => {
+  return labelStore.labelOptions.filter(option => 
+    !props.includeLabels.includes(option.value) && 
+    !props.excludeLabels.includes(option.value)
   )
 })
 
@@ -274,7 +304,7 @@ const removeExcludeKeyword = (index: number) => {
 
 // 标签管理
 const addIncludeLabel = () => {
-  const label = labelInput.include.trim()
+  const label = labelInput.include
   if (label && !props.includeLabels.includes(label)) {
     emit('update:includeLabels', [...props.includeLabels, label])
     labelInput.include = ''
@@ -288,7 +318,7 @@ const removeIncludeLabel = (index: number) => {
 }
 
 const addExcludeLabel = () => {
-  const label = labelInput.exclude.trim()
+  const label = labelInput.exclude
   if (label && !props.excludeLabels.includes(label)) {
     emit('update:excludeLabels', [...props.excludeLabels, label])
     labelInput.exclude = ''
@@ -305,6 +335,14 @@ const removeExcludeLabel = (index: number) => {
 const unlabeledOnly = computed({
   get: () => props.unlabeledOnly,
   set: (value: boolean) => emit('update:unlabeledOnly', value)
+})
+
+// 生命周期
+onMounted(async () => {
+  // 初始化标签数据
+  if (!labelStore.hasLabels) {
+    await labelStore.fetchLabels()
+  }
 })
 </script>
 

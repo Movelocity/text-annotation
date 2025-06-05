@@ -135,7 +135,7 @@
                 </div>
                 
                 <div class="action-item" @click="goToBatchAnnotation">
-                  <div class="action-icon-wrapper warning">
+                  <div class="action-icon-wrapper primary">
                     <i class="fas fa-layer-group"></i>
                   </div>
                   <div class="action-content">

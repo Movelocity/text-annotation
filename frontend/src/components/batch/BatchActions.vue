@@ -17,17 +17,27 @@
           标签操作
         </label>
         <div class="label-input-row">
-          <el-input
+          <el-select
             v-model="labelInput"
-            placeholder="输入要添加或删除的标签"
+            placeholder="请选择标签"
             size="small"
-          />
+            filterable
+            clearable
+            style="flex: 1"
+          >
+            <el-option
+              v-for="option in labelStore.labelOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
           <el-button
             type="success"
             size="small"
             :loading="isUpdating"
-            :disabled="!labelInput.trim() || (!hasSelection && !hasFilterConditions)"
-            @click="$emit('addLabels', labelInput.trim())"
+            :disabled="!labelInput || (!hasSelection && !hasFilterConditions)"
+            @click="$emit('addLabels', labelInput)"
           >
             <i class="fas fa-plus"></i>
             添加
@@ -36,8 +46,8 @@
             type="danger"
             size="small"
             :loading="isUpdating"
-            :disabled="!labelInput.trim() || (!hasSelection && !hasFilterConditions)"
-            @click="$emit('removeLabels', labelInput.trim())"
+            :disabled="!labelInput || (!hasSelection && !hasFilterConditions)"
+            @click="$emit('removeLabels', labelInput)"
           >
             <i class="fas fa-minus"></i>
             删除
@@ -76,7 +86,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useLabelStore } from '@/stores/label'
 
 // Props
 interface Props {
@@ -100,6 +111,9 @@ interface Emits {
 
 defineEmits<Emits>()
 
+// Store
+const labelStore = useLabelStore()
+
 // 表单数据
 const labelInput = ref('')
 
@@ -108,6 +122,14 @@ watch(() => props.isUpdating, (newVal, oldVal) => {
   if (oldVal && !newVal) {
     // 从loading变为非loading状态，说明操作完成
     labelInput.value = ''
+  }
+})
+
+// 生命周期
+onMounted(async () => {
+  // 初始化标签数据
+  if (!labelStore.hasLabels) {
+    await labelStore.fetchLabels()
   }
 })
 </script>
