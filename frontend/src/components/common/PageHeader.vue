@@ -4,8 +4,8 @@
 -->
 <template>
   <div class="page-header glass-panel">
-    <div class="header-left">
-      <!-- 面包屑导航 -->
+    <!-- 左侧面包屑导航 -->
+    <div class="header-navigation">
       <div class="header-breadcrumb">
         <i 
           class="fas fa-home home-icon" 
@@ -24,21 +24,18 @@
           </span>
         </template>
       </div>
-      
-      <!-- 页面标题 -->
+    </div>
+    
+    <!-- 中间页面标题 -->
+    <div class="header-title">
       <h1 class="page-title">
         <i :class="titleIcon" v-if="titleIcon"></i>
         {{ title }}
       </h1>
-      
-      <!-- 操作按钮 -->
-      <!-- <div class="header-actions" v-if="$slots.actions">
-        <slot name="actions"></slot>
-      </div> -->
     </div>
     
     <!-- 右侧统计信息 -->
-    <div class="header-right" v-if="stats && stats.length > 0">
+    <div class="header-stats" v-if="stats && stats.length > 0">
       <div class="quick-stats">
         <div 
           v-for="stat in stats" 
@@ -105,12 +102,25 @@ const handleHomeClick = () => {
   border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 24px;
 }
 
-.header-left {
+.header-navigation {
+  flex: 0 0 auto;
+  min-width: 200px;
+}
+
+.header-title {
   flex: 1;
+  text-align: center;
+}
+
+.header-stats {
+  flex: 0 0 auto;
+  min-width: 200px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .header-breadcrumb {
@@ -119,7 +129,6 @@ const handleHomeClick = () => {
   gap: 8px;
   color: var(--el-text-color-secondary);
   font-size: 14px;
-  margin-bottom: 8px;
 }
 
 .breadcrumb-separator {
@@ -138,25 +147,32 @@ const handleHomeClick = () => {
 
 .home-icon {
   transition: all 0.2s ease;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .home-icon.clickable {
   cursor: pointer;
   color: var(--el-color-primary);
+  font-size: 18px;
+  padding: 6px;
 }
 
 .home-icon.clickable:hover {
   color: var(--el-color-primary-dark-2);
-  transform: scale(1.1);
+  transform: scale(1.15);
+  background-color: var(--el-color-primary-light-9);
 }
 
 .page-title {
-  margin: 0 0 16px 0;
+  margin: 0;
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--el-text-color-primary);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 
@@ -165,12 +181,7 @@ const handleHomeClick = () => {
   font-size: 1.5rem;
 }
 
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  margin-top: 8px;
-}
+
 
 .quick-stats {
   display: flex;
@@ -237,13 +248,7 @@ const handleHomeClick = () => {
   box-shadow: var(--shadow-md);
 }
 
-.header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  align-self: self-end;
-  gap: 8px;
-}
+
 
 /* 响应式布局 */
 @media (max-width: 1400px) {
@@ -258,19 +263,9 @@ const handleHomeClick = () => {
 }
 
 @media (max-width: 1200px) {
-  .header-left,
-  .header-right {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .header-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  
-  .quick-stats {
-    justify-content: flex-end;
+  .header-navigation,
+  .header-stats {
+    min-width: 150px;
   }
   
   .page-header {
@@ -285,18 +280,23 @@ const handleHomeClick = () => {
     align-items: stretch;
   }
   
-  .header-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+  .header-navigation,
+  .header-title,
+  .header-stats {
+    min-width: auto;
+  }
+  
+  .header-title {
+    text-align: center;
+    margin: 16px 0;
+  }
+  
+  .header-stats {
+    justify-content: center;
   }
   
   .quick-stats {
-    flex-direction: column;
-  }
-  
-  .header-right {
-    align-items: flex-end;
+    justify-content: center;
   }
 }
 </style> 
