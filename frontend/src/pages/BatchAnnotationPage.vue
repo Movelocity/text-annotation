@@ -142,7 +142,7 @@ const headerStats = computed<StatItem[]>(() => {
   
   // 如果有选择，添加已选择信息
   if (hasSelection.value) {
-    stats.push({
+    stats.unshift({
       key: 'selected',
       label: '已选择',
       value: `${selectedTextsCount.value} 条`,
@@ -153,7 +153,7 @@ const headerStats = computed<StatItem[]>(() => {
   
   // 如果是预览模式，添加预览标识
   if (state.isPreviewMode) {
-    stats.push({
+    stats.unshift({
       key: 'preview',
       label: '预览模式',
       value: '',
@@ -220,10 +220,8 @@ const handleRemoveLabels = async (label: string) => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
 }
-
-
 
 /* 工作区域 */
 .work-area {

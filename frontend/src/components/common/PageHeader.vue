@@ -46,7 +46,7 @@
           :class="['stat-badge', stat.type || 'default']"
         >
           <i :class="stat.icon" v-if="stat.icon"></i>
-          <span>{{ stat.label }}：{{ stat.value }}</span>
+          <span>{{ stat.label }}{{ stat.value && stat.value !== '' ? `：${stat.value}` : '' }}</span>
         </div>
       </div>
     </div>

@@ -32,26 +32,20 @@
               :value="option.value"
             />
           </el-select>
-          <el-button
-            type="success"
-            size="small"
+          <ModernButton
+            text="添加"
+            icon="fas fa-plus"
             :loading="isUpdating"
             :disabled="!labelInput || (!hasSelection && !hasFilterConditions)"
             @click="$emit('addLabels', labelInput)"
-          >
-            <i class="fas fa-plus"></i>
-            添加
-          </el-button>
-          <el-button
-            type="danger"
-            size="small"
+          />
+          <ModernButton
+            text="删除"
+            icon="fas fa-minus"
             :loading="isUpdating"
             :disabled="!labelInput || (!hasSelection && !hasFilterConditions)"
             @click="$emit('removeLabels', labelInput)"
-          >
-            <i class="fas fa-minus"></i>
-            删除
-          </el-button>
+          />
         </div>
       </div>
 
@@ -88,6 +82,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useLabelStore } from '@/stores/label'
+import ModernButton from '../common/ModernButton.vue'
 
 // Props
 interface Props {

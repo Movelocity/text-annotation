@@ -10,20 +10,18 @@
         <span v-if="totalCount > 0" class="count-badge">{{ totalCount }}</span>
       </h2>
       <div class="result-actions" v-if="filteredTexts.length > 0">
-        <el-button
-          size="small"
+        <ModernButton
+          text="全选"
+          icon="fas fa-check-square"
           @click="$emit('selectAll')"
           :disabled="selectedTextsCount === filteredTexts.length"
-        >
-          全选
-        </el-button>
-        <el-button
-          size="small"
+        />
+        <ModernButton
+          text="清空选择"
+          icon="fas fa-times"
           @click="$emit('clearSelection')"
           :disabled="selectedTextsCount === 0"
-        >
-          清空选择
-        </el-button>
+        />
       </div>
     </div>
 
@@ -80,6 +78,7 @@
 <script setup lang="ts">
 import type { AnnotationDataResponse } from '@/types/api'
 import { parseLabels } from '@/utils/labelUtils'
+import ModernButton from '../common/ModernButton.vue'
 
 // Props
 interface Props {
@@ -207,7 +206,9 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
 }
 
 .item-content {
-  font-size: 14px;
+  padding-left: 26px;
+  font-size: 16px;
+  font-weight: 500;
   color: var(--el-text-color-primary);
   line-height: 1.5;
 }
