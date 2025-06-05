@@ -55,8 +55,21 @@
             </span>
           </div>
         </div>
-        <div class="item-content">
-          {{ text.text.length > 100 ? text.text.substring(0, 100) + '...' : text.text }}
+        <div 
+          class="item-content"
+          :class="{ expandable: text.text.length > 100, expanded: expandedItems.has(text.id) }"
+          @click.stop="toggleExpanded(text.id)"
+        >
+          <div class="text-content">
+            {{ getDisplayText(text) }}
+          </div>
+          <div 
+            v-if="text.text.length > 100" 
+            class="expand-indicator"
+            :title="expandedItems.has(text.id) ? '点击收起' : '点击展开全文'"
+          >
+            <i :class="expandedItems.has(text.id) ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+          </div>
         </div>
       </div>
     </div>
@@ -76,6 +89,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { AnnotationDataResponse } from '@/types/api'
 import { parseLabels } from '@/utils/labelUtils'
 import ModernButton from '../common/ModernButton.vue'
@@ -101,9 +115,27 @@ interface Emits {
 
 defineEmits<Emits>()
 
+// 展开状态管理
+const expandedItems = ref<Set<number>>(new Set())
+
 // 方法
 const getLabelsArray = (labels: string | null | undefined): string[] => {
   return parseLabels(labels)
+}
+
+const toggleExpanded = (id: number) => {
+  if (expandedItems.value.has(id)) {
+    expandedItems.value.delete(id)
+  } else {
+    expandedItems.value.add(id)
+  }
+}
+
+const getDisplayText = (text: AnnotationDataResponse): string => {
+  if (text.text.length <= 100 || expandedItems.value.has(text.id)) {
+    return text.text
+  }
+  return text.text.substring(0, 100) + '...'
 }
 </script>
 
@@ -211,6 +243,48 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
   font-weight: 500;
   color: var(--el-text-color-primary);
   line-height: 1.5;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.item-content.expandable {
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  margin-left: 14px;
+  border-radius: var(--radius-sm);
+}
+
+.item-content.expandable:hover {
+  background-color: var(--el-color-primary-light-9);
+  border-radius: var(--radius-sm);
+}
+
+.text-content {
+  flex: 1;
+  word-break: break-word;
+}
+
+.expand-indicator {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--el-color-primary);
+  opacity: 0.7;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.item-content.expandable:hover .expand-indicator {
+  opacity: 1;
+}
+
+.expand-indicator i {
+  font-size: 12px;
+}
+
+.item-content.expanded .text-content {
+  white-space: pre-wrap;
 }
 
 /* 空状态和加载状态 */
