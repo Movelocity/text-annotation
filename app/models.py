@@ -49,9 +49,7 @@ class Label(Base):
     id = Column(Integer, primary_key=True)
     label = Column(String, nullable=False, unique=True, index=True)  # 添加索引
 
-
-# 数据库设置 - 优化连接配置
-DATABASE_URL = "sqlite:///./annotation.db"
+from .config import DATABASE_URL
 
 # 优化后的数据库引擎配置
 engine = create_engine(

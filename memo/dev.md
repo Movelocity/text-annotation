@@ -17,10 +17,10 @@
 text-annotation/
 ├── app/              # 应用核心代码
 │   ├── __init__.py
-│   ├── main.py       # 从根目录移动
-│   ├── models.py     # 从根目录移动
-│   ├── schemas.py    # 从根目录移动
-│   ├── services.py   # 从根目录移动
+│   ├── main.py       # 
+│   ├── models.py     # 
+│   ├── schemas.py    #
+│   ├── services.py   # 
 │   └── config.py     # 新建：配置管理
 ├── scripts/          # 脚本工具
 │   ├── __init__.py
@@ -74,7 +74,7 @@ packages = ["app"]
 ```
 
 **2. 添加基础配置管理**：
-创建 `app/config.py`：
+创建 `app/config.py`：(已完成)
 ```python
 import os
 from pathlib import Path
