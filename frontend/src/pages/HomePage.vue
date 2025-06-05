@@ -131,6 +131,19 @@
                   </div>
                 </div>
                 
+                <div class="action-item" @click="goToBatchAnnotation">
+                  <div class="action-icon-wrapper warning">
+                    <i class="fas fa-layer-group"></i>
+                  </div>
+                  <div class="action-content">
+                    <h4>批量标注</h4>
+                    <p>批量筛选和标注大量数据</p>
+                  </div>
+                  <div class="action-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                  </div>
+                </div>
+                
                 <div class="action-item" @click="loadLabels">
                   <div class="action-icon-wrapper success">
                     <i class="fas fa-tags"></i>
@@ -287,6 +300,10 @@ const refreshStats = async () => {
 
 const goToAnnotation = () => {
   router.push('/annotation')
+}
+
+const goToBatchAnnotation = () => {
+  router.push('/batch-annotation')
 }
 
 onMounted(() => {

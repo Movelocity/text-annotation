@@ -25,6 +25,14 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '数据标注工作台'
     }
+  },
+  {
+    path: '/batch-annotation',
+    name: 'BatchAnnotation',
+    component: () => import('@/pages/BatchAnnotationPage.vue'),
+    meta: {
+      title: '批量标注工具'
+    }
   }
 ]
 

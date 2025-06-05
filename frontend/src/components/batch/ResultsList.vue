@@ -1,0 +1,229 @@
+<!--
+  筛选结果列表组件
+-->
+<template>
+  <div class="results-list-panel glass-panel">
+    <div class="section-header">
+      <h2>
+        <i class="fas fa-list"></i>
+        筛选结果
+        <span v-if="totalCount > 0" class="count-badge">{{ totalCount }}</span>
+      </h2>
+      <div class="result-actions" v-if="filteredTexts.length > 0">
+        <el-button
+          size="small"
+          @click="$emit('selectAll')"
+          :disabled="selectedTextsCount === filteredTexts.length"
+        >
+          全选
+        </el-button>
+        <el-button
+          size="small"
+          @click="$emit('clearSelection')"
+          :disabled="selectedTextsCount === 0"
+        >
+          清空选择
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 结果列表 -->
+    <div class="results-list" v-if="filteredTexts.length > 0">
+      <div
+        v-for="text in filteredTexts"
+        :key="text.id"
+        class="result-item"
+        :class="{ selected: isSelected(text.id) }"
+        @click="$emit('toggleSelection', text.id)"
+      >
+        <div class="item-header">
+          <el-checkbox
+            :model-value="isSelected(text.id)"
+            @change="$emit('toggleSelection', text.id)"
+            @click.stop
+          />
+          <span class="item-id">ID: {{ text.id }}</span>
+          <div class="item-labels">
+            <el-tag
+              v-for="label in getLabelsArray(text.labels)"
+              :key="label"
+              size="small"
+              type="info"
+            >
+              {{ label }}
+            </el-tag>
+            <span v-if="getLabelsArray(text.labels).length === 0" class="no-labels">
+              未标注
+            </span>
+          </div>
+        </div>
+        <div class="item-content">
+          {{ text.text.length > 100 ? text.text.substring(0, 100) + '...' : text.text }}
+        </div>
+      </div>
+    </div>
+
+    <!-- 空状态 -->
+    <div v-else-if="!isLoading" class="empty-state">
+      <i class="fas fa-search"></i>
+      <p>{{ hasFilterConditions ? '没有找到匹配的文本' : '请设置筛选条件后执行筛选' }}</p>
+    </div>
+
+    <!-- 加载状态 -->
+    <div v-if="isLoading" class="loading-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>正在筛选数据...</p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { AnnotationDataResponse } from '../../types/api'
+import { parseLabels } from '../../utils/labelUtils'
+
+// Props
+interface Props {
+  filteredTexts: AnnotationDataResponse[]
+  totalCount: number
+  selectedTextsCount: number
+  isLoading: boolean
+  hasFilterConditions: boolean
+  isSelected: (id: number) => boolean
+}
+
+const props = defineProps<Props>()
+
+// Emits
+interface Emits {
+  'selectAll': []
+  'clearSelection': []
+  'toggleSelection': [id: number]
+}
+
+defineEmits<Emits>()
+
+// 方法
+const getLabelsArray = (labels: string | null | undefined): string[] => {
+  return parseLabels(labels)
+}
+</script>
+
+<style scoped>
+.results-list-panel {
+  padding: var(--spacing-xl);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.section-header h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.count-badge {
+  background: var(--el-color-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  margin-left: var(--spacing-sm);
+}
+
+.result-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.results-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: var(--spacing-md);
+}
+
+.result-item {
+  padding: var(--spacing-md);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.result-item:hover {
+  border-color: var(--el-color-primary-light-7);
+  background: var(--el-color-primary-light-9);
+}
+
+.result-item.selected {
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  box-shadow: var(--shadow-sm);
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.item-id {
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  font-weight: 500;
+}
+
+.item-labels {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.no-labels {
+  font-size: 12px;
+  color: var(--el-text-color-placeholder);
+  font-style: italic;
+}
+
+.item-content {
+  font-size: 14px;
+  color: var(--el-text-color-primary);
+  line-height: 1.5;
+}
+
+/* 空状态和加载状态 */
+.empty-state, .loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4xl);
+  color: var(--el-text-color-placeholder);
+  text-align: center;
+}
+
+.empty-state i, .loading-state i {
+  font-size: 48px;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.5;
+}
+
+.loading-state i {
+  color: var(--el-color-primary);
+  opacity: 0.8;
+}
+</style> 
