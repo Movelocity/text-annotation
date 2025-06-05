@@ -160,6 +160,11 @@ button:active {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 600;
+  /* 备用色彩方案，确保在不支持渐变的情况下有合理的显示 */
+  color: var(--el-color-primary);
+  /* 增强文本的清晰度 */
+  position: relative;
+  z-index: 1;
 }
 
 /* 状态指示器 */

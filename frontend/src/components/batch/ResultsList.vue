@@ -114,6 +114,8 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .section-header {
@@ -121,6 +123,7 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 .section-header h2 {
@@ -151,6 +154,7 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
   flex: 1;
   overflow-y: auto;
   margin-top: var(--spacing-md);
+  padding-right: 4px;
 }
 
 .result-item {
@@ -207,6 +211,7 @@ const getLabelsArray = (labels: string | null | undefined): string[] => {
 
 /* 空状态和加载状态 */
 .empty-state, .loading-state {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -47,7 +47,7 @@
 
     <!-- 主工作区域 -->
     <div class="work-area">
-      <!-- 左侧：筛选条件设置 -->
+      <!-- 左侧：筛选条件设置和批量操作 -->
       <div class="left-panel">
         <FilterPanel
           :include-keywords="state.filterOptions.includeKeywords ?? []"
@@ -64,22 +64,6 @@
           @preview="previewFilter"
           @filter="filterTexts"
         />
-      </div>
-
-      <!-- 右侧：筛选结果和批量操作 -->
-      <div class="right-panel">
-        <!-- 筛选结果 -->
-        <ResultsList
-          :filtered-texts="state.filteredTexts"
-          :total-count="state.totalCount"
-          :selected-texts-count="selectedTextsCount"
-          :is-loading="state.isLoading"
-          :has-filter-conditions="hasFilterConditions"
-          :is-selected="isSelected"
-          @select-all="selectAll"
-          @clear-selection="clearSelection"
-          @toggle-selection="toggleSelection"
-        />
 
         <!-- 批量操作 -->
         <BatchActions
@@ -93,6 +77,22 @@
           v-model:operation-mode="operationMode"
           @add-labels="handleAddLabels"
           @remove-labels="handleRemoveLabels"
+        />
+      </div>
+
+      <!-- 右侧：筛选结果 -->
+      <div class="right-panel">
+        <!-- 筛选结果 -->
+        <ResultsList
+          :filtered-texts="state.filteredTexts"
+          :total-count="state.totalCount"
+          :selected-texts-count="selectedTextsCount"
+          :is-loading="state.isLoading"
+          :has-filter-conditions="hasFilterConditions"
+          :is-selected="isSelected"
+          @select-all="selectAll"
+          @clear-selection="clearSelection"
+          @toggle-selection="toggleSelection"
         />
       </div>
     </div>

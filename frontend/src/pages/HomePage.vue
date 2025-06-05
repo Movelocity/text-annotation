@@ -2,7 +2,7 @@
   <div class="home-page">
     <div class="hero-section">
       <div class="hero-content">
-        <h1 class="gradient-text">智能文本标注系统</h1>
+        <h1 class="gradient-text">文本标注系统</h1>
         <p class="hero-subtitle">高效、准确、智能的数据标注工作平台</p>
         <div class="hero-actions">
           <el-button 
@@ -329,7 +329,26 @@ onMounted(() => {
 .hero-content h1 {
   font-size: 3.5rem;
   margin-bottom: 20px;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 50%, #e8f0ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  position: relative;
+}
+
+.hero-content h1::before {
+  content: "智能文本标注系统";
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  color: white;
+  font-weight: 700;
+  filter: blur(1px);
+  opacity: 0.8;
 }
 
 .hero-subtitle {
