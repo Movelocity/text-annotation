@@ -30,17 +30,33 @@
     <div v-else class="selector-content">
       <!-- 当前标签显示 -->
       <div class="current-label-section">
-        <div class="section-title">当前标签</div>
-        <div class="current-label">
-          <el-tag
-            v-if="selectedLabel"
-            type="success"
-            size="large"
-            closable
-            @close="handleClearLabel"
+        <div class="section-title">
+          当前标签
+          <el-button
+            v-if="selectedLabels.length > 0"
+            type="danger"
+            size="small"
+            text
+            @click="handleClearAllLabels"
+            class="clear-all-btn"
           >
-            {{ selectedLabel }}
-          </el-tag>
+            清除所有
+          </el-button>
+        </div>
+        <div class="current-label">
+          <template v-if="selectedLabels.length > 0">
+            <el-tag
+              v-for="label in selectedLabels"
+              :key="label"
+              type="success"
+              size="large"
+              closable
+              @close="handleRemoveLabel(label)"
+              class="label-tag"
+            >
+              {{ label }}
+            </el-tag>
+          </template>
           <span v-else class="no-label">未标注</span>
         </div>
       </div>
@@ -71,10 +87,10 @@
               :key="label.id"
               class="label-item"
               :class="{ 
-                'selected': selectedLabel === label.label,
+                'selected': selectedLabels.includes(label.label),
                 'shortcut': index < 9
               }"
-              @click="handleLabelSelect(label.label)"
+              @click="handleLabelToggle(label.label)"
             >
               <div class="label-content">
                 <span class="label-text">{{ label.label }}</span>
@@ -89,7 +105,7 @@
       <div class="shortcuts-hint">
         <div class="hint-title">快捷键提示</div>
         <div class="hint-content">
-          <span>数字键 1-9：选择对应标签</span>
+          <span>数字键 1-9：切换对应标签</span>
           <span>Enter：保存标注</span>
           <span>Space：跳过</span>
         </div>
@@ -125,7 +141,7 @@ const labelStore = useLabelStore()
 const annotationStore = useAnnotationStore()
 
 // 响应式数据
-const selectedLabel = ref<string>('')
+const selectedLabels = ref<string[]>([])
 const labelSearch = ref('')
 const saving = ref(false)
 
@@ -142,12 +158,24 @@ const filteredLabels = computed(() => {
 })
 
 // 方法
-const handleLabelSelect = (labelText: string) => {
-  selectedLabel.value = labelText
+const handleLabelToggle = (labelText: string) => {
+  const index = selectedLabels.value.indexOf(labelText)
+  if (index > -1) {
+    selectedLabels.value.splice(index, 1)
+  } else {
+    selectedLabels.value.push(labelText)
+  }
 }
 
-const handleClearLabel = () => {
-  selectedLabel.value = ''
+const handleRemoveLabel = (labelText: string) => {
+  const index = selectedLabels.value.indexOf(labelText)
+  if (index > -1) {
+    selectedLabels.value.splice(index, 1)
+  }
+}
+
+const handleClearAllLabels = () => {
+  selectedLabels.value = []
 }
 
 const handleSave = async () => {
@@ -156,7 +184,7 @@ const handleSave = async () => {
   try {
     saving.value = true
     await annotationStore.updateAnnotation(props.currentItem.id, {
-      labels: selectedLabel.value || null
+      labels: selectedLabels.value.length > 0 ? selectedLabels.value.join(', ') : null
     })
     ElMessage.success('标注保存成功')
     emit('save-success')
@@ -169,7 +197,7 @@ const handleSave = async () => {
 }
 
 const handleSkip = () => {
-  selectedLabel.value = ''
+  selectedLabels.value = []
   emit('skip')
 }
 
@@ -186,11 +214,11 @@ const loadLabels = async () => {
 const handleKeyDown = (event: KeyboardEvent) => {
   if (!props.currentItem) return
 
-  // 数字键 1-9 选择标签
+  // 数字键 1-9 切换标签
   if (event.key >= '1' && event.key <= '9') {
     const index = parseInt(event.key) - 1
     if (index < filteredLabels.value.length) {
-      handleLabelSelect(filteredLabels.value[index].label)
+      handleLabelToggle(filteredLabels.value[index].label)
       event.preventDefault()
     }
   }
@@ -210,10 +238,11 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
 // 监听器
 watch(() => props.currentItem, (newItem) => {
-  if (newItem) {
-    selectedLabel.value = newItem.labels || ''
+  if (newItem && newItem.labels) {
+    // 解析逗号分隔的标签字符串为数组
+    selectedLabels.value = newItem.labels.split(',').map(label => label.trim()).filter(label => label)
   } else {
-    selectedLabel.value = ''
+    selectedLabels.value = []
   }
 }, { immediate: true })
 
@@ -274,6 +303,13 @@ onUnmounted(() => {
   color: var(--el-text-color-primary);
   margin-bottom: 8px;
   font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clear-all-btn {
+  font-size: 12px;
 }
 
 .current-label-section {
@@ -286,7 +322,13 @@ onUnmounted(() => {
   border-radius: 6px;
   min-height: 44px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.label-tag {
+  margin: 2px 0;
 }
 
 .no-label {

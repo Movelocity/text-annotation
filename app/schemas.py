@@ -7,14 +7,25 @@
 - 数据导入操作
 """
 
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List, Optional, Union
+from pydantic import BaseModel, Field, validator
 
 
 class AnnotationDataBase(BaseModel):
     """标注数据的基础 schema。"""
     text: str = Field(..., description="文本内容")
-    labels: Optional[str] = Field(None, description="逗号分隔的标签")
+    labels: Optional[str] = Field(None, description="多标签，存储为逗号分隔字符串")
+    
+    @validator('labels')
+    def validate_labels(cls, v):
+        """验证标签格式，确保逗号分隔的标签格式正确"""
+        if v is None or v == '':
+            return None
+        # 清理标签：去除空白，过滤空标签，去重
+        labels = [label.strip() for label in v.split(',')]
+        labels = [label for label in labels if label]  # 移除空标签
+        labels = list(dict.fromkeys(labels))  # 去重并保持顺序
+        return ', '.join(labels) if labels else None
 
 
 class AnnotationDataCreate(AnnotationDataBase):
@@ -81,7 +92,20 @@ class TextImportRequest(BaseModel):
 class BulkLabelRequest(BaseModel):
     """批量标注请求的 schema。"""
     text_ids: List[int] = Field(..., description="要标注的文本 ID 列表")
-    labels: str = Field(..., description="要应用的逗号分隔标签")
+    labels: str = Field(..., description="要应用的多标签，逗号分隔格式")
+    
+    @validator('labels')
+    def validate_labels(cls, v):
+        """验证标签格式"""
+        if not v or not v.strip():
+            raise ValueError("标签不能为空")
+        # 清理标签
+        labels = [label.strip() for label in v.split(',')]
+        labels = [label for label in labels if label]
+        if not labels:
+            raise ValueError("至少需要一个有效标签")
+        labels = list(dict.fromkeys(labels))  # 去重
+        return ', '.join(labels)
 
 
 class SearchRequest(BaseModel):

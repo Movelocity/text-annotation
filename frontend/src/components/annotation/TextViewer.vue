@@ -28,13 +28,17 @@
       <div class="label-status">
         <div class="status-title">当前标签</div>
         <div class="status-content">
-          <el-tag
-            v-if="currentItem.labels"
-            type="success"
-            size="large"
-          >
-            {{ currentItem.labels }}
-          </el-tag>
+          <template v-if="currentLabels.length > 0">
+            <el-tag
+              v-for="label in currentLabels"
+              :key="label"
+              type="success"
+              size="large"
+              class="label-tag"
+            >
+              {{ label }}
+            </el-tag>
+          </template>
           <span v-else class="no-label">未标注</span>
         </div>
       </div>
@@ -73,6 +77,11 @@ interface Props {
 const props = defineProps<Props>()
 
 // 计算属性
+const currentLabels = computed(() => {
+  if (!props.currentItem?.labels) return []
+  return props.currentItem.labels.split(',').map(label => label.trim()).filter(label => label)
+})
+
 const lineCount = computed(() => {
   if (!props.currentItem) return 0
   return props.currentItem.text.split('\n').length
@@ -173,7 +182,13 @@ const wordCount = computed(() => {
   border-radius: 6px;
   border: 1px solid var(--el-border-color-lighter);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.label-tag {
+  margin: 2px 0;
 }
 
 .no-label {

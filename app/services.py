@@ -16,6 +16,38 @@ from .models import AnnotationData, Label
 from . import schemas
 
 
+def parse_labels(labels_str: Optional[str]) -> List[str]:
+    """
+    解析标签字符串为标签列表。
+    
+    Args:
+        labels_str: 逗号分隔的标签字符串
+        
+    Returns:
+        标签列表
+    """
+    if not labels_str:
+        return []
+    return [label.strip() for label in labels_str.split(',') if label.strip()]
+
+
+def format_labels(labels: List[str]) -> Optional[str]:
+    """
+    将标签列表格式化为标签字符串。
+    
+    Args:
+        labels: 标签列表
+        
+    Returns:
+        逗号分隔的标签字符串，如果为空则返回 None
+    """
+    if not labels:
+        return None
+    # 去重并保持顺序
+    unique_labels = list(dict.fromkeys([label.strip() for label in labels if label.strip()]))
+    return ', '.join(unique_labels) if unique_labels else None
+
+
 class AnnotationService:
     """标注数据操作的服务类。"""
     
@@ -133,12 +165,20 @@ class AnnotationService:
             query = query.filter(AnnotationData.text.contains(search_request.query))
         
         if search_request.labels:
-            # 搜索指定的任何标签
+            # 搜索指定的任何标签 - 使用更精确的匹配
             label_filters = []
             for label in search_request.labels.split(','):
                 label = label.strip()
-                label_filters.append(AnnotationData.labels.contains(label))
-            query = query.filter(or_(*label_filters))
+                if label:
+                    # 使用精确匹配模式：标签必须完全匹配（考虑逗号和空格）
+                    label_filters.extend([
+                        AnnotationData.labels == label,  # 单标签完全匹配
+                        AnnotationData.labels.like(f"{label},%"),  # 开头匹配
+                        AnnotationData.labels.like(f"%, {label}"),  # 结尾匹配  
+                        AnnotationData.labels.like(f"%, {label},%")  # 中间匹配
+                    ])
+            if label_filters:
+                query = query.filter(or_(*label_filters))
         
         if search_request.unlabeled_only:
             query = query.filter(or_(

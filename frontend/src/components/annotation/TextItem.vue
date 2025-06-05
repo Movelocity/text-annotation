@@ -14,9 +14,23 @@
     <!-- 头部：ID + 状态 -->
     <div class="item-header">
       <span class="item-id">#{{ item.id }}</span>
-      <span class="item-status" :class="item.labels ? 'success' : 'pending'">
-        {{ item.labels || '待标注' }}
-      </span>
+      <div class="label-container">
+        <template v-if="itemLabels.length > 0">
+          <el-tag
+            v-for="label in itemLabels.slice(0, 2)"
+            :key="label"
+            type="success"
+            size="small"
+            class="item-label"
+          >
+            {{ label }}
+          </el-tag>
+          <span v-if="itemLabels.length > 2" class="more-labels">
+            +{{ itemLabels.length - 2 }}
+          </span>
+        </template>
+        <span v-else class="item-status pending">待标注</span>
+      </div>
     </div>
     
     <!-- 内容区 -->
@@ -33,6 +47,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { AnnotationDataResponse } from '../../types/api'
 
 // Props
@@ -49,6 +64,12 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+// 计算属性
+const itemLabels = computed(() => {
+  if (!props.item.labels) return []
+  return props.item.labels.split(',').map(label => label.trim()).filter(label => label)
+})
 
 // 方法
 const truncateText = (text: string, maxLength: number): string => {
@@ -86,7 +107,7 @@ const handleClick = () => {
 .item-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
 }
 
@@ -94,6 +115,28 @@ const handleClick = () => {
   font-weight: 600;
   color: var(--el-text-color-secondary);
   font-size: 14px;
+  flex-shrink: 0;
+}
+
+.label-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  max-width: 60%;
+}
+
+.item-label {
+  font-size: 11px;
+}
+
+.more-labels {
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
+  background: var(--el-bg-color-page);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--el-border-color-light);
 }
 
 .item-status {
