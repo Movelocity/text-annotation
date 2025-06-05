@@ -20,7 +20,7 @@
           <el-select
             v-model="labelInput"
             placeholder="请选择标签"
-            size="small"
+            size="medium"
             filterable
             clearable
             style="flex: 1"
@@ -53,7 +53,7 @@
         <el-radio-group 
           :model-value="operationMode" 
           @update:model-value="$emit('update:operationMode', $event)"
-          size="small"
+          size="medium"
         >
           <el-radio value="selected" :disabled="!hasSelection">
             仅选中的文本 ({{ selectedTextsCount }} 条)

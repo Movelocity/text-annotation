@@ -22,11 +22,11 @@
             v-model="keywordInput.include"
             placeholder="输入关键词，按回车添加"
             @keydown.enter="addIncludeKeyword"
-            size="small"
+            size="medium"
           />
           <el-button
             type="primary"
-            size="small"
+            size="medium"
             @click="addIncludeKeyword"
             :disabled="!keywordInput.include.trim()"
           >
@@ -39,7 +39,7 @@
             :key="`include-${index}`"
             closable
             type="success"
-            size="small"
+            size="large"
             @close="removeIncludeKeyword(index)"
           >
             {{ keyword }}
@@ -57,11 +57,11 @@
             v-model="keywordInput.exclude"
             placeholder="输入关键词，按回车添加"
             @keydown.enter="addExcludeKeyword"
-            size="small"
+            size="medium"
           />
           <el-button
             type="danger"
-            size="small"
+            size="medium"
             @click="addExcludeKeyword"
             :disabled="!keywordInput.exclude.trim()"
           >
@@ -74,7 +74,7 @@
             :key="`exclude-${index}`"
             closable
             type="danger"
-            size="small"
+            size="large"
             @close="removeExcludeKeyword(index)"
           >
             {{ keyword }}
@@ -92,7 +92,7 @@
           <el-select
             v-model="labelInput.include"
             placeholder="请选择标签"
-            size="small"
+            size="medium"
             filterable
             clearable
             style="flex: 1"
@@ -106,7 +106,7 @@
           </el-select>
           <el-button
             type="primary"
-            size="small"
+            size="medium"
             @click="addIncludeLabel"
             :disabled="!labelInput.include"
           >
@@ -119,7 +119,7 @@
             :key="`include-label-${index}`"
             closable
             type="success"
-            size="small"
+            size="large"
             @close="removeIncludeLabel(index)"
           >
             {{ label }}
@@ -136,7 +136,7 @@
           <el-select
             v-model="labelInput.exclude"
             placeholder="请选择标签"
-            size="small"
+            size="medium"
             filterable
             clearable
             style="flex: 1"
@@ -150,7 +150,7 @@
           </el-select>
           <el-button
             type="danger"
-            size="small"
+            size="medium"
             @click="addExcludeLabel"
             :disabled="!labelInput.exclude"
           >
@@ -163,7 +163,7 @@
             :key="`exclude-label-${index}`"
             closable
             type="danger"
-            size="small"
+            size="large"
             @close="removeExcludeLabel(index)"
           >
             {{ label }}
@@ -187,6 +187,7 @@
         <ModernButton
           text="预览筛选"
           icon="fas fa-eye"
+          size="large"
           :loading="isLoading"
           :disabled="!hasFilterConditions"
           @click="$emit('preview')"
@@ -194,6 +195,8 @@
         <ModernButton
           text="执行筛选"
           icon="fas fa-search"
+          size="large"
+          variant="primary"
           :loading="isLoading"
           :disabled="!hasFilterConditions"
           @click="$emit('filter')"
@@ -408,6 +411,7 @@ onMounted(async () => {
 
 .filter-actions {
   display: flex;
+  justify-content: space-around;
   gap: var(--spacing-md);
   padding-top: var(--spacing-lg);
   border-top: 1px solid var(--el-border-color-lighter);

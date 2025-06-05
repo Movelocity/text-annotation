@@ -239,7 +239,7 @@ const handleRemoveLabels = async (label: string) => {
   flex-direction: column;
   gap: var(--spacing-lg);
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .right-panel {
