@@ -64,10 +64,10 @@
                   type="primary" 
                   size="large" 
                   style="width: 100%; margin-bottom: 12px;"
-                  @click="loadAnnotations"
-                  :loading="annotationStore.loading"
+                  @click="goToAnnotation"
                 >
-                  查看标注数据
+                  <el-icon><EditPen /></el-icon>
+                  开始标注
                 </el-button>
                 <el-button 
                   type="success" 
@@ -125,13 +125,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { EditPen } from '@element-plus/icons-vue'
 import { useAppStore } from '../stores/app'
 import { useAnnotationStore } from '../stores/annotation'
 import { useLabelStore } from '../stores/label'
 import { statsApi, healthApi } from '../services/api'
 import type { SystemStats } from '../types/api'
 
+const router = useRouter()
 const appStore = useAppStore()
 const annotationStore = useAnnotationStore()
 const labelStore = useLabelStore()
@@ -189,6 +192,10 @@ const loadLabels = async () => {
 const refreshStats = async () => {
   await loadStats()
   ElMessage.success('统计数据已刷新')
+}
+
+const goToAnnotation = () => {
+  router.push('/annotation')
 }
 
 onMounted(() => {

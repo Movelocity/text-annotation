@@ -13,9 +13,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/home',
     name: 'Home',
-    component: () => import('../pages/HomePage.vue'),
+    component: () => import('@/pages/HomePage.vue'),
     meta: {
       title: '文本标注 - 首页'
+    }
+  },
+  {
+    path: '/annotation',
+    name: 'Annotation',
+    component: () => import('@/pages/AnnotationPage.vue'),
+    meta: {
+      title: '数据标注工作台'
     }
   }
 ]
