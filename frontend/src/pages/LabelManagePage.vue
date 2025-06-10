@@ -11,13 +11,73 @@
     </PageHeader>
 
     <div class="create-btn-section">
-      <ModernButton
-        text="新增标签"
-        icon="fas fa-plus"
-        type="primary"
-        :loading="labelStore.loading"
-        @click="showCreateDialog = true"
-      />
+      <div class="create-actions">
+        <ModernButton
+          text="新增标签"
+          icon="fas fa-plus"
+          type="primary"
+          :loading="labelStore.loading"
+          @click="showCreateDialog = true"
+        />
+        <el-button 
+          type="text" 
+          @click="showQuickCreate = !showQuickCreate"
+          :icon="showQuickCreate ? ArrowUp : ArrowDown"
+        >
+          快速创建
+        </el-button>
+      </div>
+      
+      <!-- 快速创建表单 -->
+      <el-collapse-transition>
+        <div v-show="showQuickCreate" class="quick-create-form">
+          <el-form
+            ref="quickFormRef"
+            :model="quickForm"
+            :rules="quickRules"
+            layout="inline"
+            @submit.prevent="handleQuickCreate"
+          >
+            <el-form-item prop="label" style="margin-bottom: 0;">
+              <el-input
+                v-model="quickForm.label"
+                placeholder="标签名称"
+                style="width: 200px;"
+                @keyup.enter="handleQuickCreate"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item prop="groups" style="margin-bottom: 0;">
+              <el-select
+                v-model="quickForm.groups"
+                placeholder="选择分组"
+                filterable
+                allow-create
+                clearable
+                style="width: 160px;"
+              >
+                <el-option
+                  v-for="group in availableGroups"
+                  :key="group"
+                  :label="group || '未分组'"
+                  :value="group"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item style="margin-bottom: 0;">
+              <el-button 
+                type="primary" 
+                @click="handleQuickCreate"
+                :loading="quickCreating"
+                size="default"
+              >
+                创建
+              </el-button>
+              <el-button @click="resetQuickForm">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-collapse-transition>
     </div>
 
     <!-- 搜索和过滤 -->
@@ -178,7 +238,9 @@ import {
   Search,
   Grid,
   CollectionTag,
-  FolderOpened
+  FolderOpened,
+  ArrowUp,
+  ArrowDown
 } from '@element-plus/icons-vue'
 import { useLabelStore } from '@/stores/label'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -201,6 +263,16 @@ const filterBy = ref('all')
 const selectedGroup = ref('')
 const viewMode = ref('grid') // 'grid' | 'grouped'
 const chartGroupFilter = ref('')
+const showQuickCreate = ref(false)
+const quickFormRef = ref()
+const quickForm = ref({
+  label: '',
+  groups: ''
+})
+const quickRules = ref({
+  label: [{ required: true, message: '请输入标签名称', trigger: 'blur' }]
+})
+const quickCreating = ref(false)
 
 // 面包屑导航配置
 const breadcrumbs = [
@@ -436,6 +508,39 @@ const getGroupUsageCount = (labels: LabelResponse[]) => {
   }, 0)
 }
 
+const handleQuickCreate = async () => {
+  if (!quickFormRef.value) return
+  
+  try {
+    await quickFormRef.value.validate()
+    quickCreating.value = true
+    
+    const labelData = {
+      label: quickForm.value.label.trim(),
+      description: null,
+      groups: quickForm.value.groups?.trim() || null
+    }
+    
+    await labelStore.createLabel(labelData)
+    ElMessage.success('标签创建成功')
+    resetQuickForm()
+  } catch (error) {
+    if (error !== false) {
+      ElMessage.error('创建标签失败')
+    }
+  } finally {
+    quickCreating.value = false
+  }
+}
+
+const resetQuickForm = () => {
+  quickForm.value = {
+    label: '',
+    groups: ''
+  }
+  quickFormRef.value?.clearValidate()
+}
+
 // 生命周期
 onMounted(async () => {
   try {
@@ -556,29 +661,59 @@ onMounted(async () => {
   gap: 12px;
 }
 
-@media (max-width: 768px) {
-  .labels-grid,
-  .group-labels {
-    grid-template-columns: 1fr;
-  }
-  
-  .search-section,
-  .labels-section,
-  .chart-section {
-    padding: 0 8px;
-  }
-  
-  .search-section .el-row {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .search-section .el-col {
-    width: 100%;
-  }
-  
-  .view-controls {
-    justify-content: center;
-  }
+.create-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
+
+.quick-create-form {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e4e7ed;
+}
+
+  @media (max-width: 768px) {
+    .labels-grid,
+    .group-labels {
+      grid-template-columns: 1fr;
+    }
+    
+    .search-section,
+    .labels-section,
+    .chart-section {
+      padding: 0 8px;
+    }
+    
+    .search-section .el-row {
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .search-section .el-col {
+      width: 100%;
+    }
+    
+    .view-controls {
+      justify-content: center;
+    }
+    
+    .create-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .quick-create-form :deep(.el-form--inline) {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .quick-create-form :deep(.el-form-item) {
+      margin-right: 0 !important;
+    }
+  }
 </style> 

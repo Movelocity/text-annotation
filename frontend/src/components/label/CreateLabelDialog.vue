@@ -2,7 +2,7 @@
   <el-dialog
     v-model="dialogVisible"
     title="新增标签"
-    width="500px"
+    width="450px"
     :before-close="handleClose"
     destroy-on-close
   >
@@ -16,60 +16,42 @@
       <el-form-item label="标签名称" prop="label">
         <el-input
           v-model="form.label"
-          placeholder="请输入标签名称"
+          placeholder="输入标签名称"
           maxlength="50"
-          show-word-limit
           clearable
           @keyup.enter="handleSubmit"
+          autofocus
         />
-        <div class="form-tip">
-          标签名称应该简洁明了，便于识别和使用
-        </div>
       </el-form-item>
 
       <el-form-item label="标签描述" prop="description">
         <el-input
           v-model="form.description"
           type="textarea"
-          placeholder="请输入标签描述（可选）"
-          :rows="3"
+          placeholder="可选，描述标签用途"
+          :rows="2"
           maxlength="200"
-          show-word-limit
         />
-        <div class="form-tip">
-          可以添加标签的用途说明或使用场景
-        </div>
       </el-form-item>
 
-      <el-form-item label="标签分组" prop="groups">
-        <el-input
+      <el-form-item label="分组" prop="groups">
+        <el-select
           v-model="form.groups"
-          placeholder="请输入分组路径，如：NLP/意图分析/情感"
-          maxlength="100"
-          show-word-limit
+          placeholder="选择分组或输入新分组"
+          filterable
+          allow-create
           clearable
-        />
-        <div class="form-tip">
-          使用 "/" 分隔层级关系，如：NLP/意图分析/情感。留空表示未分组
-        </div>
+          style="width: 100%"
+        >
+          <el-option
+            v-for="group in existingGroups"
+            :key="group"
+            :label="group"
+            :value="group"
+          />
+        </el-select>
       </el-form-item>
     </el-form>
-
-    <div class="dialog-tips">
-      <el-alert
-        title="提示"
-        type="info"
-        :closable="false"
-        show-icon
-      >
-        <ul class="tips-list">
-          <li>标签名称不能重复</li>
-          <li>建议使用有意义的标签名称</li>
-          <li>分组路径支持多层级，如：NLP/意图/情感</li>
-          <li>创建后可以在标注时使用该标签</li>
-        </ul>
-      </el-alert>
-    </div>
 
     <template #footer>
       <div class="dialog-footer">
@@ -79,7 +61,7 @@
           @click="handleSubmit"
           :loading="loading"
         >
-          确定创建
+          创建
         </el-button>
       </div>
     </template>
@@ -122,7 +104,23 @@ const dialogVisible = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-// 表单验证规则
+// 获取现有分组
+const existingGroups = computed(() => {
+  const groups = new Set<string>()
+  labelStore.labels.forEach(label => {
+    if (label.groups) {
+      groups.add(label.groups)
+      // 也添加父级分组
+      const parts = label.groups.split('/')
+      for (let i = 1; i < parts.length; i++) {
+        groups.add(parts.slice(0, i).join('/'))
+      }
+    }
+  })
+  return Array.from(groups).sort()
+})
+
+// 简化的表单验证规则
 const rules: FormRules = {
   label: [
     { required: true, message: '请输入标签名称', trigger: 'blur' },
@@ -131,34 +129,6 @@ const rules: FormRules = {
       validator: (_rule, value, callback) => {
         if (value && labelStore.getLabelByName(value)) {
           callback(new Error('标签名称已存在'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'blur'
-    }
-  ],
-  description: [
-    { max: 200, message: '描述长度不能超过 200 个字符', trigger: 'blur' }
-  ],
-  groups: [
-    { max: 100, message: '分组路径长度不能超过 100 个字符', trigger: 'blur' },
-    {
-      validator: (_rule, value, callback) => {
-        if (!value) {
-          callback()
-          return
-        }
-        
-        // 验证分组路径格式
-        const groupParts = value.split('/')
-        const isValid = groupParts.every((part: string) => {
-          const trimmed = part.trim()
-          return trimmed.length > 0 && trimmed.length <= 20
-        })
-        
-        if (!isValid) {
-          callback(new Error('分组路径格式不正确，每级分组不能为空且不超过20字符'))
         } else {
           callback()
         }
@@ -201,7 +171,7 @@ const handleSubmit = async () => {
     handleClose()
     
   } catch (error) {
-    if (error !== false) { // 不是表单验证错误
+    if (error !== false) {
       ElMessage.error('创建标签失败，请重试')
     }
   } finally {
@@ -218,28 +188,6 @@ watch(dialogVisible, (newVal) => {
 </script>
 
 <style scoped>
-.form-tip {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 4px;
-  line-height: 1.4;
-}
-
-.dialog-tips {
-  margin: 20px 0;
-}
-
-.tips-list {
-  margin: 0;
-  padding-left: 16px;
-  font-size: 13px;
-  color: #606266;
-}
-
-.tips-list li {
-  margin-bottom: 4px;
-}
-
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
@@ -251,7 +199,7 @@ watch(dialogVisible, (newVal) => {
 }
 
 :deep(.el-dialog__body) {
-  padding: 10px 20px 20px;
+  padding: 20px;
 }
 
 :deep(.el-dialog__footer) {
@@ -260,9 +208,5 @@ watch(dialogVisible, (newVal) => {
 
 :deep(.el-form-item__label) {
   font-weight: 500;
-}
-
-:deep(.el-alert__content) {
-  padding-left: 8px;
 }
 </style> 
