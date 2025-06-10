@@ -235,7 +235,7 @@ resetEditForm()
 .label-item.clickable:hover {
   /* border-color: var(--el-color-primary); */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translate(4px, -4px);
+  transform: translate(0, -4px);
 }
 
 .label-item.edit-mode {

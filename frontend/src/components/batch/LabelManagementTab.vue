@@ -64,7 +64,7 @@
             class="group-header"
             @click="toggleGroupCollapse(group.name)"
           >
-            <i :class="['fas', group.collapsed ? 'fa-chevron-right' : 'fa-chevron-down']"></i>
+            <i :class="['fas', group.collapsed ? 'fa-chevron-right' : 'fa-chevron-down']" style="color: var(--el-text-color-primary); font-size: 12px;"></i>
             <span class="group-name">{{ group.name }}</span>
             <span class="group-count">({{ group.labels.length }})</span>
             <el-button
