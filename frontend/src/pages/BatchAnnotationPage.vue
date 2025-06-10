@@ -108,7 +108,7 @@ const {
   hasSelection,
   currentPage,
   pageSize,
-  totalPages,
+  // totalPages,
   filterTexts,
   previewFilter,
   addLabelsToFiltered,

@@ -127,7 +127,7 @@ const rules: FormRules = {
     { required: true, message: '请输入标签名称', trigger: 'blur' },
     { min: 1, max: 50, message: '标签名称长度应在 1 到 50 个字符', trigger: 'blur' },
     {
-      validator: (rule, value, callback) => {
+      validator: (_rule, value, callback) => {
         if (!props.label) {
           callback()
           return
@@ -152,7 +152,7 @@ const rules: FormRules = {
   groups: [
     { max: 100, message: '分组路径长度不能超过 100 个字符', trigger: 'blur' },
     {
-      validator: (rule, value, callback) => {
+      validator: (_rule, value, callback) => {
         if (!value) {
           callback()
           return

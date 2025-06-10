@@ -6,193 +6,218 @@
     <div class="section-header">
       <h2>
         <i class="fas fa-filter"></i>
-        筛选条件
+        筛选和标签管理
       </h2>
     </div>
 
-    <div class="filter-form">
-      <!-- 关键词筛选 -->
-      <div class="form-group">
-        <label class="form-label">
-          <i class="fas fa-search"></i>
-          包含关键词
-        </label>
-        <div class="keyword-input">
-          <el-input
-            v-model="keywordInput.include"
-            placeholder="输入关键词，按回车添加"
-            @keydown.enter="addIncludeKeyword"
-            size="medium"
-          />
-          <el-button
-            type="primary"
-            size="medium"
-            @click="addIncludeKeyword"
-            :disabled="!keywordInput.include.trim()"
-          >
-            添加
-          </el-button>
-        </div>
-        <div class="keyword-tags" v-if="includeKeywords.length > 0">
-          <el-tag
-            v-for="(keyword, index) in includeKeywords"
-            :key="`include-${index}`"
-            closable
-            type="success"
-            size="medium"
-            style="font-size: 14px; font-weight: bold;"
-            @close="removeIncludeKeyword(index)"
-          >
-            {{ keyword }}
-          </el-tag>
-        </div>
-      </div>
+    <!-- Tab 标签页 -->
+    <el-tabs v-model="activeTab" class="filter-tabs">
+      <!-- 筛选条件 Tab -->
+      <el-tab-pane label="筛选条件" name="filter">
+        <template #label>
+          <span class="tab-label">
+            <i class="fas fa-filter"></i>
+            筛选条件
+          </span>
+        </template>
+        
+        <div class="filter-form">
+          <!-- 关键词筛选 -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-search"></i>
+              包含关键词
+            </label>
+            <div class="keyword-input">
+              <el-input
+                v-model="keywordInput.include"
+                placeholder="输入关键词，按回车添加"
+                @keydown.enter="addIncludeKeyword"
+                size="medium"
+              />
+              <el-button
+                type="primary"
+                size="medium"
+                @click="addIncludeKeyword"
+                :disabled="!keywordInput.include.trim()"
+              >
+                添加
+              </el-button>
+            </div>
+            <div class="keyword-tags" v-if="includeKeywords.length > 0">
+              <el-tag
+                v-for="(keyword, index) in includeKeywords"
+                :key="`include-${index}`"
+                closable
+                type="success"
+                size="medium"
+                style="font-size: 14px; font-weight: bold;"
+                @close="removeIncludeKeyword(index)"
+              >
+                {{ keyword }}
+              </el-tag>
+            </div>
+          </div>
 
-      <div class="form-group">
-        <label class="form-label">
-          <i class="fas fa-times"></i>
-          不包含关键词
-        </label>
-        <div class="keyword-input">
-          <el-input
-            v-model="keywordInput.exclude"
-            placeholder="输入关键词，按回车添加"
-            @keydown.enter="addExcludeKeyword"
-            size="medium"
-          />
-          <el-button
-            type="danger"
-            size="medium"
-            @click="addExcludeKeyword"
-            :disabled="!keywordInput.exclude.trim()"
-          >
-            添加
-          </el-button>
-        </div>
-        <div class="keyword-tags" v-if="excludeKeywords.length > 0">
-          <el-tag
-            v-for="(keyword, index) in excludeKeywords"
-            :key="`exclude-${index}`"
-            closable
-            type="danger"
-            size="medium"
-            style="font-size: 14px; font-weight: bold;"
-            @close="removeExcludeKeyword(index)"
-          >
-            {{ keyword }}
-          </el-tag>
-        </div>
-      </div>
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-times"></i>
+              不包含关键词
+            </label>
+            <div class="keyword-input">
+              <el-input
+                v-model="keywordInput.exclude"
+                placeholder="输入关键词，按回车添加"
+                @keydown.enter="addExcludeKeyword"
+                size="medium"
+              />
+              <el-button
+                type="danger"
+                size="medium"
+                @click="addExcludeKeyword"
+                :disabled="!keywordInput.exclude.trim()"
+              >
+                添加
+              </el-button>
+            </div>
+            <div class="keyword-tags" v-if="excludeKeywords.length > 0">
+              <el-tag
+                v-for="(keyword, index) in excludeKeywords"
+                :key="`exclude-${index}`"
+                closable
+                type="danger"
+                size="medium"
+                style="font-size: 14px; font-weight: bold;"
+                @close="removeExcludeKeyword(index)"
+              >
+                {{ keyword }}
+              </el-tag>
+            </div>
+          </div>
 
-      <!-- 标签筛选 -->
-      <div class="form-group">
-        <label class="form-label">
-          <i class="fas fa-tag"></i>
-          包含标签
-        </label>
-        <el-select
-          v-model="labelInput.include"
-          placeholder="请选择标签，选择后自动添加"
-          size="medium"
-          filterable
-          clearable
-          @change="addIncludeLabel"
-        >
-          <el-option
-            v-for="option in availableLabelOptions"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
-          />
-        </el-select>
-        <div class="keyword-tags" v-if="includeLabels.length > 0">
-          <el-tag
-            v-for="(label, index) in includeLabels"
-            :key="`include-label-${index}`"
-            closable
-            type="success"
-            size="medium"
-            style="font-size: 14px; font-weight: bold;"
-            @close="removeIncludeLabel(index)"
-          >
-            {{ label }}
-          </el-tag>
+          <!-- 标签筛选 -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-tag"></i>
+              包含标签
+            </label>
+            <el-select
+              v-model="labelInput.include"
+              placeholder="请选择标签，选择后自动添加"
+              size="medium"
+              filterable
+              clearable
+              @change="addIncludeLabel"
+            >
+              <el-option
+                v-for="option in availableLabelOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+            <div class="keyword-tags" v-if="includeLabels.length > 0">
+              <el-tag
+                v-for="(label, index) in includeLabels"
+                :key="`include-label-${index}`"
+                closable
+                type="success"
+                size="medium"
+                style="font-size: 14px; font-weight: bold;"
+                @close="removeIncludeLabel(index)"
+              >
+                {{ label }}
+              </el-tag>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-ban"></i>
+              不包含标签
+            </label>
+            <el-select
+              v-model="labelInput.exclude"
+              placeholder="请选择标签，选择后自动添加"
+              size="medium"
+              filterable
+              clearable
+              @change="addExcludeLabel"
+            >
+              <el-option
+                v-for="option in availableLabelOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+            <div class="keyword-tags" v-if="excludeLabels.length > 0">
+              <el-tag
+                v-for="(label, index) in excludeLabels"
+                :key="`exclude-label-${index}`"
+                closable
+                type="danger"
+                size="medium"
+                @close="removeExcludeLabel(index)"
+                style="font-size: 14px; font-weight: bold;"
+              >
+                {{ label }}
+              </el-tag>
+            </div>
+          </div>
+
+          <!-- 未标注筛选 -->
+          <div class="form-group">
+            <el-checkbox
+              v-model="unlabeledOnly"
+              size="large"
+            >
+              <i class="fas fa-question-circle"></i>
+              仅显示未标注的文本
+            </el-checkbox>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="filter-actions">
+            <ModernButton
+              text="预览筛选"
+              icon="fas fa-eye"
+              size="large"
+              :loading="isLoading"
+              :disabled="!hasFilterConditions"
+              @click="$emit('preview')"
+            />
+            <ModernButton
+              text="执行筛选"
+              icon="fas fa-search"
+              size="large"
+              variant="primary"
+              :loading="isLoading"
+              :disabled="!hasFilterConditions"
+              @click="handleFilter"
+            />
+          </div>
+          
+          <!-- 快捷键提示 -->
+          <div class="shortcut-hint">
+            <i class="fas fa-keyboard"></i>
+            <span>快捷键：Ctrl + Enter 执行筛选</span>
+          </div>
         </div>
-      </div>
+      </el-tab-pane>
 
-      <div class="form-group">
-        <label class="form-label">
-          <i class="fas fa-ban"></i>
-          不包含标签
-        </label>
-        <el-select
-          v-model="labelInput.exclude"
-          placeholder="请选择标签，选择后自动添加"
-          size="medium"
-          filterable
-          clearable
-          @change="addExcludeLabel"
-        >
-          <el-option
-            v-for="option in availableLabelOptions"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
-          />
-        </el-select>
-        <div class="keyword-tags" v-if="excludeLabels.length > 0">
-          <el-tag
-            v-for="(label, index) in excludeLabels"
-            :key="`exclude-label-${index}`"
-            closable
-            type="danger"
-            size="medium"
-            @close="removeExcludeLabel(index)"
-            style="font-size: 14px; font-weight: bold;"
-          >
-            {{ label }}
-          </el-tag>
-        </div>
-      </div>
-
-      <!-- 未标注筛选 -->
-      <div class="form-group">
-        <el-checkbox
-          v-model="unlabeledOnly"
-          size="large"
-        >
-          <i class="fas fa-question-circle"></i>
-          仅显示未标注的文本
-        </el-checkbox>
-      </div>
-
-      <!-- 操作按钮 -->
-      <div class="filter-actions">
-        <ModernButton
-          text="预览筛选"
-          icon="fas fa-eye"
-          size="large"
-          :loading="isLoading"
-          :disabled="!hasFilterConditions"
-          @click="$emit('preview')"
-        />
-        <ModernButton
-          text="执行筛选"
-          icon="fas fa-search"
-          size="large"
-          variant="primary"
-          :loading="isLoading"
-          :disabled="!hasFilterConditions"
-          @click="handleFilter"
-        />
-      </div>
-      
-      <!-- 快捷键提示 -->
-      <div class="shortcut-hint">
-        <i class="fas fa-keyboard"></i>
-        <span>快捷键：Ctrl + Enter 执行筛选</span>
-      </div>
-    </div>
+      <!-- 标签管理 Tab -->
+      <el-tab-pane label="标签管理" name="labels">
+        <template #label>
+          <span class="tab-label">
+            <i class="fas fa-tags"></i>
+            标签管理
+          </span>
+        </template>
+        
+        <LabelManagementTab @label-selected="handleLabelSelected" />
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -200,6 +225,7 @@
 import { reactive, computed, onMounted, onUnmounted, ref } from 'vue'
 import { useLabelStore } from '@/stores/label'
 import ModernButton from '../common/ModernButton.vue'
+import LabelManagementTab from './LabelManagementTab.vue'
 
 // Props
 interface Props {
@@ -235,6 +261,9 @@ const emit = defineEmits<Emits>()
 
 // Store
 const labelStore = useLabelStore()
+
+// 响应式状态
+const activeTab = ref('filter')
 
 // 防抖定时器
 const debounceTimer = ref<number | null>(null)
@@ -293,6 +322,16 @@ const handleKeydown = (event: KeyboardEvent) => {
   if (event.ctrlKey && event.key === 'Enter') {
     event.preventDefault()
     handleFilter()
+  }
+}
+
+// 标签选择处理
+const handleLabelSelected = (label: string) => {
+  // 检查是否已经在包含列表中
+  if (!props.includeLabels.includes(label)) {
+    emit('update:includeLabels', [...props.includeLabels, label])
+    // 切换到筛选条件tab以显示结果
+    activeTab.value = 'filter'
   }
 }
 
@@ -405,10 +444,31 @@ onUnmounted(() => {
   color: var(--el-text-color-primary);
 }
 
+.filter-tabs {
+  height: 100%;
+}
+
+.filter-tabs :deep(.el-tabs__content) {
+  height: calc(100% - 40px);
+  overflow: hidden;
+}
+
+.filter-tabs :deep(.el-tab-pane) {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
 .filter-form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  height: 100%;
 }
 
 .form-group {
@@ -447,22 +507,21 @@ onUnmounted(() => {
   gap: var(--spacing-md);
   padding-top: var(--spacing-lg);
   border-top: 1px solid var(--el-border-color-lighter);
+  margin-top: auto;
 }
 
 .shortcut-hint {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* gap: var(--spacing-sm); */
   padding: var(--spacing-sm);
   font-size: 12px;
   color: var(--el-text-color-secondary);
-  /* background: var(--el-fill-color-extra-light); */
   border-radius: var(--el-border-radius-base);
-  /* margin-top: var(--spacing-md); */
 }
 
 .shortcut-hint i {
   font-size: 14px;
+  margin-right: var(--spacing-sm);
 }
 </style> 
