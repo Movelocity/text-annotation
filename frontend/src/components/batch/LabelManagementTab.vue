@@ -13,7 +13,7 @@
         clearable
         prefix-icon="Search"
         class="search-input"
-        @input="clearHighlight"
+        @input="clearSelection"
       />
       <div class="toolbar-actions">
         <el-button
@@ -52,7 +52,7 @@
     </div>
 
     <!-- 标签列表 -->
-    <div class="labels-container" v-loading="labelStore.loading" @click="clearHighlight">
+    <div class="labels-container" v-loading="labelStore.loading" @click="clearSelection">
       <!-- 分组显示 -->
       <div v-if="showGrouped" class="grouped-labels">
         <div
@@ -84,10 +84,9 @@
               :label="label"
               :stats="labelStore.getLabelStats(label.label)"
               :max-usage-count="maxUsageCount"
-              :is-highlighted="highlightedLabels.has(label.label)"
-              @click="handleLabelClick"
+              :is-highlighted="selectedLabel === label.label"
+              @click="handleLabelSelect"
               @edit="handleLabelEdit"
-              @filter="handleLabelFilter"
             />
           </div>
         </div>
@@ -101,10 +100,9 @@
           :label="label"
           :stats="labelStore.getLabelStats(label.label)"
           :max-usage-count="maxUsageCount"
-          :is-highlighted="highlightedLabels.has(label.label)"
-          @click="handleLabelClick"
+          :is-highlighted="selectedLabel === label.label"
+          @click="handleLabelSelect"
           @edit="handleLabelEdit"
-          @filter="handleLabelFilter"
         />
       </div>
     </div>
@@ -141,10 +139,17 @@ import LabelItem from './LabelItem.vue'
 import type { LabelResponse, LabelUpdate } from '@/types/api'
 
 // Props & Emits
+interface Props {
+  currentFilterLabel?: string | null
+}
+
 interface Emits {
   'label-selected': [label: string]
-  'label-filtered': [label: string]
 }
+
+const props = withDefaults(defineProps<Props>(), {
+  currentFilterLabel: null
+})
 
 const emit = defineEmits<Emits>()
 
@@ -155,7 +160,9 @@ const labelStore = useLabelStore()
 const searchQuery = ref('')
 const showGrouped = ref(true)
 const collapsedGroups = ref<Set<string>>(new Set())
-const highlightedLabels = ref<Set<string>>(new Set())
+
+// 计算当前选中的标签，基于外部传入的筛选状态
+const selectedLabel = computed(() => props.currentFilterLabel)
 
 // 编辑分组对话框状态
 const editGroupDialog = ref({
@@ -213,8 +220,9 @@ const maxUsageCount = computed(() => {
 })
 
 // 方法
-const clearHighlight = () => {
-  highlightedLabels.value.clear()
+const clearSelection = () => {
+  // 由于 selectedLabel 现在是计算属性，不需要手动清除
+  // 清除筛选条件将通过父组件处理
 }
 
 const toggleGroupCollapse = (groupName: string) => {
@@ -264,19 +272,17 @@ const saveGroupName = async () => {
   }
 }
 
-const handleLabelClick = (label: LabelResponse) => {
+const handleLabelSelect = (label: LabelResponse) => {
   const labelName = label.label
   
-  // 清除所有之前的高亮，只保持当前选中的标签高亮
-  highlightedLabels.value.clear()
-  highlightedLabels.value.add(labelName)
-  
+  // 总是触发选择事件，让父组件决定是选中还是取消选中
   emit('label-selected', labelName)
 }
 
+
+
 const handleLabelEdit = async (label: LabelResponse, updates: Partial<LabelUpdate>) => {
   try {
-    // 构建完整的更新数据
     const fullUpdateData: LabelUpdate = {
       label: updates.label || label.label,
       description: updates.description !== undefined ? updates.description : label.description,
@@ -288,15 +294,6 @@ const handleLabelEdit = async (label: LabelResponse, updates: Partial<LabelUpdat
     ElMessage.error('更新标签失败')
     console.error('Error updating label:', error)
   }
-}
-
-const handleLabelFilter = (labelName: string) => {
-  // 清除所有之前的高亮，只保持当前选中的标签高亮
-  highlightedLabels.value.clear()
-  highlightedLabels.value.add(labelName)
-  
-  // 触发过滤事件
-  emit('label-filtered', labelName)
 }
 
 // 生命周期
@@ -311,8 +308,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // 清理高亮状态
-  highlightedLabels.value.clear()
+  // 清理工作由父组件处理
 })
 </script>
 

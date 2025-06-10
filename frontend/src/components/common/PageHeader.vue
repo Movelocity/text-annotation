@@ -94,7 +94,7 @@ const handleHomeClick = () => {
 <style scoped>
 .page-header {
   flex-shrink: 0;
-  padding: 20px 32px;
+  padding: 6px 32px;
   margin: 16px;
   border-radius: var(--radius-lg);
   backdrop-filter: blur(20px);

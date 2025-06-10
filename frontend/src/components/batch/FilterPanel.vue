@@ -3,15 +3,24 @@
 -->
 <template>
   <div class="filter-panel glass-panel">
-    <div class="section-header">
-      <h2>
-        <i class="fas fa-filter"></i>
-        筛选和标签管理
-      </h2>
-    </div>
 
     <!-- Tab 标签页 -->
     <el-tabs v-model="activeTab" class="filter-tabs">
+      <!-- 标签管理 Tab -->
+      <el-tab-pane label="标签管理" name="labels">
+        <template #label>
+          <span class="tab-label">
+            <i class="fas fa-tags"></i>
+            标签管理
+          </span>
+        </template>
+        
+        <LabelManagementTab 
+          :current-filter-label="getCurrentFilterLabel()" 
+          @label-selected="handleLabelSelected" 
+        />
+      </el-tab-pane>
+
       <!-- 筛选条件 Tab -->
       <el-tab-pane label="筛选条件" name="filter">
         <template #label>
@@ -206,17 +215,7 @@
         </div>
       </el-tab-pane>
 
-      <!-- 标签管理 Tab -->
-      <el-tab-pane label="标签管理" name="labels">
-        <template #label>
-          <span class="tab-label">
-            <i class="fas fa-tags"></i>
-            标签管理
-          </span>
-        </template>
-        
-        <LabelManagementTab @label-selected="handleLabelSelected" @label-filtered="handleLabelFiltered" />
-      </el-tab-pane>
+      
     </el-tabs>
   </div>
 </template>
@@ -267,6 +266,19 @@ const activeTab = ref('filter')
 
 // 防抖定时器
 const debounceTimer = ref<number | null>(null)
+
+// 获取当前筛选的标签（用于标签管理Tab的选中状态）
+const getCurrentFilterLabel = () => {
+  // 如果只有一个包含标签且没有其他筛选条件，则返回该标签
+  if (props.includeLabels.length === 1 && 
+      props.excludeLabels.length === 0 && 
+      props.includeKeywords.length === 0 && 
+      props.excludeKeywords.length === 0 && 
+      !props.unlabeledOnly) {
+    return props.includeLabels[0]
+  }
+  return null
+}
 
 // 表单数据
 const keywordInput = reactive({
@@ -327,24 +339,22 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 // 标签选择处理
 const handleLabelSelected = (label: string) => {
-  // 清除所有筛选条件，只保留这个选中的标签作为唯一筛选条件
-  emit('update:includeKeywords', [])
-  emit('update:excludeKeywords', [])
-  emit('update:includeLabels', [label])
-  emit('update:excludeLabels', [])
-  emit('update:unlabeledOnly', false)
-  
-  // 不跳转tab，保持在标签管理页面
-  // 直接执行筛选
-  handleFilter()
-}
-
-// 标签过滤处理
-const handleLabelFiltered = (label: string) => {
-  // 检查是否已经在包含列表中
-  if (!props.includeLabels.includes(label)) {
-    emit('update:includeLabels', [...props.includeLabels, label])
+  // 如果当前已经选中这个标签，则清除所有筛选条件
+  if (props.includeLabels.length === 1 && props.includeLabels[0] === label) {
+    emit('update:includeKeywords', [])
+    emit('update:excludeKeywords', [])
+    emit('update:includeLabels', [])
+    emit('update:excludeLabels', [])
+    emit('update:unlabeledOnly', false)
+  } else {
+    // 否则清除所有筛选条件，只保留这个选中的标签作为唯一筛选条件
+    emit('update:includeKeywords', [])
+    emit('update:excludeKeywords', [])
+    emit('update:includeLabels', [label])
+    emit('update:excludeLabels', [])
+    emit('update:unlabeledOnly', false)
   }
+  
   // 不跳转tab，保持在标签管理页面
   // 直接执行筛选
   handleFilter()
@@ -442,22 +452,6 @@ onUnmounted(() => {
   height: fit-content;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
-}
-
-.section-header h2 {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
 
 .filter-tabs {
   height: 100%;

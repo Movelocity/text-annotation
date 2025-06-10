@@ -42,12 +42,6 @@
       <i class="fas fa-search"></i>
       <p>{{ hasFilterConditions ? '没有找到匹配的文本' : '请设置筛选条件后执行筛选' }}</p>
     </div>
-
-    <!-- 加载状态 -->
-    <div v-if="isLoading" class="loading-state">
-      <i class="fas fa-spinner fa-spin"></i>
-      <p>正在筛选数据...</p>
-    </div>
   </div>
 </template>
 

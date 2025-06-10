@@ -11,7 +11,7 @@
       'highlighted': isHighlighted,
       'has-usage': !!stats
     }"
-    @click="handleFilter"
+    @click="handleClick"
   >
     <!-- 主要内容区域 -->
     <div class="label-content">
@@ -46,8 +46,7 @@
         </div>
 
         <!-- 操作按钮 -->
-        <div class="label-actions">
-          
+        <div class="label-actions">  
           <el-button
             size="small"
             type="warning"
@@ -62,7 +61,7 @@
       </div>
 
       <!-- 使用进度条 -->
-      <div class="usage-progress-section" v-if="stats">
+      <div v-if="stats">
         <div class="usage-bar">
           <div 
             class="usage-progress"
@@ -73,8 +72,8 @@
       </div>
 
       <!-- 标签描述 -->
-      <div class="label-description" v-if="label.description">
-        <p class="description-text">
+      <div class="label-description">
+        <p class="description-text" v-if="label.description">
           <i class="fas fa-info-circle"></i>
           {{ label.description }}
         </p>
@@ -154,7 +153,6 @@ const props = withDefaults(defineProps<Props>(), {
 interface Emits {
   'click': [label: LabelResponse]
   'edit': [label: LabelResponse, updates: Partial<LabelUpdate>]
-  'filter': [label: string]
 }
 
 const emit = defineEmits<Emits>()
@@ -173,8 +171,11 @@ const usagePercentage = computed(() => {
   return Math.min((props.stats.count / props.maxUsageCount) * 100, 100)
 })
 
-const handleFilter = () => {
-  emit('filter', props.label.label)
+// 方法
+const handleClick = () => {
+  if (!props.editMode) {
+    emit('click', props.label)
+  }
 }
 
 const getUsageClass = () => {
@@ -232,9 +233,9 @@ resetEditForm()
 }
 
 .label-item.clickable:hover {
-  border-color: var(--el-color-primary);
+  /* border-color: var(--el-color-primary); */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  transform: translate(4px, -4px);
 }
 
 .label-item.edit-mode {
@@ -348,10 +349,6 @@ resetEditForm()
   width: 32px;
   height: 32px;
   padding: 0;
-}
-
-.usage-progress-section {
-  margin-bottom: var(--spacing-md);
 }
 
 .usage-bar {
