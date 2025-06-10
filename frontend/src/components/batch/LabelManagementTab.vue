@@ -9,7 +9,7 @@
       <el-input
         v-model="searchQuery"
         placeholder="搜索标签..."
-        size="medium"
+        size="default"
         clearable
         prefix-icon="Search"
         class="search-input"
@@ -298,9 +298,9 @@ const handleLabelEdit = async (label: LabelResponse, updates: Partial<LabelUpdat
 
 // 生命周期
 onMounted(async () => {
-  if (!labelStore.hasLabels) {
-    await labelStore.fetchLabels()
-  }
+  // if (!labelStore.hasLabels) {
+  //   await labelStore.fetchLabels()
+  // } 已在store中初始化
   
   if (!labelStore.systemStats) {
     await labelStore.fetchSystemStats()

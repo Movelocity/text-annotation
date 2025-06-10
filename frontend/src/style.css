@@ -90,7 +90,7 @@ a:hover {
 }
 
 /* 按钮样式增强 */
-button {
+/* button {
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   padding: var(--spacing-sm) var(--spacing-lg);
@@ -101,16 +101,16 @@ button {
   transition: all var(--duration-fast) ease;
   position: relative;
   overflow: hidden;
-}
+} */
 
-button:hover {
+/* button:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
-}
+} */
 
-button:active {
+/* button:active {
   transform: translateY(0);
-}
+} */
 
 /* 卡片样式增强 */
 .modern-card {

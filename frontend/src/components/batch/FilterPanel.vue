@@ -16,7 +16,7 @@
         </template>
         
         <LabelManagementTab 
-          :current-filter-label="getCurrentFilterLabel()" 
+          :current-filter-label="getCurrentFilterLabel ?? ''" 
           @label-selected="handleLabelSelected" 
         />
       </el-tab-pane>
@@ -42,11 +42,11 @@
                 v-model="keywordInput.include"
                 placeholder="输入关键词，按回车添加"
                 @keydown.enter="addIncludeKeyword"
-                size="medium"
+                size="default"
               />
               <el-button
                 type="primary"
-                size="medium"
+                size="default"
                 @click="addIncludeKeyword"
                 :disabled="!keywordInput.include.trim()"
               >
@@ -78,11 +78,11 @@
                 v-model="keywordInput.exclude"
                 placeholder="输入关键词，按回车添加"
                 @keydown.enter="addExcludeKeyword"
-                size="medium"
+                size="default"
               />
               <el-button
                 type="danger"
-                size="medium"
+                size="default"
                 @click="addExcludeKeyword"
                 :disabled="!keywordInput.exclude.trim()"
               >
@@ -113,7 +113,7 @@
             <el-select
               v-model="labelInput.include"
               placeholder="请选择标签，选择后自动添加"
-              size="medium"
+              size="default"
               filterable
               clearable
               @change="addIncludeLabel"
@@ -131,7 +131,7 @@
                 :key="`include-label-${index}`"
                 closable
                 type="success"
-                size="medium"
+                size="default"
                 style="font-size: 14px; font-weight: bold;"
                 @close="removeIncludeLabel(index)"
               >
@@ -148,7 +148,7 @@
             <el-select
               v-model="labelInput.exclude"
               placeholder="请选择标签，选择后自动添加"
-              size="medium"
+              size="default"
               filterable
               clearable
               @change="addExcludeLabel"
@@ -221,7 +221,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted, onUnmounted, ref } from 'vue'
+import { reactive, computed, onMounted, onUnmounted, ref, nextTick } from 'vue'
 import { useLabelStore } from '@/stores/label'
 import ModernButton from '../common/ModernButton.vue'
 import LabelManagementTab from './LabelManagementTab.vue'
@@ -268,7 +268,7 @@ const activeTab = ref('labels')
 const debounceTimer = ref<number | null>(null)
 
 // 获取当前筛选的标签（用于标签管理Tab的选中状态）
-const getCurrentFilterLabel = () => {
+const getCurrentFilterLabel = computed(() => {
   // 如果只有一个包含标签且没有其他筛选条件，则返回该标签
   if (props.includeLabels.length === 1 && 
       props.excludeLabels.length === 0 && 
@@ -278,7 +278,7 @@ const getCurrentFilterLabel = () => {
     return props.includeLabels[0]
   }
   return null
-}
+})
 
 // 表单数据
 const keywordInput = reactive({
@@ -313,6 +313,7 @@ const availableLabelOptions = computed(() => {
 // 带防抖的筛选执行函数
 const handleFilter = () => {
   if (!hasFilterConditions.value || props.isLoading) {
+    console.log('no filter conditions')
     return
   }
   
@@ -323,6 +324,7 @@ const handleFilter = () => {
   
   // 设置新的防抖定时器
   debounceTimer.value = setTimeout(() => {
+    console.log('emit filter')
     emit('filter')
     debounceTimer.value = null
   }, 800) // 0.8秒防抖
@@ -338,7 +340,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 }
 
 // 标签选择处理
-const handleLabelSelected = (label: string) => {
+const handleLabelSelected = async (label: string) => {
   // 如果当前已经选中这个标签，则清除所有筛选条件
   if (props.includeLabels.length === 1 && props.includeLabels[0] === label) {
     emit('update:includeKeywords', [])
@@ -354,9 +356,10 @@ const handleLabelSelected = (label: string) => {
     emit('update:excludeLabels', [])
     emit('update:unlabeledOnly', false)
   }
-  
+  console.log('handleLabelSelected', label)
   // 不跳转tab，保持在标签管理页面
-  // 直接执行筛选
+  // 等待 props 更新完成后再执行筛选
+  await nextTick()
   handleFilter()
 }
 
