@@ -215,7 +215,7 @@
           </span>
         </template>
         
-        <LabelManagementTab @label-selected="handleLabelSelected" />
+        <LabelManagementTab @label-selected="handleLabelSelected" @label-filtered="handleLabelFiltered" />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -327,12 +327,27 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 // 标签选择处理
 const handleLabelSelected = (label: string) => {
+  // 清除所有筛选条件，只保留这个选中的标签作为唯一筛选条件
+  emit('update:includeKeywords', [])
+  emit('update:excludeKeywords', [])
+  emit('update:includeLabels', [label])
+  emit('update:excludeLabels', [])
+  emit('update:unlabeledOnly', false)
+  
+  // 不跳转tab，保持在标签管理页面
+  // 直接执行筛选
+  handleFilter()
+}
+
+// 标签过滤处理
+const handleLabelFiltered = (label: string) => {
   // 检查是否已经在包含列表中
   if (!props.includeLabels.includes(label)) {
     emit('update:includeLabels', [...props.includeLabels, label])
-    // 切换到筛选条件tab以显示结果
-    activeTab.value = 'filter'
   }
+  // 不跳转tab，保持在标签管理页面
+  // 直接执行筛选
+  handleFilter()
 }
 
 // 关键词管理
@@ -507,7 +522,6 @@ onUnmounted(() => {
   gap: var(--spacing-md);
   padding-top: var(--spacing-lg);
   border-top: 1px solid var(--el-border-color-lighter);
-  margin-top: auto;
 }
 
 .shortcut-hint {

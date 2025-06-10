@@ -1,55 +1,84 @@
 <!--
   标签条目组件
-  功能：显示单个标签的信息、统计数据，支持编辑
+  功能：显示单个标签的信息、统计数据，支持编辑和过滤
 -->
 <template>
   <div
     class="label-item"
-    :class="{ 'edit-mode': editMode, 'clickable': !editMode }"
-    @click="handleClick"
+    :class="{ 
+      'edit-mode': editMode, 
+      'clickable': !editMode,
+      'highlighted': isHighlighted,
+      'has-usage': !!stats
+    }"
+    @click="handleFilter"
   >
-    <div class="label-main">
-      <!-- 标签名称 -->
-      <div class="label-name-section">
-        <span class="label-name">{{ label.label }}</span>
-        <div class="label-stats" v-if="stats">
-          <span class="usage-count">{{ stats.count }} 条数据</span>
-          <div class="usage-bar">
-            <div 
-              class="usage-progress"
-              :style="{ width: `${usagePercentage}%` }"
-            ></div>
+    <!-- 主要内容区域 -->
+    <div class="label-content">
+      <!-- 标签头部：名称和操作 -->
+      <div class="label-header">
+        <div class="label-info">
+          <h3 class="label-name">{{ label.label }}</h3>
+          <div class="label-meta">
+            <!-- 使用统计 -->
+            <div class="usage-info" v-if="stats">
+              <span class="usage-count">
+                <i class="fas fa-chart-bar"></i>
+                {{ stats.count }} 条数据
+              </span>
+              <span class="usage-percentage">{{ Math.round(usagePercentage) }}%</span>
+            </div>
+            <div class="usage-info unused" v-else>
+              <span class="unused-label">
+                <i class="fas fa-circle"></i>
+                未使用
+              </span>
+            </div>
+            
+            <!-- 分组信息 -->
+            <div class="group-info" v-if="label.groups">
+              <el-tag size="small" type="info" effect="light">
+                <i class="fas fa-folder"></i>
+                {{ label.groups }}
+              </el-tag>
+            </div>
           </div>
         </div>
-        <div class="no-stats" v-else>
-          <span class="unused-label">未使用</span>
+
+        <!-- 操作按钮 -->
+        <div class="label-actions">
+          
+          <el-button
+            size="small"
+            type="warning"
+            plain
+            circle
+            title="编辑标签"
+            @click.stop="showEditDialog = true"
+          >
+            <i class="fas fa-edit"></i>
+          </el-button>
         </div>
       </div>
 
-      <!-- 编辑按钮 -->
-      <div class="label-actions" v-if="editMode">
-        <el-button
-          size="small"
-          text
-          type="primary"
-          @click.stop="showEditDialog = true"
-        >
-          <i class="fas fa-edit"></i>
-        </el-button>
+      <!-- 使用进度条 -->
+      <div class="usage-progress-section" v-if="stats">
+        <div class="usage-bar">
+          <div 
+            class="usage-progress"
+            :style="{ width: `${usagePercentage}%` }"
+            :class="getUsageClass()"
+          ></div>
+        </div>
       </div>
-    </div>
 
-    <!-- 标签描述 -->
-    <div class="label-description" v-if="label.description">
-      <span class="description-text">{{ label.description }}</span>
-    </div>
-
-    <!-- 标签分组 -->
-    <div class="label-group" v-if="label.groups">
-      <el-tag size="small" type="info">
-        <i class="fas fa-folder"></i>
-        {{ label.groups }}
-      </el-tag>
+      <!-- 标签描述 -->
+      <div class="label-description" v-if="label.description">
+        <p class="description-text">
+          <i class="fas fa-info-circle"></i>
+          {{ label.description }}
+        </p>
+      </div>
     </div>
 
     <!-- 编辑对话框 -->
@@ -57,10 +86,12 @@
       v-model="showEditDialog"
       :title="`编辑标签: ${label.label}`"
       width="500px"
+      append-to-body
+      destroy-on-close
       @close="resetEditForm"
     >
-      <el-form :model="editForm" label-width="80px">
-        <el-form-item label="标签名称">
+      <el-form :model="editForm" label-width="80px" label-position="top">
+        <el-form-item label="标签名称" required>
           <el-input
             v-model="editForm.label"
             placeholder="输入标签名称"
@@ -88,8 +119,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showEditDialog = false">取消</el-button>
-        <el-button type="primary" @click="saveEdit">保存</el-button>
+        <div class="dialog-footer">
+          <el-button @click="showEditDialog = false">取消</el-button>
+          <el-button type="primary" @click="saveEdit">
+            <i class="fas fa-save"></i>
+            保存
+          </el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -105,17 +141,20 @@ interface Props {
   stats?: LabelStats | null
   editMode?: boolean
   maxUsageCount?: number
+  isHighlighted?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   editMode: false,
-  maxUsageCount: 100
+  maxUsageCount: 100,
+  isHighlighted: false
 })
 
 // Emits
 interface Emits {
   'click': [label: LabelResponse]
   'edit': [label: LabelResponse, updates: Partial<LabelUpdate>]
+  'filter': [label: string]
 }
 
 const emit = defineEmits<Emits>()
@@ -134,11 +173,15 @@ const usagePercentage = computed(() => {
   return Math.min((props.stats.count / props.maxUsageCount) * 100, 100)
 })
 
-// 方法
-const handleClick = () => {
-  if (!props.editMode) {
-    emit('click', props.label)
-  }
+const handleFilter = () => {
+  emit('filter', props.label.label)
+}
+
+const getUsageClass = () => {
+  const percentage = usagePercentage.value
+  if (percentage >= 80) return 'high-usage'
+  if (percentage >= 40) return 'medium-usage'
+  return 'low-usage'
 }
 
 const resetEditForm = () => {
@@ -175,11 +218,13 @@ resetEditForm()
 
 <style scoped>
 .label-item {
-  padding: var(--spacing-md);
+  padding: 0;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--el-border-radius-base);
+  border-radius: 8px;
   background: var(--el-bg-color);
-  transition: all 0.2s;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  overflow: hidden;
 }
 
 .label-item.clickable {
@@ -188,8 +233,8 @@ resetEditForm()
 
 .label-item.clickable:hover {
   border-color: var(--el-color-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .label-item.edit-mode {
@@ -197,92 +242,214 @@ resetEditForm()
   background: var(--el-color-warning-light-9);
 }
 
-.label-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
+.label-item.highlighted {
+  /* border-color: var(--el-color-success); */
+  background: var(--el-color-success-light-9);
+  /* box-shadow: 0 0 0 2px var(--el-color-success-light-7); */
+  /* transform: translateY(-1px); */
 }
 
-.label-name-section {
-  flex: 1;
+.label-item.has-usage {
+  border-left: 4px solid var(--el-color-primary-light-3);
+}
+
+/* .label-item.has-usage.highlighted {
+  border-left-color: var(--el-color-success);
+} */
+
+.label-content {
+  padding: var(--spacing-lg);
+}
+
+.label-header {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.label-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .label-name {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--el-text-color-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: 1.3;
+  word-break: break-word;
 }
 
-.label-stats {
+.label-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.usage-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+}
+
+.usage-info.unused {
+  color: var(--el-text-color-placeholder);
+}
+
+.usage-info i {
+  font-size: 12px;
+  opacity: 0.7;
 }
 
 .usage-count {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  min-width: 60px;
-}
-
-.usage-bar {
-  flex: 1;
-  height: 4px;
-  background: var(--el-fill-color-light);
-  border-radius: 2px;
-  overflow: hidden;
-  max-width: 100px;
-}
-
-.usage-progress {
-  height: 100%;
-  background: var(--el-color-primary);
-  transition: width 0.3s;
-}
-
-.no-stats {
   display: flex;
   align-items: center;
+  gap: 4px;
+}
+
+.usage-percentage {
+  background: var(--el-color-primary-light-8);
+  color: var(--el-color-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 11px;
 }
 
 .unused-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.group-info .el-tag {
   font-size: 12px;
-  color: var(--el-text-color-placeholder);
-  font-style: italic;
+}
+
+.group-info .el-tag i {
+  margin-right: 4px;
+  font-size: 11px;
 }
 
 .label-actions {
   display: flex;
+  align-items: center;
   gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.label-actions .el-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.usage-progress-section {
+  margin-bottom: var(--spacing-md);
+}
+
+.usage-bar {
+  height: 6px;
+  background: var(--el-border-color-lighter);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.usage-progress {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease-in-out;
+  position: relative;
+}
+
+.usage-progress.low-usage {
+  background: linear-gradient(90deg, var(--el-color-info) 0%, var(--el-color-primary-light-3) 100%);
+}
+
+.usage-progress.medium-usage {
+  background: linear-gradient(90deg, var(--el-color-warning) 0%, var(--el-color-primary) 100%);
+}
+
+.usage-progress.high-usage {
+  background: linear-gradient(90deg, var(--el-color-success) 0%, var(--el-color-primary) 100%);
 }
 
 .label-description {
-  margin-top: var(--spacing-sm);
-  padding-top: var(--spacing-sm);
-  border-top: 1px solid var(--el-border-color-extra-light);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--el-border-color-extralight);
 }
 
 .description-text {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--el-text-color-secondary);
-  line-height: 1.4;
-}
-
-.label-group {
-  margin-top: var(--spacing-sm);
+  line-height: 1.5;
+  margin: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
 }
 
-.label-group .el-tag {
-  --el-tag-text-color: var(--el-text-color-secondary);
+.description-text i {
+  color: var(--el-color-info);
+  margin-top: 2px;
+  flex-shrink: 0;
 }
 
-.label-group .el-tag i {
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+}
+
+.dialog-footer .el-button i {
   margin-right: 4px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .label-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+  
+  .label-actions {
+    justify-content: flex-end;
+  }
+  
+  .label-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .label-name {
+    font-size: 16px;
+  }
+}
+
+/* 无障碍支持 */
+/* .label-item:focus-within {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+} */
+
+/* 动画优化 */
+@media (prefers-reduced-motion: reduce) {
+  .label-item,
+  .usage-progress {
+    transition: none;
+  }
+  
+  .label-item.highlighted {
+    animation: none;
+  }
 }
 </style> 

@@ -13,6 +13,7 @@
         clearable
         prefix-icon="Search"
         class="search-input"
+        @input="clearHighlight"
       />
       <div class="toolbar-actions">
         <el-button
@@ -22,14 +23,6 @@
         >
           <i class="fas fa-layer-group"></i>
           分组显示
-        </el-button>
-        <el-button
-          size="small"
-          :type="editMode ? 'success' : 'default'"
-          @click="editMode = !editMode"
-        >
-          <i class="fas fa-edit"></i>
-          编辑模式
         </el-button>
       </div>
     </div>
@@ -59,7 +52,7 @@
     </div>
 
     <!-- 标签列表 -->
-    <div class="labels-container" v-loading="labelStore.loading">
+    <div class="labels-container" v-loading="labelStore.loading" @click="clearHighlight">
       <!-- 分组显示 -->
       <div v-if="showGrouped" class="grouped-labels">
         <div
@@ -75,7 +68,7 @@
             <span class="group-name">{{ group.name }}</span>
             <span class="group-count">({{ group.labels.length }})</span>
             <el-button
-              v-if="editMode && group.name !== '未分组'"
+              v-if="group.name !== '未分组'"
               size="small"
               text
               type="primary"
@@ -90,10 +83,11 @@
               :key="label.id"
               :label="label"
               :stats="labelStore.getLabelStats(label.label)"
-              :edit-mode="editMode"
               :max-usage-count="maxUsageCount"
+              :is-highlighted="highlightedLabels.has(label.label)"
               @click="handleLabelClick"
               @edit="handleLabelEdit"
+              @filter="handleLabelFilter"
             />
           </div>
         </div>
@@ -106,10 +100,11 @@
           :key="label.id"
           :label="label"
           :stats="labelStore.getLabelStats(label.label)"
-          :edit-mode="editMode"
           :max-usage-count="maxUsageCount"
+          :is-highlighted="highlightedLabels.has(label.label)"
           @click="handleLabelClick"
           @edit="handleLabelEdit"
+          @filter="handleLabelFilter"
         />
       </div>
     </div>
@@ -139,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useLabelStore } from '@/stores/label'
 import LabelItem from './LabelItem.vue'
@@ -148,6 +143,7 @@ import type { LabelResponse, LabelUpdate } from '@/types/api'
 // Props & Emits
 interface Emits {
   'label-selected': [label: string]
+  'label-filtered': [label: string]
 }
 
 const emit = defineEmits<Emits>()
@@ -158,8 +154,8 @@ const labelStore = useLabelStore()
 // 响应式状态
 const searchQuery = ref('')
 const showGrouped = ref(true)
-const editMode = ref(false)
 const collapsedGroups = ref<Set<string>>(new Set())
+const highlightedLabels = ref<Set<string>>(new Set())
 
 // 编辑分组对话框状态
 const editGroupDialog = ref({
@@ -206,13 +202,21 @@ const groupedLabels = computed(() => {
     }))
 })
 
-// 计算最大使用次数，用于进度条显示
 const maxUsageCount = computed(() => {
-  if (!labelStore.systemStats?.label_statistics.length) return 100
-  return Math.max(...labelStore.systemStats.label_statistics.map(stat => stat.count))
+  return Math.max(
+    ...labelStore.labels.map(label => {
+      const stats = labelStore.getLabelStats(label.label)
+      return stats?.count ?? 0
+    }),
+    1
+  )
 })
 
 // 方法
+const clearHighlight = () => {
+  highlightedLabels.value.clear()
+}
+
 const toggleGroupCollapse = (groupName: string) => {
   if (collapsedGroups.value.has(groupName)) {
     collapsedGroups.value.delete(groupName)
@@ -231,7 +235,8 @@ const editGroupName = (oldName: string) => {
 
 const saveGroupName = async () => {
   const { oldName, newName } = editGroupDialog.value
-  if (!newName.trim() || newName === oldName) {
+  
+  if (!newName.trim() || oldName === newName) {
     editGroupDialog.value.show = false
     return
   }
@@ -254,38 +259,60 @@ const saveGroupName = async () => {
     ElMessage.success('分组名称更新成功')
     editGroupDialog.value.show = false
   } catch (error) {
-    console.error('更新分组失败:', error)
-    ElMessage.error('更新分组失败')
+    ElMessage.error('更新分组名称失败')
+    console.error('Error updating group name:', error)
   }
 }
 
 const handleLabelClick = (label: LabelResponse) => {
-  if (!editMode.value) {
-    emit('label-selected', label.label)
-    ElMessage.success(`已将标签 "${label.label}" 添加到筛选条件`)
-  }
+  const labelName = label.label
+  
+  // 清除所有之前的高亮，只保持当前选中的标签高亮
+  highlightedLabels.value.clear()
+  highlightedLabels.value.add(labelName)
+  
+  emit('label-selected', labelName)
 }
 
 const handleLabelEdit = async (label: LabelResponse, updates: Partial<LabelUpdate>) => {
   try {
-    await labelStore.updateLabel(label.id, {
+    // 构建完整的更新数据
+    const fullUpdateData: LabelUpdate = {
       label: updates.label || label.label,
       description: updates.description !== undefined ? updates.description : label.description,
       groups: updates.groups !== undefined ? updates.groups : label.groups
-    })
+    }
+    await labelStore.updateLabel(label.id, fullUpdateData)
     ElMessage.success('标签更新成功')
   } catch (error) {
-    console.error('更新标签失败:', error)
     ElMessage.error('更新标签失败')
+    console.error('Error updating label:', error)
   }
+}
+
+const handleLabelFilter = (labelName: string) => {
+  // 清除所有之前的高亮，只保持当前选中的标签高亮
+  highlightedLabels.value.clear()
+  highlightedLabels.value.add(labelName)
+  
+  // 触发过滤事件
+  emit('label-filtered', labelName)
 }
 
 // 生命周期
 onMounted(async () => {
-  // 确保标签数据和统计数据都被加载
-  if (!labelStore.hasLabels || !labelStore.systemStats) {
-    await labelStore.initializeData()
+  if (!labelStore.hasLabels) {
+    await labelStore.fetchLabels()
   }
+  
+  if (!labelStore.systemStats) {
+    await labelStore.fetchSystemStats()
+  }
+})
+
+onUnmounted(() => {
+  // 清理高亮状态
+  highlightedLabels.value.clear()
 })
 </script>
 
@@ -314,6 +341,7 @@ onMounted(async () => {
 
 .stats-overview {
   display: flex;
+  justify-content: space-around;
   gap: var(--spacing-lg);
   padding: var(--spacing-md);
   background: var(--el-fill-color-extra-light);
