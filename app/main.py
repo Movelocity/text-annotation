@@ -310,6 +310,36 @@ def get_label(
     return label
 
 
+@app.put("/labels/{label_id}", response_model=schemas.LabelResponse)
+def update_label(
+    label_id: int,
+    label_data: schemas.LabelUpdate,
+    db: Session = Depends(get_db)
+):
+    """
+    更新标签。
+    
+    Args:
+        label_id: 要更新的标签 ID
+        label_data: 更新的标签数据
+        db: 数据库会话
+        
+    Returns:
+        更新后的标签数据
+        
+    Raises:
+        HTTPException: 如果标签未找到或标签字符串重复
+    """
+    service = LabelService(db)
+    try:
+        label = service.update_label(label_id, label_data)
+        if not label:
+            raise HTTPException(status_code=404, detail="标签未找到")
+        return label
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.delete("/labels/{label_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_label(
     label_id: int,

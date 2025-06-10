@@ -30,11 +30,14 @@ export interface AnnotationDataList {
 export interface LabelBase {
   label: string
   description?: string | null
+  groups?: string | null
 }
 
 export interface LabelCreate extends LabelBase {
   id?: number | null
 }
+
+export interface LabelUpdate extends LabelBase {}
 
 export interface LabelResponse extends LabelBase {
   id: number

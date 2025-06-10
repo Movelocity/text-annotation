@@ -10,6 +10,7 @@ import type {
   AnnotationDataResponse,
   AnnotationDataList,
   LabelCreate,
+  LabelUpdate,
   LabelResponse,
   SearchRequest,
   AdvancedSearchRequest,
@@ -136,6 +137,11 @@ class ApiService {
     return response.data
   }
 
+  async updateLabel(id: number, data: LabelUpdate): Promise<LabelResponse> {
+    const response = await this.axiosInstance.put<LabelResponse>(`/labels/${id}`, data)
+    return response.data
+  }
+
   async deleteLabel(id: number): Promise<void> {
     await this.axiosInstance.delete(`/labels/${id}`)
   }
@@ -198,6 +204,7 @@ export const labelApi = {
   create: (data: LabelCreate) => apiService.createLabel(data),
   getAll: () => apiService.getAllLabels(),
   get: (id: number) => apiService.getLabel(id),
+  update: (id: number, data: LabelUpdate) => apiService.updateLabel(id, data),
   delete: (id: number) => apiService.deleteLabel(id)
 }
 

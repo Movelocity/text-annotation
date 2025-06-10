@@ -66,6 +66,11 @@ class LabelCreate(LabelBase):
     id: Optional[int] = Field(None, description="可选的自定义 ID")
 
 
+class LabelUpdate(LabelBase):
+    """更新标签的 schema。"""
+    pass
+
+
 class LabelResponse(LabelBase):
     """标签响应的 schema。"""
     id: int = Field(..., description="唯一标识符")

@@ -567,6 +567,43 @@ class LabelService:
         """
         return self.db.query(Label).filter(Label.id == label_id).first()
     
+    def update_label(self, label_id: int, label_data: schemas.LabelUpdate) -> Optional[Label]:
+        """
+        更新标签。
+        
+        Args:
+            label_id: 要更新的标签 ID
+            label_data: 更新的标签数据
+            
+        Returns:
+            更新后的标签数据，如果未找到则返回 None
+            
+        Raises:
+            ValueError: 如果标签字符串与其他标签重复
+        """
+        label = self.get_label(label_id)
+        if not label:
+            return None
+        
+        # 检查标签字符串是否与其他标签重复
+        existing = self.db.query(Label).filter(
+            Label.label == label_data.label,
+            Label.id != label_id
+        ).first()
+        
+        if existing:
+            raise ValueError(f"标签 '{label_data.label}' 已存在，ID: {existing.id}")
+        
+        # 更新标签数据
+        label.label = label_data.label
+        label.description = label_data.description
+        label.groups = label_data.groups
+        
+        self.db.commit()
+        self.db.refresh(label)
+        
+        return label
+    
     def delete_label(self, label_id: int) -> bool:
         """
         删除标签。

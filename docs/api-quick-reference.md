@@ -25,6 +25,7 @@ http://localhost:8000
 | POST | `/labels/` | 创建标签 |
 | GET | `/labels/` | 获取所有标签 |
 | GET | `/labels/{id}` | 获取标签 |
+| PUT | `/labels/{id}` | 更新标签 |
 | DELETE | `/labels/{id}` | 删除标签 |
 
 ## 数据导入 API
@@ -104,7 +105,19 @@ POST /annotations/bulk-update-labels
 ```javascript
 POST /labels/
 {
-  "label": "新标签名称"
+  "label": "新标签名称",
+  "description": "标签描述",        // 可选
+  "groups": "分类1/子分类1/标签组"   // 可选
+}
+```
+
+### 更新标签
+```javascript
+PUT /labels/{id}
+{
+  "label": "更新后的标签名称",
+  "description": "更新后的描述",     // 可选
+  "groups": "更新后的分组"          // 可选
 }
 ```
 
