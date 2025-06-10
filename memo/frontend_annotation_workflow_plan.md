@@ -77,10 +77,10 @@ frontend/src/components/
 ```javascript
 const routes = [
   { path: '/', redirect: '/home' },
-  { path: '/home', component: HomePage },           // ✅ 统计首页
-  { path: '/annotation', component: AnnotationPage }, // ✅ 标注工作台
-  { path: '/labels', component: LabelManagePage },   // ⏸️ 标签管理
-  { path: '/annotation/:id', component: AnnotationDetail } // ⏸️ 单条详情（可选）
+  { path: '/pages/home', component: HomePage },           // ✅ 统计首页
+  { path: '/pages/annotation', component: AnnotationPage }, // ✅ 标注工作台
+  { path: '/pages/labels', component: LabelManagePage },   // ⏸️ 标签管理
+  { path: '/pages/annotation/:id', component: AnnotationDetail } // ⏸️ 单条详情（可选）
 ]
 ```
 

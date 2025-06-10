@@ -11,6 +11,8 @@
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
 import os
@@ -41,11 +43,80 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 挂载静态文件目录
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+if os.path.exists(static_dir):
+    # 挂载静态资源目录
+    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+    # 挂载其他静态文件（如 vite.svg）
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    logger.info(f"静态文件目录已挂载: {static_dir}")
+else:
+    logger.warning(f"静态文件目录不存在: {static_dir}")
+
 
 @app.on_event("startup")
 async def startup_event():
     """启动时初始化数据库表。"""
     create_tables()
+
+
+# 前端页面路由
+@app.get("/")
+async def serve_frontend():
+    """
+    提供前端页面。
+    
+    Returns:
+        前端 index.html 文件
+    """
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    index_file = os.path.join(static_dir, "index.html")
+    
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    else:
+        raise HTTPException(status_code=404, detail="前端文件未找到，请先构建前端项目")
+
+
+@app.get("/vite.svg")
+async def serve_vite_svg():
+    """
+    提供 vite.svg 文件。
+    
+    Returns:
+        vite.svg 文件
+    """
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    vite_file = os.path.join(static_dir, "vite.svg")
+    
+    if os.path.exists(vite_file):
+        return FileResponse(vite_file)
+    else:
+        raise HTTPException(status_code=404, detail="vite.svg 文件未找到")
+
+
+@app.get("/pages/{path:path}")
+async def serve_spa_pages(path: str):
+    """
+    将所有 /pages/* 路径转发给 SPA 前端处理。
+    
+    这个路由捕获所有以 /pages/ 开头的路径，并返回 index.html，
+    让前端路由器（如 Vue Router）来处理页面导航。
+    
+    Args:
+        path: 页面路径（将被前端路由器处理）
+        
+    Returns:
+        前端 index.html 文件，让 SPA 处理路由
+    """
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    index_file = os.path.join(static_dir, "index.html")
+    
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    else:
+        raise HTTPException(status_code=404, detail="前端文件未找到，请先构建前端项目")
 
 
 # 标注数据端点

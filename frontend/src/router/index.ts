@@ -8,10 +8,10 @@ import type { RouteRecordRaw } from 'vue-router'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/home'
+    redirect: '/pages/home'
   },
   {
-    path: '/home',
+    path: '/pages/home',
     name: 'Home',
     component: () => import('@/pages/HomePage.vue'),
     meta: {
@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/annotation',
+    path: '/pages/annotation',
     name: 'Annotation',
     component: () => import('@/pages/AnnotationPage.vue'),
     meta: {
@@ -27,7 +27,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/batch-annotation',
+    path: '/pages/batch-annotation',
     name: 'BatchAnnotation',
     component: () => import('@/pages/BatchAnnotationPage.vue'),
     meta: {
@@ -35,7 +35,7 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/label-manage',
+    path: '/pages/label-manage',
     name: 'LabelManage',
     component: () => import('@/pages/LabelManagePage.vue'),
     meta: {

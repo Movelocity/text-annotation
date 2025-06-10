@@ -6,7 +6,7 @@
       title-icon="fas fa-tags"
       :breadcrumbs="breadcrumbs"
       :stats="headerStats"
-      home-route="/home"
+      home-route="/pages/home"
     >
     </PageHeader>
 

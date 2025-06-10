@@ -10,7 +10,7 @@
       title-icon="fas fa-layer-group"
       :breadcrumbs="breadcrumbs"
       :stats="headerStats"
-      home-route="/home"
+      home-route="/pages/home"
     >
       <template #actions>
         <ModernButton

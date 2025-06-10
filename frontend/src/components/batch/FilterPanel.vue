@@ -262,7 +262,7 @@ const emit = defineEmits<Emits>()
 const labelStore = useLabelStore()
 
 // 响应式状态
-const activeTab = ref('filter')
+const activeTab = ref('labels')
 
 // 防抖定时器
 const debounceTimer = ref<number | null>(null)

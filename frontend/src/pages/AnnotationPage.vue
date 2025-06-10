@@ -10,7 +10,7 @@
       title-icon="fas fa-magic"
       :breadcrumbs="breadcrumbs"
       :stats="headerStats"
-      home-route="/home"
+      home-route="/pages/home"
     >
       <template #actions>
         <ModernButton

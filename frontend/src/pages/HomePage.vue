@@ -294,15 +294,15 @@ const refreshStats = async () => {
 }
 
 const goToAnnotation = () => {
-  router.push('/annotation')
+  router.push('/pages/annotation')
 }
 
 const goToBatchAnnotation = () => {
-  router.push('/batch-annotation')
+  router.push('/pages/batch-annotation')
 }
 
 const goToLabelManage = () => {
-  router.push('/label-manage')
+  router.push('/pages/label-manage')
 }
 
 onMounted(() => {
