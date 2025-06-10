@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="新增标签"
+    title="编辑标签"
     width="500px"
     :before-close="handleClose"
     destroy-on-close
@@ -63,10 +63,9 @@
         show-icon
       >
         <ul class="tips-list">
-          <li>标签名称不能重复</li>
-          <li>建议使用有意义的标签名称</li>
-          <li>分组路径支持多层级，如：NLP/意图/情感</li>
-          <li>创建后可以在标注时使用该标签</li>
+          <li>标签名称不能与其他标签重复</li>
+          <li>分组路径区分大小写</li>
+          <li>修改后会影响所有使用该标签的标注数据</li>
         </ul>
       </el-alert>
     </div>
@@ -79,7 +78,7 @@
           @click="handleSubmit"
           :loading="loading"
         >
-          确定创建
+          保存更改
         </el-button>
       </div>
     </template>
@@ -90,33 +89,33 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useLabelStore } from '@/stores/label'
-import type { LabelCreate } from '@/types/api'
+import type { LabelResponse, LabelUpdate } from '@/types/api'
 
 interface Props {
   modelValue: boolean
+  label: LabelResponse | null
 }
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'created'): void
+  (e: 'updated'): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const labelStore = useLabelStore()
-
-// 响应式数据
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
-const form = reactive<LabelCreate & { description?: string; groups?: string }>({
+// 表单数据
+const form = reactive({
   label: '',
   description: '',
   groups: ''
 })
 
-// 计算属性
+// 对话框显示状态
 const dialogVisible = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
@@ -126,10 +125,19 @@ const dialogVisible = computed({
 const rules: FormRules = {
   label: [
     { required: true, message: '请输入标签名称', trigger: 'blur' },
-    { min: 1, max: 50, message: '标签名称长度在 1 到 50 个字符', trigger: 'blur' },
+    { min: 1, max: 50, message: '标签名称长度应在 1 到 50 个字符', trigger: 'blur' },
     {
-      validator: (_rule, value, callback) => {
-        if (value && labelStore.getLabelByName(value)) {
+      validator: (rule, value, callback) => {
+        if (!props.label) {
+          callback()
+          return
+        }
+        
+        // 检查是否与其他标签重复（排除自己）
+        const existingLabel = labelStore.labels.find(
+          l => l.label === value && l.id !== props.label!.id
+        )
+        if (existingLabel) {
           callback(new Error('标签名称已存在'))
         } else {
           callback()
@@ -144,7 +152,7 @@ const rules: FormRules = {
   groups: [
     { max: 100, message: '分组路径长度不能超过 100 个字符', trigger: 'blur' },
     {
-      validator: (_rule, value, callback) => {
+      validator: (rule, value, callback) => {
         if (!value) {
           callback()
           return
@@ -168,50 +176,79 @@ const rules: FormRules = {
   ]
 }
 
-// 方法
+// 重置表单
 const resetForm = () => {
-  form.label = ''
-  form.description = ''
-  form.groups = ''
-  formRef.value?.clearValidate()
+  if (formRef.value) {
+    formRef.value.resetFields()
+  }
+  Object.assign(form, {
+    label: '',
+    description: '',
+    groups: ''
+  })
 }
 
+// 初始化表单数据
+const initForm = () => {
+  if (props.label) {
+    Object.assign(form, {
+      label: props.label.label || '',
+      description: props.label.description || '',
+      groups: props.label.groups || ''
+    })
+  }
+}
+
+// 处理关闭
 const handleClose = () => {
-  resetForm()
   dialogVisible.value = false
+  resetForm()
 }
 
+// 提交表单
 const handleSubmit = async () => {
-  if (!formRef.value) return
-
+  if (!formRef.value || !props.label) return
+  
   try {
+    // 验证表单
     await formRef.value.validate()
     
     loading.value = true
     
-    const labelData: LabelCreate = {
+    // 准备更新数据
+    const updateData: LabelUpdate = {
       label: form.label.trim(),
-      description: form.description?.trim() || null,
-      groups: form.groups?.trim() || null
+      description: form.description.trim() || null,
+      groups: form.groups.trim() || null
     }
-
-    await labelStore.createLabel(labelData)
     
-    emit('created')
-    handleClose()
+    // 调用更新接口
+    await labelStore.updateLabel(props.label.id, updateData)
     
+    ElMessage.success('标签更新成功')
+    emit('updated')
+    dialogVisible.value = false
+    resetForm()
   } catch (error) {
-    if (error !== false) { // 不是表单验证错误
-      ElMessage.error('创建标签失败，请重试')
-    }
+    console.error('更新标签失败:', error)
+    ElMessage.error('更新标签失败')
   } finally {
     loading.value = false
   }
 }
 
-// 监听对话框打开，重置表单
-watch(dialogVisible, (newVal) => {
-  if (newVal) {
+// 监听标签变化，初始化表单
+watch(() => props.label, (newLabel) => {
+  if (newLabel && props.modelValue) {
+    initForm()
+  }
+}, { immediate: true })
+
+// 监听对话框打开状态
+watch(() => props.modelValue, (isOpen) => {
+  if (isOpen && props.label) {
+    initForm()
+  } else if (!isOpen) {
     resetForm()
   }
 })
@@ -226,43 +263,35 @@ watch(dialogVisible, (newVal) => {
 }
 
 .dialog-tips {
-  margin: 20px 0;
+  margin-top: 16px;
 }
 
 .tips-list {
   margin: 0;
   padding-left: 16px;
-  font-size: 13px;
-  color: #606266;
 }
 
 .tips-list li {
+  font-size: 13px;
+  line-height: 1.6;
   margin-bottom: 4px;
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-}
-
-:deep(.el-dialog__header) {
-  padding: 20px 20px 10px;
-}
-
-:deep(.el-dialog__body) {
-  padding: 10px 20px 20px;
-}
-
-:deep(.el-dialog__footer) {
-  padding: 10px 20px 20px;
+  gap: 8px;
 }
 
 :deep(.el-form-item__label) {
   font-weight: 500;
 }
 
-:deep(.el-alert__content) {
-  padding-left: 8px;
+:deep(.el-input__count) {
+  font-size: 11px;
+}
+
+:deep(.el-textarea__count) {
+  font-size: 11px;
 }
 </style> 

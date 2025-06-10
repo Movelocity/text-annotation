@@ -3,7 +3,15 @@
     <!-- 主要信息：始终显示 -->
     <div class="label-main">
       <div class="label-info">
-        <div class="label-name">{{ label.label }}</div>
+        <div class="label-header">
+          <div class="label-name">{{ label.label }}</div>
+          <div v-if="label.groups" class="label-group">
+            <el-tag size="small" type="info" plain>
+              <el-icon><Folder /></el-icon>
+              {{ label.groups }}
+            </el-tag>
+          </div>
+        </div>
         <div v-if="label.description" class="label-description">
           {{ label.description }}
         </div>
@@ -25,6 +33,10 @@
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
+              <el-dropdown-item command="edit">
+                <el-icon><Edit /></el-icon>
+                编辑标签
+              </el-dropdown-item>
               <el-dropdown-item command="delete" class="delete-item">
                 <el-icon><Delete /></el-icon>
                 删除标签
@@ -59,7 +71,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { MoreFilled, Delete } from '@element-plus/icons-vue'
+import { MoreFilled, Delete, Edit, Folder } from '@element-plus/icons-vue'
 import type { LabelResponse, LabelStats } from '@/types/api'
 
 interface Props {
@@ -70,6 +82,7 @@ interface Props {
 
 interface Emits {
   (e: 'delete', label: LabelResponse): void
+  (e: 'edit', label: LabelResponse): void
 }
 
 const props = defineProps<Props>()
@@ -114,6 +127,8 @@ const progressColor = computed(() => {
 const handleCommand = (command: string) => {
   if (command === 'delete') {
     emit('delete', props.label)
+  } else if (command === 'edit') {
+    emit('edit', props.label)
   }
 }
 
@@ -170,12 +185,22 @@ const handleCardClick = () => {
   margin-right: 12px;
 }
 
+.label-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
 .label-name {
   font-size: 18px;
   font-weight: 600;
   color: #303133;
   word-break: break-all;
-  margin-bottom: 4px;
+}
+
+.label-group {
+  align-self: flex-start;
 }
 
 .label-description {

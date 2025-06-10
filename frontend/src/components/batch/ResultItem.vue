@@ -23,6 +23,7 @@
           :key="label"
           size="small"
           type="primary"
+          style="font-size: 14px; font-weight: bold;"
         >
           {{ label }}
         </el-tag>
@@ -33,16 +34,16 @@
     </div>
     <div 
       class="item-content"
-      :class="{ expandable: item.text.length > 200, expanded: expandedItems.has(item.id) }"
-      @click.stop="toggleExpanded(item.id)"
+      :class="{ expandable: item.text.length > 300, expanded: expandedItems.has(item.id) }"
     >
       <div class="text-content">
         {{ getDisplayText(item) }}
       </div>
       <div 
-        v-if="item.text.length > 200" 
+        v-if="item.text.length > 300" 
         class="expand-indicator"
         :title="expandedItems.has(item.id) ? '点击收起' : '点击展开全文'"
+        @click.stop="toggleExpanded(item.id)"
       >
         <i :class="expandedItems.has(item.id) ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
       </div>
@@ -87,10 +88,10 @@ const toggleExpanded = (id: number) => {
 }
 
 const getDisplayText = (text: AnnotationDataResponse): string => {
-  if (text.text.length <= 100 || expandedItems.value.has(text.id)) {
+  if (text.text.length <= 300 || expandedItems.value.has(text.id)) {
     return text.text
   }
-  return text.text.substring(0, 100) + '...'
+  return text.text.substring(0, 300) + '...'
 }
 </script>
 

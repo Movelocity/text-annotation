@@ -5,7 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { labelApi, statsApi } from '@/services/api'
-import type { LabelResponse, LabelCreate, SystemStats, LabelStats } from '@/types/api'
+import type { LabelResponse, LabelCreate, LabelUpdate, SystemStats, LabelStats } from '@/types/api'
 
 export const useLabelStore = defineStore('label', () => {
   // 状态
@@ -31,7 +31,8 @@ export const useLabelStore = defineStore('label', () => {
     }
     const query = searchQuery.value.toLowerCase()
     return labels.value.filter(label => 
-      label.label.toLowerCase().includes(query)
+      label.label.toLowerCase().includes(query) ||
+      (label.description && label.description.toLowerCase().includes(query))
     )
   })
 
@@ -121,6 +122,25 @@ export const useLabelStore = defineStore('label', () => {
     }
   }
 
+  const updateLabel = async (id: number, data: LabelUpdate) => {
+    try {
+      setLoading(true)
+      const updatedLabel = await labelApi.update(id, data)
+      const index = labels.value.findIndex(label => label.id === id)
+      if (index !== -1) {
+        labels.value[index] = updatedLabel
+      }
+      // 更新标签后刷新统计数据
+      await fetchSystemStats()
+      return updatedLabel
+    } catch (error) {
+      console.error('更新标签失败:', error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const deleteLabel = async (id: number) => {
     try {
       setLoading(true)
@@ -174,6 +194,7 @@ export const useLabelStore = defineStore('label', () => {
     fetchLabels,
     fetchSystemStats,
     createLabel,
+    updateLabel,
     deleteLabel,
     getLabelById,
     getLabelByName,
