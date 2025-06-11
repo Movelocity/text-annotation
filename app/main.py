@@ -12,7 +12,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 from typing import List
 import os
@@ -94,6 +94,30 @@ async def serve_vite_svg():
         return FileResponse(vite_file)
     else:
         raise HTTPException(status_code=404, detail="vite.svg 文件未找到")
+
+
+@app.get("/favicon.ico")
+async def serve_favicon():
+    """
+    提供 favicon.ico 文件。
+    
+    Returns:
+        favicon.ico 文件
+    """
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    favicon_file = os.path.join(static_dir, "favicon.ico")
+    
+    if os.path.exists(favicon_file):
+        return FileResponse(favicon_file, media_type="image/x-icon")
+    else:
+        logger.warning(f"favicon.ico 文件不存在: {favicon_file}")
+        # 如果 favicon.ico 不存在，返回 204 No Content 而不是 404
+        # 这样浏览器不会在控制台显示错误信息
+        return Response(
+            content="",
+            status_code=204,
+            headers={"Content-Length": "0"}
+        )
 
 
 @app.get("/pages/{path:path}")

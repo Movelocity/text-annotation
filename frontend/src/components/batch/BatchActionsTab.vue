@@ -1,15 +1,8 @@
 <!--
-  批量操作面板组件
+  批量操作标签页组件
 -->
 <template>
-  <div class="batch-actions-panel glass-panel">
-    <div class="section-header">
-      <h2>
-        <i class="fas fa-magic"></i>
-        批量操作
-      </h2>
-    </div>
-
+  <div class="batch-actions-tab">
     <div class="batch-form">
       <div class="form-group">
         <label class="form-label">
@@ -130,26 +123,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.batch-actions-panel {
-  padding: var(--spacing-xl);
-  height: fit-content;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
-}
-
-.section-header h2 {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+.batch-actions-tab {
+  padding: var(--spacing-md);
+  height: 100%;
 }
 
 .batch-form {

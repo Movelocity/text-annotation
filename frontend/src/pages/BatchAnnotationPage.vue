@@ -32,25 +32,21 @@
           :exclude-labels="state.filterOptions.excludeLabels ?? []"
           :unlabeled-only="state.filterOptions.unlabeledOnly ?? false"
           :is-loading="state.isLoading"
-          @update:include-keywords="setIncludeKeywords"
-          @update:exclude-keywords="setExcludeKeywords"
-          @update:include-labels="setIncludeLabels"
-          @update:exclude-labels="setExcludeLabels"
-          @update:unlabeled-only="setUnlabeledOnly"
-          @preview="previewFilter"
-          @filter="() => filterTexts(true)"
-        />
-
-        <!-- 批量操作 -->
-        <BatchActions
-          v-if="state.filteredTexts.length > 0"
           :selected-texts-count="selectedTextsCount"
           :total-count="state.totalCount"
           :filtered-count="state.filteredTexts.length"
           :has-selection="hasSelection"
           :has-filter-conditions="hasFilterConditions"
           :is-updating="state.isUpdating"
-          v-model:operation-mode="operationMode"
+          :operation-mode="operationMode"
+          @update:include-keywords="setIncludeKeywords"
+          @update:exclude-keywords="setExcludeKeywords"
+          @update:include-labels="setIncludeLabels"
+          @update:exclude-labels="setExcludeLabels"
+          @update:unlabeled-only="setUnlabeledOnly"
+          @update:operation-mode="operationMode = $event"
+          @preview="previewFilter"
+          @filter="() => filterTexts(true)"
           @add-labels="handleAddLabels"
           @remove-labels="handleRemoveLabels"
         />
@@ -96,7 +92,6 @@ import ModernButton from '@/components/common/ModernButton.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import FilterPanel from '@/components/batch/FilterPanel.vue'
 import ResultsList from '@/components/batch/ResultsList.vue'
-import BatchActions from '@/components/batch/BatchActions.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
 

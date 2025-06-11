@@ -30,189 +30,44 @@
           </span>
         </template>
         
-        <div class="filter-form">
-          <!-- 关键词筛选 -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-search"></i>
-              包含关键词
-            </label>
-            <div class="keyword-input">
-              <el-input
-                v-model="keywordInput.include"
-                placeholder="输入关键词，按回车添加"
-                @keydown.enter="addIncludeKeyword"
-                size="default"
-              />
-              <el-button
-                type="primary"
-                size="default"
-                @click="addIncludeKeyword"
-                :disabled="!keywordInput.include.trim()"
-              >
-                添加
-              </el-button>
-            </div>
-            <div class="keyword-tags" v-if="includeKeywords.length > 0">
-              <el-tag
-                v-for="(keyword, index) in includeKeywords"
-                :key="`include-${index}`"
-                closable
-                type="success"
-                size="medium"
-                style="font-size: 14px; font-weight: bold;"
-                @close="removeIncludeKeyword(index)"
-              >
-                {{ keyword }}
-              </el-tag>
-            </div>
-          </div>
+        <FilterConditionsTab
+          :include-keywords="includeKeywords"
+          :exclude-keywords="excludeKeywords"
+          :include-labels="includeLabels"
+          :exclude-labels="excludeLabels"
+          :unlabeled-only="unlabeledOnly"
+          :is-loading="isLoading"
+          @update:include-keywords="$emit('update:includeKeywords', $event)"
+          @update:exclude-keywords="$emit('update:excludeKeywords', $event)"
+          @update:include-labels="$emit('update:includeLabels', $event)"
+          @update:exclude-labels="$emit('update:excludeLabels', $event)"
+          @update:unlabeled-only="$emit('update:unlabeledOnly', $event)"
+          @preview="$emit('preview')"
+          @filter="$emit('filter')"
+        />
+      </el-tab-pane>
 
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-times"></i>
-              不包含关键词
-            </label>
-            <div class="keyword-input">
-              <el-input
-                v-model="keywordInput.exclude"
-                placeholder="输入关键词，按回车添加"
-                @keydown.enter="addExcludeKeyword"
-                size="default"
-              />
-              <el-button
-                type="danger"
-                size="default"
-                @click="addExcludeKeyword"
-                :disabled="!keywordInput.exclude.trim()"
-              >
-                添加
-              </el-button>
-            </div>
-            <div class="keyword-tags" v-if="excludeKeywords.length > 0">
-              <el-tag
-                v-for="(keyword, index) in excludeKeywords"
-                :key="`exclude-${index}`"
-                closable
-                type="danger"
-                size="medium"
-                style="font-size: 14px; font-weight: bold;"
-                @close="removeExcludeKeyword(index)"
-              >
-                {{ keyword }}
-              </el-tag>
-            </div>
-          </div>
-
-          <!-- 标签筛选 -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-tag"></i>
-              包含标签
-            </label>
-            <el-select
-              v-model="labelInput.include"
-              placeholder="请选择标签，选择后自动添加"
-              size="default"
-              filterable
-              clearable
-              @change="addIncludeLabel"
-            >
-              <el-option
-                v-for="option in availableLabelOptions"
-                :key="option.value"
-                :label="option.label"
-                :value="option.value"
-              />
-            </el-select>
-            <div class="keyword-tags" v-if="includeLabels.length > 0">
-              <el-tag
-                v-for="(label, index) in includeLabels"
-                :key="`include-label-${index}`"
-                closable
-                type="success"
-                size="default"
-                style="font-size: 14px; font-weight: bold;"
-                @close="removeIncludeLabel(index)"
-              >
-                {{ label }}
-              </el-tag>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-ban"></i>
-              不包含标签
-            </label>
-            <el-select
-              v-model="labelInput.exclude"
-              placeholder="请选择标签，选择后自动添加"
-              size="default"
-              filterable
-              clearable
-              @change="addExcludeLabel"
-            >
-              <el-option
-                v-for="option in availableLabelOptions"
-                :key="option.value"
-                :label="option.label"
-                :value="option.value"
-              />
-            </el-select>
-            <div class="keyword-tags" v-if="excludeLabels.length > 0">
-              <el-tag
-                v-for="(label, index) in excludeLabels"
-                :key="`exclude-label-${index}`"
-                closable
-                type="danger"
-                size="medium"
-                @close="removeExcludeLabel(index)"
-                style="font-size: 14px; font-weight: bold;"
-              >
-                {{ label }}
-              </el-tag>
-            </div>
-          </div>
-
-          <!-- 未标注筛选 -->
-          <div class="form-group">
-            <el-checkbox
-              v-model="unlabeledOnly"
-              size="large"
-            >
-              <i class="fas fa-question-circle"></i>
-              仅显示未标注的文本
-            </el-checkbox>
-          </div>
-
-          <!-- 操作按钮 -->
-          <div class="filter-actions">
-            <ModernButton
-              text="预览筛选"
-              icon="fas fa-eye"
-              size="large"
-              :loading="isLoading"
-              :disabled="!hasFilterConditions"
-              @click="$emit('preview')"
-            />
-            <ModernButton
-              text="执行筛选"
-              icon="fas fa-search"
-              size="large"
-              variant="primary"
-              :loading="isLoading"
-              :disabled="!hasFilterConditions"
-              @click="handleFilter"
-            />
-          </div>
-          
-          <!-- 快捷键提示 -->
-          <div class="shortcut-hint">
-            <i class="fas fa-keyboard"></i>
-            <span>快捷键：Ctrl + Enter 执行筛选</span>
-          </div>
-        </div>
+      <!-- 批量操作 Tab -->
+      <el-tab-pane label="批量操作" name="batch">
+        <template #label>
+          <span class="tab-label">
+            <i class="fas fa-magic"></i>
+            批量操作
+          </span>
+        </template>
+        
+        <BatchActionsTab
+          :selected-texts-count="selectedTextsCount"
+          :total-count="totalCount"
+          :filtered-count="filteredCount"
+          :has-selection="hasSelection"
+          :has-filter-conditions="hasFilterConditions"
+          :is-updating="isUpdating"
+          :operation-mode="operationMode"
+          @add-labels="$emit('addLabels', $event)"
+          @remove-labels="$emit('removeLabels', $event)"
+          @update:operation-mode="$emit('update:operationMode', $event)"
+        />
       </el-tab-pane>
 
       
@@ -221,10 +76,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted, onUnmounted, ref, nextTick } from 'vue'
+import { computed, onMounted, ref, nextTick } from 'vue'
 import { useLabelStore } from '@/stores/label'
-import ModernButton from '../common/ModernButton.vue'
 import LabelManagementTab from './LabelManagementTab.vue'
+import FilterConditionsTab from './FilterConditionsTab.vue'
+import BatchActionsTab from './BatchActionsTab.vue'
 
 // Props
 interface Props {
@@ -234,6 +90,14 @@ interface Props {
   excludeLabels: string[]
   unlabeledOnly: boolean
   isLoading: boolean
+  // BatchActions 相关 props
+  selectedTextsCount: number
+  totalCount: number
+  filteredCount: number
+  hasSelection: boolean
+  hasFilterConditions: boolean
+  isUpdating: boolean
+  operationMode: 'selected' | 'filtered'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -242,7 +106,14 @@ const props = withDefaults(defineProps<Props>(), {
   includeLabels: () => [],
   excludeLabels: () => [],
   unlabeledOnly: false,
-  isLoading: false
+  isLoading: false,
+  selectedTextsCount: 0,
+  totalCount: 0,
+  filteredCount: 0,
+  hasSelection: false,
+  hasFilterConditions: false,
+  isUpdating: false,
+  operationMode: 'selected'
 })
 
 // Emits
@@ -254,6 +125,10 @@ interface Emits {
   'update:unlabeledOnly': [unlabeledOnly: boolean]
   'preview': []
   'filter': []
+  // BatchActions 相关 emits
+  'addLabels': [label: string]
+  'removeLabels': [label: string]
+  'update:operationMode': [mode: 'selected' | 'filtered']
 }
 
 const emit = defineEmits<Emits>()
@@ -263,9 +138,6 @@ const labelStore = useLabelStore()
 
 // 响应式状态
 const activeTab = ref('labels')
-
-// 防抖定时器
-const debounceTimer = ref<number | null>(null)
 
 // 获取当前筛选的标签（用于标签管理Tab的选中状态）
 const getCurrentFilterLabel = computed(() => {
@@ -279,65 +151,6 @@ const getCurrentFilterLabel = computed(() => {
   }
   return null
 })
-
-// 表单数据
-const keywordInput = reactive({
-  include: '',
-  exclude: ''
-})
-
-const labelInput = reactive({
-  include: '',
-  exclude: ''
-})
-
-// 计算属性
-const hasFilterConditions = computed(() => {
-  return !!(
-    props.includeKeywords.length ||
-    props.excludeKeywords.length ||
-    props.includeLabels.length ||
-    props.excludeLabels.length ||
-    props.unlabeledOnly
-  )
-})
-
-// 可用标签选项
-const availableLabelOptions = computed(() => {
-  return labelStore.labelOptions.filter(option => 
-    !props.includeLabels.includes(option.value) && 
-    !props.excludeLabels.includes(option.value)
-  )
-})
-
-// 带防抖的筛选执行函数
-const handleFilter = () => {
-  if (!hasFilterConditions.value || props.isLoading) {
-    console.log('no filter conditions')
-    return
-  }
-  
-  // 清除之前的定时器
-  if (debounceTimer.value) {
-    clearTimeout(debounceTimer.value)
-  }
-  
-  // 设置新的防抖定时器
-  debounceTimer.value = setTimeout(() => {
-    console.log('emit filter')
-    emit('filter')
-    debounceTimer.value = null
-  }, 800) // 0.8秒防抖
-}
-
-// 键盘事件处理函数
-const handleKeydown = (event: KeyboardEvent) => {
-  // 检查是否为 Ctrl + Enter 组合键
-  if (event.ctrlKey && event.key === 'Enter') {
-    event.preventDefault()
-    handleFilter()
-  }
-}
 
 // 标签选择处理
 const handleLabelSelected = async (label: string) => {
@@ -360,72 +173,9 @@ const handleLabelSelected = async (label: string) => {
   // 不跳转tab，保持在标签管理页面
   // 等待 props 更新完成后再执行筛选
   await nextTick()
-  handleFilter()
+  // 筛选逻辑现在由FilterConditionsTab处理
+  emit('filter')
 }
-
-// 关键词管理
-const addIncludeKeyword = () => {
-  const keyword = keywordInput.include.trim()
-  if (keyword && !props.includeKeywords.includes(keyword)) {
-    emit('update:includeKeywords', [...props.includeKeywords, keyword])
-    keywordInput.include = ''
-  }
-}
-
-const removeIncludeKeyword = (index: number) => {
-  const current = [...props.includeKeywords]
-  current.splice(index, 1)
-  emit('update:includeKeywords', current)
-}
-
-const addExcludeKeyword = () => {
-  const keyword = keywordInput.exclude.trim()
-  if (keyword && !props.excludeKeywords.includes(keyword)) {
-    emit('update:excludeKeywords', [...props.excludeKeywords, keyword])
-    keywordInput.exclude = ''
-  }
-}
-
-const removeExcludeKeyword = (index: number) => {
-  const current = [...props.excludeKeywords]
-  current.splice(index, 1)
-  emit('update:excludeKeywords', current)
-}
-
-// 标签管理
-const addIncludeLabel = (value?: string) => {
-  const label = value || labelInput.include
-  if (label && !props.includeLabels.includes(label)) {
-    emit('update:includeLabels', [...props.includeLabels, label])
-    labelInput.include = ''
-  }
-}
-
-const removeIncludeLabel = (index: number) => {
-  const current = [...props.includeLabels]
-  current.splice(index, 1)
-  emit('update:includeLabels', current)
-}
-
-const addExcludeLabel = (value?: string) => {
-  const label = value || labelInput.exclude
-  if (label && !props.excludeLabels.includes(label)) {
-    emit('update:excludeLabels', [...props.excludeLabels, label])
-    labelInput.exclude = ''
-  }
-}
-
-const removeExcludeLabel = (index: number) => {
-  const current = [...props.excludeLabels]
-  current.splice(index, 1)
-  emit('update:excludeLabels', current)
-}
-
-// 未标注筛选
-const unlabeledOnly = computed({
-  get: () => props.unlabeledOnly,
-  set: (value: boolean) => emit('update:unlabeledOnly', value)
-})
 
 // 生命周期
 onMounted(async () => {
@@ -433,19 +183,6 @@ onMounted(async () => {
   if (!labelStore.hasLabels) {
     await labelStore.fetchLabels()
   }
-  
-  // 添加全局键盘事件监听
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  // 清理定时器
-  if (debounceTimer.value) {
-    clearTimeout(debounceTimer.value)
-  }
-  
-  // 移除全局键盘事件监听
-  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -474,65 +211,5 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-}
-
-.filter-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  height: 100%;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.form-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--el-text-color-primary);
-}
-
-.keyword-input {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.keyword-input .el-input {
-  flex: 1;
-}
-
-.keyword-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-}
-
-.filter-actions {
-  display: flex;
-  justify-content: space-around;
-  gap: var(--spacing-md);
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--el-border-color-lighter);
-}
-
-.shortcut-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-sm);
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  border-radius: var(--el-border-radius-base);
-}
-
-.shortcut-hint i {
-  font-size: 14px;
-  margin-right: var(--spacing-sm);
 }
 </style> 
