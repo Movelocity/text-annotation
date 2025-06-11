@@ -47,7 +47,6 @@ onUnmounted(() => {
           <component :is="Component" />
         </transition>
       </router-view>
-      
     </main>
   </div>
 </template>
@@ -71,7 +70,6 @@ html, body {
 
 .app-main {
   flex: 1;
-  /* padding: var(--spacing-lg); */
   background-color: var(--background-dark);
   overflow-y: auto;
 }

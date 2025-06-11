@@ -381,12 +381,13 @@ onUnmounted(() => {
 <style scoped>
 .filter-conditions-tab {
   height: 100%;
+  padding: 8px 12px;
 }
 
 .filter-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   height: 100%;
 }
 
@@ -424,7 +425,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-around;
   gap: var(--spacing-md);
-  padding-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
   border-top: 1px solid var(--el-border-color-lighter);
 }
 
@@ -432,8 +433,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-sm);
-  font-size: 12px;
+  padding: var(--spacing-xs);
+  font-size: 11px;
   color: var(--el-text-color-secondary);
   border-radius: var(--el-border-radius-base);
 }

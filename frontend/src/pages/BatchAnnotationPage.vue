@@ -158,7 +158,7 @@ const handleRemoveLabels = async (label: string) => {
 
 <style scoped>
 .batch-annotation-page {
-  height: 100vh;
+  height: calc(100vh - 55px);
   display: flex;
   flex-direction: column;
   /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
@@ -206,7 +206,7 @@ const handleRemoveLabels = async (label: string) => {
   display: grid;
   grid-template-columns: 400px 1fr;
   gap: 16px;
-  padding: 0 16px 16px;
+  padding: 0 16px;
   min-height: 0;
   overflow: hidden;
 }
@@ -216,11 +216,11 @@ const handleRemoveLabels = async (label: string) => {
   flex-direction: column;
   gap: var(--spacing-lg);
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .left-panel {
-  padding-bottom: 32px;
+  padding-bottom: 16px;
 }
 
 .right-panel {

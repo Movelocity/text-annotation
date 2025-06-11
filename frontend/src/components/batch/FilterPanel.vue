@@ -188,22 +188,31 @@ onMounted(async () => {
 
 <style scoped>
 .filter-panel {
-  height: fit-content;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
-
 
 .filter-tabs {
   height: 100%;
+  display: flex;
+}
+
+.filter-tabs :deep(.el-tabs__header) {
+  flex-shrink: 0;
+  margin-bottom: 8px;
 }
 
 .filter-tabs :deep(.el-tabs__content) {
-  height: calc(100% - 40px);
+  flex: 1;
   overflow: hidden;
+  padding: 0;
 }
 
 .filter-tabs :deep(.el-tab-pane) {
   height: 100%;
   overflow-y: auto;
+  padding: 0 4px;
 }
 
 .tab-label {

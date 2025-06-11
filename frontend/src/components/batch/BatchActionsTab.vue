@@ -124,14 +124,14 @@ onMounted(async () => {
 
 <style scoped>
 .batch-actions-tab {
-  padding: var(--spacing-md);
+  padding: 8px 12px;
   height: 100%;
 }
 
 .batch-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
 }
 
 .form-group {
@@ -159,13 +159,13 @@ onMounted(async () => {
 }
 
 .operation-mode {
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   background: var(--el-bg-color-page);
   border-radius: var(--radius-md);
   border: 1px solid var(--el-border-color-lighter);
 }
 
 .batch-warning {
-  margin-top: var(--spacing-md);
+  margin-top: var(--spacing-sm);
 }
 </style> 
