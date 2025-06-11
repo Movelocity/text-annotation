@@ -206,7 +206,7 @@ const handleRemoveLabels = async (label: string) => {
   display: grid;
   grid-template-columns: 400px 1fr;
   gap: 16px;
-  padding: 0 16px;
+  padding: 16px;
   min-height: 0;
   overflow: hidden;
 }
@@ -214,7 +214,7 @@ const handleRemoveLabels = async (label: string) => {
 .left-panel, .right-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-sm);
   min-height: 0;
   overflow: hidden;
 }

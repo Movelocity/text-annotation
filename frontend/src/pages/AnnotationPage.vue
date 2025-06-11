@@ -301,10 +301,6 @@ onMounted(async () => {
   position: relative;
 }
 
-
-
-
-
 /* 工作区域 */
 .work-area {
   flex: 1;

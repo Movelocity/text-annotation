@@ -201,6 +201,7 @@ onMounted(async () => {
 .filter-tabs :deep(.el-tabs__header) {
   flex-shrink: 0;
   margin-bottom: 8px;
+  padding: 0 12px;
 }
 
 .filter-tabs :deep(.el-tabs__content) {

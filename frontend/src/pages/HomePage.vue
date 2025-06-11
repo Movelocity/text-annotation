@@ -1,32 +1,6 @@
 <template>
   <div class="home-page">
     <div class="hero-section">
-      <!-- Hero Header -->
-      <div class="hero-header">
-        <div class="header-left">
-          <div class="breadcrumb">
-            <i class="fas fa-home"></i>
-            <span>控制台</span>
-          </div>
-        </div>
-        <div class="header-actions">
-          <el-button 
-            @click="checkHealth"
-            :loading="healthLoading"
-            class="hero-header-btn"
-          >
-            <div class="status-indicator" :class="healthLoading ? 'warning pulse' : 'success'"></div>
-            检查连接
-          </el-button>
-          <el-button 
-            @click="appStore.toggleTheme"
-            :icon="appStore.theme === 'light' ? 'Moon' : 'Sunny'"
-            class="hero-header-btn"
-          >
-            切换主题
-          </el-button>
-        </div>
-      </div>
 
       <!-- Hero Content -->
       <div class="hero-content">
@@ -235,20 +209,20 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 // import { EditPen } from '@element-plus/icons-vue'
-import { useAppStore } from '@/stores/app'
+// import { useAppStore } from '@/stores/app'
 // import { useAnnotationStore } from '../stores/annotation'
 // import { useLabelStore } from '@/stores/label'
-import { statsApi, healthApi } from '@/services/api'
+import { statsApi } from '@/services/api'
 import type { SystemStats } from '@/types/api'
 
 const router = useRouter()
-const appStore = useAppStore()
+// const appStore = useAppStore()
 // const annotationStore = useAnnotationStore()
 // const labelStore = useLabelStore()
 
 const stats = ref<SystemStats | null>(null)
 const statsLoading = ref(false)
-const healthLoading = ref(false)
+// const healthLoading = ref(false)
 
 const loadStats = async () => {
   try {
@@ -263,18 +237,18 @@ const loadStats = async () => {
   }
 }
 
-const checkHealth = async () => {
-  try {
-    healthLoading.value = true
-    await healthApi.check()
-    ElMessage.success('后端连接正常')
-  } catch (error) {
-    console.error('健康检查失败:', error)
-    ElMessage.error('后端连接失败')
-  } finally {
-    healthLoading.value = false
-  }
-}
+// const checkHealth = async () => {
+//   try {
+//     healthLoading.value = true
+//     await healthApi.check()
+//     ElMessage.success('后端连接正常')
+//   } catch (error) {
+//     console.error('健康检查失败:', error)
+//     ElMessage.error('后端连接失败')
+//   } finally {
+//     healthLoading.value = false
+//   }
+// }
 
 // const loadAnnotations = async () => {
 //   try {
@@ -312,7 +286,6 @@ onMounted(() => {
 
 <style scoped>
 .home-page {
-  min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
 }
@@ -324,66 +297,6 @@ onMounted(() => {
   text-align: center;
   position: relative;
   overflow: hidden;
-}
-
-/* Hero Header */
-.hero-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 32px;
-  position: relative;
-  z-index: 10;
-}
-
-.hero-header .breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-}
-
-.hero-header .header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.hero-header-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: var(--radius-md);
-  transition: all var(--duration-fast) ease;
-}
-
-.hero-header-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: white;
-  transform: translateY(-1px);
-}
-
-/* Status Indicator */
-.status-indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.status-indicator.success {
-  background: #67C23A;
-}
-
-.status-indicator.warning {
-  background: #E6A23C;
-}
-
-.status-indicator.pulse {
-  animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
