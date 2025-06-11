@@ -188,7 +188,6 @@ onMounted(async () => {
 
 <style scoped>
 .filter-panel {
-  padding: var(--spacing-xl);
   height: fit-content;
 }
 

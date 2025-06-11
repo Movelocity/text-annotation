@@ -4,23 +4,6 @@
 -->
 <template>
   <div class="batch-annotation-page">
-    <!-- 页面头部 -->
-    <PageHeader
-      title="批量标注工具"
-      title-icon="fas fa-layer-group"
-      :breadcrumbs="breadcrumbs"
-      :stats="headerStats"
-      home-route="/pages/home"
-    >
-      <template #actions>
-        <ModernButton
-          text="重置"
-          icon="fas fa-undo"
-          @click="resetState"
-        />
-      </template>
-    </PageHeader>
-
     <!-- 主工作区域 -->
     <div class="work-area">
       <!-- 左侧：筛选条件设置和批量操作 -->
@@ -85,11 +68,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { useBatchAnnotation } from '@/composables/useBatchAnnotation'
-import ModernButton from '@/components/common/ModernButton.vue'
-import PageHeader from '@/components/common/PageHeader.vue'
 import FilterPanel from '@/components/batch/FilterPanel.vue'
 import ResultsList from '@/components/batch/ResultsList.vue'
 import Pagination from '@/components/common/Pagination.vue'
@@ -116,7 +97,6 @@ const {
   isSelected,
   handlePageChange,
   handlePageSizeChange,
-  resetState,
   setIncludeKeywords,
   setExcludeKeywords,
   setIncludeLabels,
@@ -125,59 +105,6 @@ const {
 } = useBatchAnnotation()
 
 const operationMode = ref<'selected' | 'filtered'>('selected')
-
-// 面包屑导航配置
-const breadcrumbs = [
-  { text: '批量标注' }
-]
-
-// 定义统计项类型
-interface StatItem {
-  key: string
-  label: string
-  value: string | number
-  type?: 'total' | 'success' | 'warning' | 'primary' | 'info' | 'danger' | 'default'
-  icon?: string
-}
-
-// 头部统计信息
-const headerStats = computed<StatItem[]>(() => {
-  if (state.isLoading) return []
-  
-  const stats: StatItem[] = [
-    {
-      key: 'filtered',
-      label: '筛选结果',
-      value: `${state.totalCount} 条`,
-      type: 'total',
-      icon: 'fas fa-search'
-    }
-  ]
-  
-  // 如果有选择，添加已选择信息
-  if (hasSelection.value) {
-    stats.unshift({
-      key: 'selected',
-      label: '已选择',
-      value: `${selectedTextsCount.value} 条`,
-      type: 'success',
-      icon: 'fas fa-check-square'
-    })
-  }
-  
-  // 如果是预览模式，添加预览标识
-  if (state.isPreviewMode) {
-    stats.unshift({
-      key: 'preview',
-      label: '预览模式',
-      value: '',
-      type: 'info',
-      icon: 'fas fa-eye'
-    })
-  }
-  
-  return stats
-})
 
 // 批量操作
 const handleAddLabels = async (label: string) => {
@@ -237,6 +164,42 @@ const handleRemoveLabels = async (label: string) => {
   /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
 }
 
+/* 页面头部 */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--el-border-color-light);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.header-left {
+  flex: 1;
+}
+
+.page-title {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-title i {
+  color: var(--el-color-primary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 /* 工作区域 */
 .work-area {
   flex: 1;
@@ -293,11 +256,11 @@ const handleRemoveLabels = async (label: string) => {
   
   .page-header {
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: 16px;
     align-items: flex-start;
   }
   
-  .header-right {
+  .header-actions {
     width: 100%;
     justify-content: flex-end;
   }

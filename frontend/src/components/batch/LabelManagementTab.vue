@@ -4,128 +4,167 @@
 -->
 <template>
   <div class="label-management-tab">
-    <!-- 搜索和工具栏 -->
+    <!-- 工具栏 -->
     <div class="toolbar">
-      <el-input
-        v-model="searchQuery"
-        placeholder="搜索标签..."
-        size="default"
-        clearable
-        prefix-icon="Search"
-        class="search-input"
-        @input="clearSelection"
-      />
-      <div class="toolbar-actions">
-        <el-button
-          size="small"
-          :type="showGrouped ? 'primary' : 'default'"
-          @click="showGrouped = !showGrouped"
-        >
-          <i class="fas fa-layer-group"></i>
-          分组显示
+      <!-- 搜索框 -->
+      <div class="search-section">
+        <el-input
+          v-model="searchQuery"
+          placeholder="搜索标签名称、描述或分组..."
+          :prefix-icon="Search"
+          clearable
+          class="search-input"
+        />
+      </div>
+
+      <!-- 右侧工具 -->
+      <div class="toolbar-right">
+        <!-- 显示模式切换 -->
+        <el-button :type="showGrouped? 'primary' : 'default'" @click="showGrouped = !showGrouped" size="small">
+          {{ showGrouped ? '切换平铺' : '切换分组' }}
         </el-button>
+         
+        <!-- <el-switch v-model="showGrouped" /> -->
+        
+
+        <!-- 当前筛选状态 -->
+        <!-- <div v-if="selectedLabel" class="current-filter">
+          <el-tag
+            type="primary"
+            closable
+            @close="emit('label-selected', '')"
+          >
+            已筛选: {{ selectedLabel }}
+          </el-tag>
+        </div> -->
       </div>
     </div>
 
-    <!-- 统计概览 -->
-    <div class="stats-overview" v-if="labelStore.statsOverview">
-      <div class="stat-item">
-        <span class="stat-label">总标签</span>
-        <span class="stat-value">{{ labelStore.statsOverview.totalLabels }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">已使用</span>
-        <span class="stat-value success">{{ labelStore.statsOverview.usedLabels }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">未使用</span>
-        <span class="stat-value warning">{{ labelStore.statsOverview.unusedLabels }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">总数据</span>
-        <span class="stat-value">{{ labelStore.statsOverview.totalTexts }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">已标注</span>
-        <span class="stat-value success">{{ labelStore.statsOverview.labeledTexts }}</span>
+    <!-- 统计信息 -->
+    <div class="stats-bar">
+      <div class="stats-content">
+        <div class="stat-item">
+          <span class="stat-label">总标签数:</span>
+          <span class="stat-value">{{ labelStore.labels.length }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">已使用:</span>
+          <span class="stat-value">{{ labelStore.statsOverview.usedLabels }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">未使用:</span>
+          <span class="stat-value">{{ labelStore.statsOverview.unusedLabels }}</span>
+        </div>
+        <div class="stat-item" v-if="searchQuery">
+          <span class="stat-label">搜索结果:</span>
+          <span class="stat-value">{{ filteredLabels.length }}</span>
+        </div>
       </div>
     </div>
 
     <!-- 标签列表 -->
-    <div class="labels-container" v-loading="labelStore.loading" @click="clearSelection">
+    <div class="labels-container">
       <!-- 分组显示 -->
-      <div v-if="showGrouped" class="grouped-labels">
-        <div
-          v-for="group in groupedLabels"
-          :key="group.name"
-          class="label-group"
-        >
-          <div 
-            class="group-header"
-            @click="toggleGroupCollapse(group.name)"
-          >
-            <i :class="['fas', group.collapsed ? 'fa-chevron-right' : 'fa-chevron-down']" style="color: var(--el-text-color-primary); font-size: 12px;"></i>
-            <span class="group-name">{{ group.name }}</span>
-            <span class="group-count">({{ group.labels.length }})</span>
-            <el-button
-              v-if="group.name !== '未分组'"
-              size="small"
-              text
-              type="primary"
-              @click.stop="editGroupName(group.name)"
-            >
-              <i class="fas fa-edit"></i>
-            </el-button>
+      <template v-if="showGrouped">
+        <div v-for="group in groupedLabels" :key="group.name" class="label-group">
+          <!-- 分组头部 -->
+          <div class="group-header" @click="toggleGroupCollapse(group.name)">
+            <div class="group-title">
+              <el-icon class="collapse-icon" :class="{ 'collapsed': group.collapsed }">
+                <ArrowDown />
+              </el-icon>
+              <span class="group-name">{{ group.name }}</span>
+              <el-tag size="small" type="info" class="group-count">
+                {{ group.labels.length }}
+              </el-tag>
+            </div>
+            <div class="group-actions">
+              <el-button
+                v-if="group.name !== '未分组'"
+                size="small"
+                type="text"
+                @click.stop="editGroupName(group.name)"
+              >
+                重命名
+              </el-button>
+            </div>
           </div>
-          <div v-show="!group.collapsed" class="group-content">
-            <LabelItem
-              v-for="label in group.labels"
-              :key="label.id"
-              :label="label"
-              :stats="labelStore.getLabelStats(label.label)"
-              :max-usage-count="maxUsageCount"
-              :is-highlighted="selectedLabel === label.label"
-              @click="handleLabelSelect"
-              @edit="handleLabelEdit"
-            />
-          </div>
-        </div>
-      </div>
 
-      <!-- 列表显示 -->
-      <div v-else class="flat-labels">
-        <LabelItem
-          v-for="label in filteredLabels"
-          :key="label.id"
-          :label="label"
-          :stats="labelStore.getLabelStats(label.label)"
-          :max-usage-count="maxUsageCount"
-          :is-highlighted="selectedLabel === label.label"
-          @click="handleLabelSelect"
-          @edit="handleLabelEdit"
-        />
+          <!-- 分组内容 -->
+          <el-collapse-transition>
+            <div v-show="!group.collapsed" class="group-content">
+              <div class="label-grid">
+                <LabelItem
+                   v-for="label in group.labels"
+                   :key="label.id"
+                   :label="label"
+                   :is-highlighted="selectedLabel === label.label"
+                   :stats="labelStore.getLabelStats(label.label)"
+                   :max-usage-count="maxUsageCount"
+                   @click="handleLabelSelect"
+                   @edit="handleLabelEdit"
+                />
+              </div>
+            </div>
+          </el-collapse-transition>
+        </div>
+      </template>
+
+      <!-- 平铺显示 -->
+      <template v-else>
+        <div class="label-grid">
+                     <LabelItem
+             v-for="label in filteredLabels"
+             :key="label.id"
+             :label="label"
+             :is-highlighted="selectedLabel === label.label"
+             :stats="labelStore.getLabelStats(label.label)"
+             :max-usage-count="maxUsageCount"
+             @click="handleLabelSelect"
+             @edit="handleLabelEdit"
+           />
+        </div>
+      </template>
+
+      <!-- 空状态 -->
+      <div v-if="filteredLabels.length === 0" class="empty-state">
+        <el-empty description="暂无标签数据">
+          <template #image>
+            <el-icon size="64" color="#c0c4cc">
+              <Document />
+            </el-icon>
+          </template>
+        </el-empty>
       </div>
     </div>
 
-    <!-- 编辑分组名称对话框 -->
+    <!-- 编辑分组对话框 -->
     <el-dialog
       v-model="editGroupDialog.show"
-      title="编辑分组名称"
+      title="重命名分组"
       width="400px"
+      :before-close="() => editGroupDialog.show = false"
     >
-      <el-form>
+      <el-form @submit.prevent>
         <el-form-item label="分组名称">
           <el-input
             v-model="editGroupDialog.newName"
-            placeholder="输入新的分组名称"
+            placeholder="请输入新的分组名称"
             maxlength="50"
             show-word-limit
           />
         </el-form-item>
       </el-form>
+      
       <template #footer>
         <el-button @click="editGroupDialog.show = false">取消</el-button>
-        <el-button type="primary" @click="saveGroupName">确定</el-button>
+        <el-button
+          type="primary"
+          :disabled="!editGroupDialog.newName.trim() || editGroupDialog.newName === editGroupDialog.oldName"
+          @click="handleGroupRename"
+        >
+          确定
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -134,6 +173,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Search, ArrowDown, Document } from '@element-plus/icons-vue'
 import { useLabelStore } from '@/stores/label'
 import LabelItem from './LabelItem.vue'
 import type { LabelResponse, LabelUpdate } from '@/types/api'
@@ -219,11 +259,6 @@ const maxUsageCount = computed(() => {
   )
 })
 
-// 方法
-const clearSelection = () => {
-  // 由于 selectedLabel 现在是计算属性，不需要手动清除
-  // 清除筛选条件将通过父组件处理
-}
 
 const toggleGroupCollapse = (groupName: string) => {
   if (collapsedGroups.value.has(groupName)) {
@@ -241,34 +276,29 @@ const editGroupName = (oldName: string) => {
   }
 }
 
-const saveGroupName = async () => {
-  const { oldName, newName } = editGroupDialog.value
-  
-  if (!newName.trim() || oldName === newName) {
-    editGroupDialog.value.show = false
-    return
-  }
-
+const handleGroupRename = async () => {
   try {
-    // 更新该分组下所有标签的分组名称
-    const labelsToUpdate = filteredLabels.value.filter(
-      label => (label.groups || '未分组') === oldName
-    )
-
-    for (const label of labelsToUpdate) {
-      const updateData: LabelUpdate = {
-        label: label.label,
-        description: label.description,
-        groups: newName === '未分组' ? null : newName
-      }
-      await labelStore.updateLabel(label.id, updateData)
+    const { oldName, newName } = editGroupDialog.value
+    if (!newName.trim() || newName === oldName) {
+      return
     }
 
-    ElMessage.success('分组名称更新成功')
+    // 更新所有属于这个分组的标签
+    const labelsToUpdate = labelStore.labels.filter(label => label.groups === oldName)
+    
+    for (const label of labelsToUpdate) {
+      await labelStore.updateLabel(label.id, {
+        label: label.label,
+        description: label.description,
+        groups: newName.trim()
+      })
+    }
+
+    ElMessage.success(`分组已重命名为: ${newName}`)
     editGroupDialog.value.show = false
   } catch (error) {
-    ElMessage.error('更新分组名称失败')
-    console.error('Error updating group name:', error)
+    ElMessage.error('重命名分组失败')
+    console.error('Error renaming group:', error)
   }
 }
 
@@ -278,8 +308,6 @@ const handleLabelSelect = (label: LabelResponse) => {
   // 总是触发选择事件，让父组件决定是选中还是取消选中
   emit('label-selected', labelName)
 }
-
-
 
 const handleLabelEdit = async (label: LabelResponse, updates: Partial<LabelUpdate>) => {
   try {
@@ -314,107 +342,176 @@ onUnmounted(() => {
 
 <style scoped>
 .label-management-tab {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
-  height: 100%;
 }
 
+/* 工具栏 */
 .toolbar {
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #ebeef5;
   display: flex;
-  gap: var(--spacing-md);
+  justify-content: space-between;
   align-items: center;
+  gap: 16px;
+}
+
+.search-section {
+  flex: 1;
+  max-width: 400px;
 }
 
 .search-input {
-  flex: 1;
+  width: 100%;
 }
 
-.toolbar-actions {
+.toolbar-right {
   display: flex;
-  gap: var(--spacing-sm);
+  align-items: center;
+  gap: 12px;
 }
 
-.stats-overview {
+.current-filter {
+  white-space: nowrap;
+}
+
+/* 统计信息 */
+.stats-bar {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.stats-card {
+  border: none;
+  background: transparent;
+}
+
+.stats-content {
   display: flex;
-  justify-content: space-around;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-md);
-  background: var(--el-fill-color-extra-light);
-  border-radius: var(--el-border-radius-base);
+  gap: 24px;
+  align-items: center;
 }
 
 .stat-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 4px;
 }
 
 .stat-label {
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: #606266;
 }
 
 .stat-value {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--el-text-color-primary);
+  color: #409eff;
 }
 
-.stat-value.success {
-  color: var(--el-color-success);
-}
-
-.stat-value.warning {
-  color: var(--el-color-warning);
-}
-
+/* 标签容器 */
 .labels-container {
   flex: 1;
   overflow-y: auto;
-  min-height: 0;
+  padding: 16px;
 }
 
+/* 分组显示 */
 .label-group {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 16px;
 }
 
 .group-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--el-fill-color-light);
-  border-radius: var(--el-border-radius-base);
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
   cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .group-header:hover {
-  background: var(--el-fill-color);
+  background: #e9ecef;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapse-icon {
+  transition: transform 0.2s;
+}
+
+.collapse-icon.collapsed {
+  transform: rotate(-90deg);
 }
 
 .group-name {
-  flex: 1;
   font-weight: 500;
-  color: var(--el-text-color-primary);
+  color: #303133;
 }
 
 .group-count {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
+  margin-left: 4px;
+}
+
+.group-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .group-content {
-  margin-top: var(--spacing-sm);
-  padding-left: var(--spacing-lg);
+  margin-top: 8px;
 }
 
-.flat-labels {
+/* 标签网格 */
+.label-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .label-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 空状态 */
+.empty-state {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #909399;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .toolbar-right {
+    justify-content: space-between;
+  }
+  
+  .stats-content {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .search-section {
+    max-width: none;
+  }
 }
 </style> 

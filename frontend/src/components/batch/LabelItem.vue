@@ -13,70 +13,43 @@
     }"
     @click="handleClick"
   >
-    <!-- 主要内容区域 -->
-    <div class="label-content">
-      <!-- 标签头部：名称和操作 -->
-      <div class="label-header">
-        <div class="label-info">
-          <h3 class="label-name">{{ label.label }}</h3>
-          <div class="label-meta">
-            <!-- 使用统计 -->
-            <div class="usage-info" v-if="stats">
-              <span class="usage-count">
-                <i class="fas fa-chart-bar"></i>
-                {{ stats.count }} 条数据
-              </span>
-              <span class="usage-percentage">{{ Math.round(usagePercentage) }}%</span>
-            </div>
-            <div class="usage-info unused" v-else>
-              <span class="unused-label">
-                <i class="fas fa-circle"></i>
-                未使用
-              </span>
-            </div>
-            
-            <!-- 分组信息 -->
-            <div class="group-info" v-if="label.groups">
-              <el-tag size="small" type="info" effect="light">
-                <i class="fas fa-folder"></i>
-                {{ label.groups }}
-              </el-tag>
-            </div>
-          </div>
-        </div>
+    <!-- 标签信息行 -->
+    <div class="label-row">
+      <!-- 左侧：标签名称和描述 -->
+      <div class="label-main">
+        <div class="label-name">{{ label.label }}</div>
+        <div class="label-description" v-if="label.description">{{ label.description }}</div>
+      </div>
 
-        <!-- 操作按钮 -->
-        <div class="label-actions">  
-          <el-button
-            size="small"
-            type="warning"
-            plain
-            circle
-            title="编辑标签"
-            @click.stop="showEditDialog = true"
-          >
-            <i class="fas fa-edit"></i>
-          </el-button>
+      <!-- 中间：使用统计和分组 -->
+      <div class="label-meta">
+        <!-- 使用统计 -->
+        <div class="usage-info" v-if="stats">
+          <span class="usage-count">{{ stats.count }} 条</span>
+          <span class="usage-percentage">{{ Math.round(usagePercentage) }}%</span>
+        </div>
+        <div class="usage-info unused" v-else>
+          <span class="unused-label">未使用</span>
+        </div>
+        
+        <!-- 分组信息 -->
+        <div class="group-info" v-if="label.groups">
+          <el-tag size="small" type="info" effect="plain">{{ label.groups }}</el-tag>
         </div>
       </div>
 
-      <!-- 使用进度条 -->
-      <div v-if="stats">
-        <div class="usage-bar">
-          <div 
-            class="usage-progress"
-            :style="{ width: `${usagePercentage}%` }"
-            :class="getUsageClass()"
-          ></div>
-        </div>
-      </div>
-
-      <!-- 标签描述 -->
-      <div class="label-description">
-        <p class="description-text" v-if="label.description">
-          <i class="fas fa-info-circle"></i>
-          {{ label.description }}
-        </p>
+      <!-- 右侧：操作按钮 -->
+      <div class="label-actions">  
+        <el-button
+          size="small"
+          type="warning"
+          plain
+          circle
+          title="编辑标签"
+          @click.stop="showEditDialog = true"
+        >
+          <i class="fas fa-edit"></i>
+        </el-button>
       </div>
     </div>
 
@@ -178,12 +151,7 @@ const handleClick = () => {
   }
 }
 
-const getUsageClass = () => {
-  const percentage = usagePercentage.value
-  if (percentage >= 80) return 'high-usage'
-  if (percentage >= 40) return 'medium-usage'
-  return 'low-usage'
-}
+
 
 const resetEditForm = () => {
   editForm.label = props.label.label
@@ -219,13 +187,13 @@ resetEditForm()
 
 <style scoped>
 .label-item {
-  padding: 0;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--el-border-color-extralight);
   background: var(--el-bg-color);
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
+  border-radius: 6px;
+  margin-bottom: 2px;
 }
 
 .label-item.clickable {
@@ -233,68 +201,80 @@ resetEditForm()
 }
 
 .label-item.clickable:hover {
-  /* border-color: var(--el-color-primary); */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translate(0, -4px);
+  background: var(--el-fill-color-light);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .label-item.edit-mode {
-  border-color: var(--el-color-warning);
   background: var(--el-color-warning-light-9);
-}
-
-.label-item.highlighted {
-  /* border-color: var(--el-color-success); */
-  background: var(--el-color-success-light-9);
-  /* box-shadow: 0 0 0 2px var(--el-color-success-light-7); */
-  /* transform: translateY(-1px); */
+  border: 1px solid var(--el-color-warning-light-6);
+  box-shadow: 0 2px 12px rgba(230, 162, 60, 0.15);
 }
 
 .label-item.has-usage {
-  border-left: 4px solid var(--el-color-primary-light-3);
+  border-left: 3px solid var(--el-color-primary-light-3);
 }
 
-/* .label-item.has-usage.highlighted {
-  border-left-color: var(--el-color-success);
-} */
-
-.label-content {
-  padding: var(--spacing-lg);
+.label-item.highlighted {
+  background: linear-gradient(135deg, var(--el-color-success-light-9) 0%, var(--el-color-success-light-8) 100%);
+  /* border: 1px solid var(--el-color-success-light-5); */
+  border-left: 3px solid var(--el-color-success);
+  box-shadow: 0 4px 16px rgba(103, 194, 58, 0.2);
+  transform: translateY(-2px);
+  position: relative;
 }
 
-.label-header {
+.label-item.highlighted .label-name {
+  color: var(--el-color-success-dark-2);
+  font-weight: 600;
+}
+
+.label-item.highlighted .usage-percentage {
+  background: var(--el-color-success);
+  color: white;
+  box-shadow: 0 2px 4px rgba(103, 194, 58, 0.3);
+}
+
+
+.label-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  align-items: center;
+  gap: 16px;
 }
 
-.label-info {
+.label-main {
   flex: 1;
   min-width: 0;
 }
 
 .label-name {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
   color: var(--el-text-color-primary);
-  margin: 0 0 var(--spacing-sm) 0;
+  margin-bottom: 4px;
   line-height: 1.3;
   word-break: break-word;
 }
 
+.label-description {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
 .label-meta {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .usage-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 6px;
   font-size: 13px;
   color: var(--el-text-color-regular);
 }
@@ -303,15 +283,8 @@ resetEditForm()
   color: var(--el-text-color-placeholder);
 }
 
-.usage-info i {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
 .usage-count {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  color: var(--el-text-color-secondary);
 }
 
 .usage-percentage {
@@ -324,79 +297,24 @@ resetEditForm()
 }
 
 .unused-label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-size: 12px;
 }
 
 .group-info .el-tag {
   font-size: 12px;
 }
 
-.group-info .el-tag i {
-  margin-right: 4px;
-  font-size: 11px;
-}
-
 .label-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .label-actions .el-button {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 0;
-}
-
-.usage-bar {
-  height: 6px;
-  background: var(--el-border-color-lighter);
-  border-radius: 3px;
-  overflow: hidden;
-  position: relative;
-}
-
-.usage-progress {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.6s ease-in-out;
-  position: relative;
-}
-
-.usage-progress.low-usage {
-  background: linear-gradient(90deg, var(--el-color-info) 0%, var(--el-color-primary-light-3) 100%);
-}
-
-.usage-progress.medium-usage {
-  background: linear-gradient(90deg, var(--el-color-warning) 0%, var(--el-color-primary) 100%);
-}
-
-.usage-progress.high-usage {
-  background: linear-gradient(90deg, var(--el-color-success) 0%, var(--el-color-primary) 100%);
-}
-
-.label-description {
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--el-border-color-extralight);
-}
-
-.description-text {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
-  line-height: 1.5;
-  margin: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-xs);
-}
-
-.description-text i {
-  color: var(--el-color-info);
-  margin-top: 2px;
-  flex-shrink: 0;
 }
 
 .dialog-footer {
@@ -411,42 +329,33 @@ resetEditForm()
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .label-header {
+  .label-row {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--spacing-sm);
-  }
-  
-  .label-actions {
-    justify-content: flex-end;
+    gap: 8px;
   }
   
   .label-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
+    justify-content: space-between;
   }
   
-  .label-name {
-    font-size: 16px;
+  .label-actions {
+    align-self: flex-end;
   }
 }
 
-/* 无障碍支持 */
-/* .label-item:focus-within {
-  outline: 2px solid var(--el-color-primary);
-  outline-offset: 2px;
-} */
-
 /* 动画优化 */
 @media (prefers-reduced-motion: reduce) {
-  .label-item,
-  .usage-progress {
+  .label-item {
     transition: none;
   }
   
+  .label-item.clickable:hover {
+    transform: none;
+  }
+  
   .label-item.highlighted {
-    animation: none;
+    transform: none;
   }
 }
 </style> 
