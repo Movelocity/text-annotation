@@ -6,17 +6,6 @@
       <div class="hero-content">
         <h1 class="gradient-text">文本标注系统</h1>
         <p class="hero-subtitle">高效、准确、智能的数据标注工作平台</p>
-        <div class="hero-actions">
-          <!-- <el-button 
-            type="primary" 
-            size="large"
-            @click="goToAnnotation"
-            class="hero-btn transform-hover"
-          >
-            <i class="fas fa-rocket"></i>
-            立即开始标注
-          </el-button> -->
-        </div>
       </div>
       <div class="floating-icons">
         <div class="icon-item" style="animation-delay: 0s;"><i class="fas fa-brain"></i></div>
@@ -307,7 +296,7 @@ onMounted(() => {
 
 /* Hero Content */
 .hero-content {
-  padding: 60px 20px 0;
+  padding: 80px 20px 0;
 }
 
 .hero-content h1 {
@@ -561,7 +550,6 @@ onMounted(() => {
 .action-item:hover {
   transform: translateX(8px);
   box-shadow: var(--shadow-md);
-  border-color: var(--el-color-primary-light-7);
 }
 
 .action-icon-wrapper {

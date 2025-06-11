@@ -9,6 +9,7 @@
       <div class=" results-title">
         <i class="fas fa-list-ul"></i>
         筛选结果
+        
         <div class="results-stats" v-if="totalCount > 0">
           <span class="total-count">共 {{ totalCount }} 条</span>
           <el-tag v-if="selectedTextsCount > 0" type="primary" size="default">
