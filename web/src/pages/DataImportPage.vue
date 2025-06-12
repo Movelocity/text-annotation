@@ -135,9 +135,17 @@
                 <div v-for="(item, index) in generatedTexts" :key="item.id" class="display-item">
                   <div class="item-header">
                     <span class="item-number">#{{ index + 1 }}</span>
-                    <el-button size="small" @click="copyText(item.text)" class="copy-btn">
-                      <i class="fas fa-copy"></i> 复制
-                    </el-button>
+                    <div class="header-buttons">
+                      <el-button size="small" @click="removeNumbering(item)" class="action-btn">
+                        <i class="fas fa-eraser"></i> 去标号
+                      </el-button>
+                      <el-button size="small" @click="splitAndAddToQueue(item)" class="action-btn">
+                        <i class="fas fa-cut"></i> 分行添加
+                      </el-button>
+                      <el-button size="small" @click="copyText(item.text)" class="copy-btn">
+                        <i class="fas fa-copy"></i> 复制
+                      </el-button>
+                    </div>
                   </div>
                   <div class="item-text-display">{{ item.text }}</div>
                   <div class="item-labels-display" v-if="item.labels">
@@ -721,6 +729,36 @@ const closeLabelSelector = () => {
   currentEditingItem.value = null
 }
 
+// 删除文本中的标号（数字+点号+空格的格式）
+const removeNumbering = (item: GeneratedItem) => {
+  // 使用正则表达式删除每行开头的数字标号格式：\n数字.\空格 或 行首数字.\空格
+  const cleanedText = item.text.replace(/(?:^|\n)\d+\.\s*/g, '\n').replace(/^\n/, '').trim()
+  item.text = cleanedText
+  ElMessage.success('已删除标号')
+}
+
+// 按行分割并添加到待提交区域
+const splitAndAddToQueue = (item: GeneratedItem) => {
+  // 按行分割文本，过滤空行
+  const lines = item.text.split('\n').map(line => line.trim()).filter(line => line)
+  
+  if (lines.length === 0) {
+    ElMessage.warning('没有有效的文本行可添加')
+    return
+  }
+  
+  // 为每行创建一个新的待提交项目
+  const newItems: PendingItem[] = lines.map(line => ({
+    id: generateId(),
+    text: line,
+    labels: item.labels // 继承原有标签
+  }))
+  
+  // 添加到待提交区域
+  pendingItems.value.unshift(...newItems) // 添加到顶部
+  ElMessage.success(`已添加 ${newItems.length} 条数据到待提交区域`)
+}
+
 // 清理资源
 onUnmounted(() => {
   if (eventSource) {
@@ -1067,6 +1105,17 @@ onMounted(() => {
   font-weight: bold;
   color: #666;
   font-size: 14px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.action-btn {
+  padding: 4px 8px;
+  font-size: 12px;
 }
 
 .copy-btn {
