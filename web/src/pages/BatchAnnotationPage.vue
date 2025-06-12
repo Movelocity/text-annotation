@@ -45,6 +45,7 @@
           :is-loading="state.isLoading"
           :has-filter-conditions="hasFilterConditions"
           :is-selected="isSelected"
+          :keywords="state.filterOptions.includeKeywords ?? []"
           @select-all="selectAll"
           @clear-selection="clearSelection"
           @toggle-selection="toggleSelection"

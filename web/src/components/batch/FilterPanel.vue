@@ -64,7 +64,6 @@
           :has-filter-conditions="hasFilterConditions"
           :is-updating="isUpdating"
           :operation-mode="operationMode"
-          :keywords="includeKeywords"
           @add-labels="$emit('addLabels', $event)"
           @remove-labels="$emit('removeLabels', $event)"
           @update:operation-mode="$emit('update:operationMode', $event)"

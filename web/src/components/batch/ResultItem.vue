@@ -299,7 +299,7 @@ const highlightedDisplayText = computed(() => {
 
 /* 关键词高亮样式 */
 :deep(.keyword-highlight) {
-  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  background: linear-gradient(135deg, #fff8df 0%, #fff6da 100%);
   color: #856404;
   padding: 1px 3px;
   border-radius: 3px;
