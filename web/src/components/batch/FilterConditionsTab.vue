@@ -33,7 +33,7 @@
             :key="`include-${index}`"
             closable
             type="success"
-            size="medium"
+            size="default"
             style="font-size: 14px; font-weight: bold;"
             @close="removeIncludeKeyword(index)"
           >
@@ -358,11 +358,6 @@ const removeExcludeLabel = (index: number) => {
 
 // 生命周期
 onMounted(async () => {
-  // 初始化标签数据
-  if (!labelStore.hasLabels) {
-    await labelStore.fetchLabels()
-  }
-  
   // 添加全局键盘事件监听
   window.addEventListener('keydown', handleKeydown)
 })

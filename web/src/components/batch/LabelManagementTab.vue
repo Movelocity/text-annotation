@@ -82,7 +82,7 @@
               <el-button
                 v-if="group.name !== '未分组'"
                 size="small"
-                type="text"
+                link
                 @click.stop="editGroupName(group.name)"
               >
                 重命名
@@ -326,10 +326,6 @@ const handleLabelEdit = async (label: LabelResponse, updates: Partial<LabelUpdat
 
 // 生命周期
 onMounted(async () => {
-  // if (!labelStore.hasLabels) {
-  //   await labelStore.fetchLabels()
-  // } 已在store中初始化
-  
   if (!labelStore.systemStats) {
     await labelStore.fetchSystemStats()
   }

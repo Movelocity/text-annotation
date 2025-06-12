@@ -5,13 +5,13 @@
         <h4 class="label-name">{{ label.label }}</h4>
         <div class="label-actions">
           <el-button 
-            type="text" 
+            link 
             size="small" 
             @click="emit('edit', label)"
             :icon="Edit"
           />
           <el-button 
-            type="text" 
+            link 
             size="small" 
             @click="emit('delete', label)"
             :icon="Delete"

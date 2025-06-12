@@ -51,6 +51,7 @@
           :item="text"
           :index="index + 1"
           :is-selected="isSelected(text.id)"
+          :keywords="keywords || []"
           @toggle-selection="$emit('toggleSelection', text.id)"
         />
       </div>
@@ -91,6 +92,7 @@ interface Props {
   isLoading: boolean
   hasFilterConditions: boolean
   isSelected: (id: number) => boolean
+  keywords?: string[]
 }
 
 defineProps<Props>()

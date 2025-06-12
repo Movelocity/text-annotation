@@ -20,7 +20,7 @@
           @click="showCreateDialog = true"
         />
         <el-button 
-          type="text" 
+          link 
           @click="showQuickCreate = !showQuickCreate"
           :icon="showQuickCreate ? ArrowUp : ArrowDown"
         >

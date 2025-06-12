@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useLabelStore } from '@/stores/label'
 import ModernButton from '../common/ModernButton.vue'
 
@@ -113,13 +113,6 @@ watch(() => props.isUpdating, (newVal, oldVal) => {
   }
 })
 
-// 生命周期
-onMounted(async () => {
-  // 初始化标签数据
-  if (!labelStore.hasLabels) {
-    await labelStore.fetchLabels()
-  }
-})
 </script>
 
 <style scoped>

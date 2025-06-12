@@ -8,7 +8,7 @@
       'selected': isSelected,
       'expandable': item.text.length > 300 
     }"
-    @click="$emit('toggleSelection')"
+    @click="emit('toggleSelection')"
   >
     <!-- 卡片序号标识 -->
     <div class="card-index">{{ index }}</div>
@@ -20,7 +20,7 @@
         <div class="header-left">
           <el-checkbox
             :model-value="isSelected"
-            @change="$emit('toggleSelection')"
+            @change="emit('toggleSelection')"
             @click.stop
             class="item-checkbox"
           />
@@ -56,9 +56,11 @@
         class="text-section"
         :class="{ 'expanded': expandedItems.has(item.id) }"
       >
-        <div class="text-content">
-          {{ getDisplayText(item) }}
-        </div>
+        <div 
+          :data-highlight="keywords?.join(',')"
+          class="text-content"
+          v-html="highlightedDisplayText"
+        ></div>
         
         <!-- 展开/收起按钮 -->
         <el-button 
@@ -79,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { AnnotationDataResponse } from '@/types/api'
 import { parseLabels } from '@/utils/labelUtils'
 
@@ -88,6 +90,7 @@ interface Props {
   item: AnnotationDataResponse
   index: number
   isSelected: boolean
+  keywords?: string[]
 }
 
 // Emits
@@ -95,8 +98,8 @@ interface Emits {
   'toggleSelection': []
 }
 
-defineProps<Props>()
-defineEmits<Emits>()
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
 // 展开状态管理
 const expandedItems = ref<Set<number>>(new Set())
@@ -120,6 +123,29 @@ const getDisplayText = (text: AnnotationDataResponse): string => {
   }
   return text.text.substring(0, 300) + '...'
 }
+
+// 高亮关键词功能
+const highlightText = (text: string, keywords: string[]): string => {
+  if (!keywords || keywords.length === 0) {
+    return text
+  }
+  
+  let highlightedText = text
+  keywords.forEach(keyword => {
+    if (keyword && keyword.trim()) {
+      const regex = new RegExp(`(${keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+      highlightedText = highlightedText.replace(regex, '<mark class="keyword-highlight">$1</mark>')
+    }
+  })
+  
+  return highlightedText
+}
+
+// 计算高亮后的显示文本
+const highlightedDisplayText = computed(() => {
+  const displayText = getDisplayText(props.item)
+  return highlightText(displayText, props.keywords || [])
+})
 </script>
 
 <style scoped>
@@ -269,6 +295,17 @@ const getDisplayText = (text: AnnotationDataResponse): string => {
 .expand-button i {
   margin-right: 4px;
   font-size: 10px;
+}
+
+/* 关键词高亮样式 */
+:deep(.keyword-highlight) {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  color: #856404;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 600;
+  border: 1px solid #ffeaa7;
+  box-shadow: 0 1px 2px rgba(133, 100, 4, 0.1);
 }
 
 /* 响应式设计 */
