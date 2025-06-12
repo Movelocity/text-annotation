@@ -6,13 +6,13 @@
         <div class="label-actions">
           <el-button 
             link 
-            size="small" 
+            size="default" 
             @click="emit('edit', label)"
             :icon="Edit"
           />
           <el-button 
             link 
-            size="small" 
+            size="default" 
             @click="emit('delete', label)"
             :icon="Delete"
             class="delete-btn"
@@ -30,7 +30,7 @@
           <span>{{ label.groups }}</span>
         </div>
         <div class="label-usage">
-          <el-tag :type="isUnused ? 'warning' : 'success'" size="small">
+          <el-tag :type="isUnused ? 'warning' : 'success'" size="default">
             {{ usageCount }}次使用
           </el-tag>
         </div>
@@ -91,23 +91,12 @@ const isUnused = computed(() => usageCount.value === 0)
 
 .label-name {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: #303133;
   margin: 0;
   flex: 1;
   margin-right: 8px;
   word-break: break-word;
-}
-
-.label-actions {
-  display: flex;
-  gap: 4px;
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
-}
-
-.label-card:hover .label-actions {
-  opacity: 1;
 }
 
 .delete-btn {

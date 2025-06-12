@@ -1,17 +1,36 @@
 <template>
   <div class="label-manage-page">
-    <!-- 页面头部 -->
-    <PageHeader
-      title="标签管理"
-      title-icon="fas fa-tags"
-      :breadcrumbs="breadcrumbs"
-      :stats="headerStats"
-      home-route="/pages/home"
-    >
-    </PageHeader>
+    <!-- 页面标题和统计信息 -->
+    <div class="page-header-section">
+      <div class="stats-summary">
+        <div class="page-title">
+        <h2><i class="fas fa-tags"></i> 标签管理</h2>
+      </div>
+        <div class="stat-item">
+          <span class="stat-label">总数</span>
+          <span class="stat-value">{{ labelStore.statsOverview.totalLabels }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">已使用</span>
+          <span class="stat-value">{{ labelStore.statsOverview.usedLabels }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">未使用</span>
+          <span class="stat-value">{{ labelStore.statsOverview.unusedLabels }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">分组</span>
+          <span class="stat-value">{{ availableGroups.length }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">已标注</span>
+          <span class="stat-value">{{ labelStore.statsOverview.labeledTexts }}</span>
+        </div>
 
-    <div class="create-btn-section">
-      <div class="create-actions">
+        
+      </div>
+      <!-- 右侧按钮组 -->
+      <div class="primary-actions">
         <ModernButton
           text="新增标签"
           icon="fas fa-plus"
@@ -19,65 +38,7 @@
           :loading="labelStore.loading"
           @click="showCreateDialog = true"
         />
-        <el-button 
-          link 
-          @click="showQuickCreate = !showQuickCreate"
-          :icon="showQuickCreate ? ArrowUp : ArrowDown"
-        >
-          快速创建
-        </el-button>
       </div>
-      
-      <!-- 快速创建表单 -->
-      <el-collapse-transition>
-        <div v-show="showQuickCreate" class="quick-create-form">
-          <el-form
-            ref="quickFormRef"
-            :model="quickForm"
-            :rules="quickRules"
-            layout="inline"
-            @submit.prevent="handleQuickCreate"
-          >
-            <el-form-item prop="label" style="margin-bottom: 0;">
-              <el-input
-                v-model="quickForm.label"
-                placeholder="标签名称"
-                style="width: 200px;"
-                @keyup.enter="handleQuickCreate"
-                clearable
-              />
-            </el-form-item>
-            <el-form-item prop="groups" style="margin-bottom: 0;">
-              <el-select
-                v-model="quickForm.groups"
-                placeholder="选择分组"
-                filterable
-                allow-create
-                clearable
-                style="width: 160px;"
-              >
-                <el-option
-                  v-for="group in availableGroups"
-                  :key="group"
-                  :label="group || '未分组'"
-                  :value="group"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item style="margin-bottom: 0;">
-              <el-button 
-                type="primary" 
-                @click="handleQuickCreate"
-                :loading="quickCreating"
-                size="default"
-              >
-                创建
-              </el-button>
-              <el-button @click="resetQuickForm">重置</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-      </el-collapse-transition>
     </div>
 
     <!-- 搜索和过滤 -->
@@ -123,16 +84,18 @@
         </el-col>
         <el-col :span="6">
           <div class="view-controls">
-            <el-radio-group v-model="viewMode" size="small">
-              <el-radio-button label="grid">
-                <el-icon><Grid /></el-icon>
-                卡片视图
-              </el-radio-button>
-              <el-radio-button label="grouped">
-                <el-icon><CollectionTag /></el-icon>
-                分组视图
-              </el-radio-button>
-            </el-radio-group>
+            <ModernButton
+              text="卡片视图"
+              icon="fas fa-th"
+              type="primary"
+              @click="viewMode = 'grid'"
+            />
+            <ModernButton
+              text="分组视图"
+              icon="fas fa-th-large"
+              type="primary"
+              @click="viewMode = 'grouped'"
+            />
           </div>
         </el-col>
       </el-row>
@@ -194,7 +157,7 @@
     </div>
 
     <!-- 标签统计图表 -->
-    <div v-if="labelStore.hasLabels" class="chart-section">
+    <!-- <div v-if="labelStore.hasLabels" class="chart-section">
       <el-card>
         <template #header>
           <div class="card-header">
@@ -214,7 +177,7 @@
         </template>
         <LabelStatsChart :stats="filteredChartStats" />
       </el-card>
-    </div>
+    </div> -->
 
     <!-- 新增标签对话框 -->
     <CreateLabelDialog
@@ -236,16 +199,10 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   Search,
-  Grid,
-  CollectionTag,
-  FolderOpened,
-  ArrowUp,
-  ArrowDown
+  FolderOpened
 } from '@element-plus/icons-vue'
 import { useLabelStore } from '@/stores/label'
-import PageHeader from '@/components/common/PageHeader.vue'
 import LabelCard from '@/components/label/LabelCard.vue'
-import LabelStatsChart from '@/components/label/LabelStatsChart.vue'
 import CreateLabelDialog from '@/components/label/CreateLabelDialog.vue'
 import EditLabelDialog from '@/components/label/EditLabelDialog.vue'
 import ModernButton from '@/components/common/ModernButton.vue'
@@ -262,74 +219,7 @@ const sortBy = ref('usage')
 const filterBy = ref('all')
 const selectedGroup = ref('')
 const viewMode = ref('grid') // 'grid' | 'grouped'
-const chartGroupFilter = ref('')
-const showQuickCreate = ref(false)
-const quickFormRef = ref()
-const quickForm = ref({
-  label: '',
-  groups: ''
-})
-const quickRules = ref({
-  label: [{ required: true, message: '请输入标签名称', trigger: 'blur' }]
-})
-const quickCreating = ref(false)
-
-// 面包屑导航配置
-const breadcrumbs = [
-  { text: '标签管理' }
-]
-
-// 定义统计项类型
-interface StatItem {
-  key: string
-  label: string
-  value: string | number
-  type?: 'total' | 'success' | 'warning' | 'primary' | 'info' | 'danger' | 'default'
-  icon?: string
-}
-
-// 头部统计信息
-const headerStats = computed<StatItem[]>(() => {
-  if (labelStore.loading) return []
-  
-  return [
-    {
-      key: 'texts',
-      label: '已标注文本',
-      value: labelStore.statsOverview.labeledTexts,
-      type: 'info',
-      icon: 'fas fa-file-text'
-    },
-    {
-      key: 'groups',
-      label: '标签分组',
-      value: availableGroups.value.length,
-      type: 'primary',
-      icon: 'fas fa-layer-group'
-    },
-    {
-      key: 'unused',
-      label: '未使用',
-      value: labelStore.statsOverview.unusedLabels,
-      type: 'warning',
-      icon: 'fas fa-exclamation-triangle'
-    },
-    {
-      key: 'used',
-      label: '已使用',
-      value: labelStore.statsOverview.usedLabels,
-      type: 'success',
-      icon: 'fas fa-check'
-    },
-    {
-      key: 'total',
-      label: '总标签数',
-      value: labelStore.statsOverview.totalLabels,
-      type: 'total',
-      icon: 'fas fa-tags'
-    }
-  ]
-})
+// const chartGroupFilter = ref('')
 
 // 获取所有可用的分组
 const availableGroups = computed(() => {
@@ -399,6 +289,8 @@ const displayLabels = computed(() => {
   }
 })
 
+
+
 // 分组后的标签（用于分组视图）
 const groupedLabels = computed(() => {
   const groups: Record<string, LabelResponse[]> = {}
@@ -430,20 +322,20 @@ const maxUsageCount = computed(() => {
 })
 
 // 图表统计数据过滤
-const filteredChartStats = computed(() => {
-  const stats = labelStore.systemStats?.label_statistics || []
-  if (!chartGroupFilter.value) return stats
+// const filteredChartStats = computed(() => {
+//   const stats = labelStore.systemStats?.label_statistics || []
+//   if (!chartGroupFilter.value) return stats
   
-  return stats.filter(stat => {
-    const label = labelStore.labels.find(l => l.label === stat.label)
-    if (!label) return false
+//   return stats.filter(stat => {
+//     const label = labelStore.labels.find(l => l.label === stat.label)
+//     if (!label) return false
     
-    if (chartGroupFilter.value === '') {
-      return !label.groups
-    }
-    return label.groups && label.groups.startsWith(chartGroupFilter.value)
-  })
-})
+//     if (chartGroupFilter.value === '') {
+//       return !label.groups
+//     }
+//     return label.groups && label.groups.startsWith(chartGroupFilter.value)
+//   })
+// })
 
 // 方法
 const handleSearch = (value: string) => {
@@ -508,39 +400,6 @@ const getGroupUsageCount = (labels: LabelResponse[]) => {
   }, 0)
 }
 
-const handleQuickCreate = async () => {
-  if (!quickFormRef.value) return
-  
-  try {
-    await quickFormRef.value.validate()
-    quickCreating.value = true
-    
-    const labelData = {
-      label: quickForm.value.label.trim(),
-      description: null,
-      groups: quickForm.value.groups?.trim() || null
-    }
-    
-    await labelStore.createLabel(labelData)
-    ElMessage.success('标签创建成功')
-    resetQuickForm()
-  } catch (error) {
-    if (error !== false) {
-      ElMessage.error('创建标签失败')
-    }
-  } finally {
-    quickCreating.value = false
-  }
-}
-
-const resetQuickForm = () => {
-  quickForm.value = {
-    label: '',
-    groups: ''
-  }
-  quickFormRef.value?.clearValidate()
-}
-
 // 生命周期
 onMounted(async () => {
   try {
@@ -549,14 +408,65 @@ onMounted(async () => {
     ElMessage.error('加载数据失败')
   }
 })
+
+// 键盘快捷键处理已移除
 </script>
 
 <style scoped>
 .label-manage-page {
-  height: 100vh;
+  max-height: calc(100vh - 55px);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.page-header-section {
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  margin: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title h2 {
+  margin: 0;
+  color: #303133;
+  font-size: 24px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-title i {
+  color: #409eff;
+}
+
+.stats-summary {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
 }
 
 .search-section,
@@ -566,8 +476,10 @@ onMounted(async () => {
   margin-bottom: 16px;
 }
 
-.search-section {
-  margin-top: 0;
+.labels-section{
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 13rem;
 }
 
 .view-controls {
@@ -588,12 +500,10 @@ onMounted(async () => {
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
   min-height: 0;
-  max-height: 60vh;
   overflow: auto;
 }
 
 .grouped-view {
-  max-height: 60vh;
   overflow: auto;
 }
 
@@ -648,6 +558,20 @@ onMounted(async () => {
   margin-bottom: 16px;
 }
 
+.create-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.primary-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 16px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -661,59 +585,53 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.create-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.quick-create-form {
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e4e7ed;
-}
-
-  @media (max-width: 768px) {
-    .labels-grid,
-    .group-labels {
-      grid-template-columns: 1fr;
-    }
-    
-    .search-section,
-    .labels-section,
-    .chart-section {
-      padding: 0 8px;
-    }
-    
-    .search-section .el-row {
-      flex-direction: column;
-      gap: 12px;
-    }
-    
-    .search-section .el-col {
-      width: 100%;
-    }
-    
-    .view-controls {
-      justify-content: center;
-    }
-    
-    .create-actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    
-    .quick-create-form :deep(.el-form--inline) {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    
-    .quick-create-form :deep(.el-form-item) {
-      margin-right: 0 !important;
-    }
+@media (max-width: 768px) {
+  .labels-grid,
+  .group-labels {
+    grid-template-columns: 1fr;
   }
+  
+  .page-header-section {
+    margin: 8px;
+    padding: 12px;
+  }
+  
+  .page-title h2 {
+    font-size: 20px;
+  }
+  
+  .stats-summary {
+    gap: 16px;
+    justify-content: center;
+  }
+  
+  .search-section,
+  .labels-section,
+  .chart-section {
+    padding: 0 8px;
+  }
+  
+  .search-section .el-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .search-section .el-col {
+    width: 100%;
+  }
+  
+  .view-controls {
+    justify-content: center;
+  }
+  
+  .create-actions {
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .primary-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
 </style> 

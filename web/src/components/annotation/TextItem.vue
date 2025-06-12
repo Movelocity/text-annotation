@@ -20,7 +20,7 @@
             v-for="label in itemLabels.slice(0, 2)"
             :key="label"
             type="success"
-            size="medium"
+            size="default"
             style="font-size: 14px; font-weight: bold;"
           >
             {{ label }}
