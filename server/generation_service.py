@@ -10,7 +10,6 @@
 
 import asyncio
 import json
-import re
 import uuid
 from typing import AsyncGenerator, Dict, List, Optional, Any
 from datetime import datetime
@@ -39,11 +38,31 @@ class GenerationTask:
         self.error: Optional[str] = None
         self.created_at = datetime.now()
         self.cancelled = False
+        self.client: Optional[AsyncOpenAI] = None
+        self.current_generation_task: Optional[asyncio.Task] = None
     
     def cancel(self):
-        """取消任务"""
+        """取消任务和清理资源"""
         self.cancelled = True
         self.status = "cancelled"
+        
+        # 取消当前的生成任务
+        if self.current_generation_task and not self.current_generation_task.done():
+            self.current_generation_task.cancel()
+        
+        # 关闭OpenAI客户端连接
+        if self.client:
+            asyncio.create_task(self._cleanup_client())
+    
+    async def _cleanup_client(self):
+        """清理OpenAI客户端资源"""
+        try:
+            if self.client:
+                await self.client.close()
+                self.client = None
+                logger.info(f"任务 {self.task_id} 的OpenAI客户端已关闭")
+        except Exception as e:
+            logger.error(f"清理客户端资源时出错: {str(e)}")
     
     def get_status(self) -> GenerateStatus:
         """获取任务状态"""
@@ -101,8 +120,8 @@ class GenerationService:
             task.status = "generating"
             yield f"data: {json.dumps(task.get_status().model_dump())}\n\n"
             
-            # 创建OpenAI客户端
-            client = AsyncOpenAI(
+            # 创建OpenAI客户端并保存到任务中
+            task.client = AsyncOpenAI(
                 api_key=task.request.api_key,
                 base_url=task.request.base_url,
                 timeout=httpx.Timeout(60.0)
@@ -116,8 +135,13 @@ class GenerationService:
                     break
                 
                 try:
-                    # 调用大模型API
-                    generated_text = await self._generate_single_text(client, task.request)
+                    # 创建可取消的生成任务
+                    generation_coro = self._generate_single_text(task.client, task.request)
+                    task.current_generation_task = asyncio.create_task(generation_coro)
+                    
+                    # 等待生成完成或被取消
+                    generated_text = await task.current_generation_task
+                    
                     task.generated_texts.append(generated_text)
                     task.current_count += 1
                     task.progress = int((task.current_count / task.total_count) * 100)
@@ -127,10 +151,17 @@ class GenerationService:
                     status_data['latest_text'] = generated_text.model_dump()
                     yield f"data: {json.dumps(status_data)}\n\n"
                     
+                except asyncio.CancelledError:
+                    logger.info(f"任务 {task_id} 第 {i+1} 条生成被取消")
+                    task.status = "cancelled"
+                    yield f"data: {json.dumps(task.get_status().model_dump())}\n\n"
+                    break
                 except Exception as e:
                     logger.error(f"生成第 {i+1} 条数据时出错: {str(e)}")
                     # 继续生成其他数据，不因单条失败而中断
                     continue
+                finally:
+                    task.current_generation_task = None
             
             # 完成生成
             if not task.cancelled:
@@ -145,11 +176,15 @@ class GenerationService:
             yield f"data: {json.dumps(task.get_status().model_dump())}\n\n"
         
         finally:
+            # 清理客户端资源
+            if task.client:
+                await task._cleanup_client()
+            
             # 延迟清理任务（给前端时间获取最终状态）
             asyncio.create_task(self._delayed_cleanup(task_id, 60))
     
     async def _generate_single_text(self, client: AsyncOpenAI, request: GenerateRequest) -> GeneratedText:
-        """生成单条文本数据"""
+        """生成单条文本数据（仅负责API调用，不做解析）"""
         try:
             # 构建请求参数
             messages = [
@@ -173,12 +208,10 @@ class GenerationService:
             # 提取生成内容
             raw_output = response.choices[0].message.content or ""
             
-            # 解析文本和标签
-            parsed_text, parsed_labels = self._parse_generated_content(raw_output, request.parse_regex)
-            
+            # 只返回原始输出，不进行解析（解析工作交给前端）
             return GeneratedText(
-                text=parsed_text,
-                labels=parsed_labels,
+                text=raw_output,  # 原始输出作为text
+                labels=None,      # 不在后端解析标签
                 raw_output=raw_output
             )
             
@@ -186,53 +219,7 @@ class GenerationService:
             logger.error(f"调用大模型API失败: {str(e)}")
             raise
     
-    def _parse_generated_content(self, content: str, regex_pattern: Optional[str]) -> tuple[str, Optional[str]]:
-        """解析生成的内容，提取文本和标签"""
-        if not regex_pattern:
-            # 没有正则表达式，使用默认解析逻辑
-            return self._default_parse(content)
-        
-        try:
-            # 使用自定义正则表达式解析
-            pattern = re.compile(regex_pattern, re.DOTALL | re.MULTILINE)
-            match = pattern.search(content)
-            
-            if match:
-                groups = match.groups()
-                if len(groups) >= 1:
-                    text = groups[0].strip()
-                    labels = groups[1].strip() if len(groups) >= 2 else None
-                    return text, labels
-            
-            # 正则匹配失败，使用默认解析
-            return self._default_parse(content)
-            
-        except re.error as e:
-            logger.warning(f"正则表达式解析失败: {str(e)}, 使用默认解析")
-            return self._default_parse(content)
-    
-    def _default_parse(self, content: str) -> tuple[str, Optional[str]]:
-        """默认解析逻辑"""
-        # 简单的默认解析：假设内容就是文本，没有特殊格式
-        text = content.strip()
-        
-        # 尝试提取可能的标签格式，如：[标签1,标签2] 或 标签：xxx
-        label_patterns = [
-            r'\[([^\]]+)\]',  # [标签1,标签2]
-            r'标签[：:]\s*([^\n]+)',  # 标签：xxx
-            r'分类[：:]\s*([^\n]+)',  # 分类：xxx
-            r'类别[：:]\s*([^\n]+)',  # 类别：xxx
-        ]
-        
-        for pattern in label_patterns:
-            match = re.search(pattern, text)
-            if match:
-                labels = match.group(1).strip()
-                # 从文本中移除标签部分
-                text = re.sub(pattern, '', text).strip()
-                return text, labels
-        
-        return text, None
+    # 移除解析相关方法，解析工作交给前端处理
     
     async def _delayed_cleanup(self, task_id: str, delay_seconds: int):
         """延迟清理任务"""
