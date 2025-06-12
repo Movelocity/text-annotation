@@ -8,9 +8,9 @@
 ### ✅ 阶段1: 前端紧急修复 (已完成)
 
 **修复文件**:
-- `frontend/src/components/annotation/LabelSelector.vue` - 主要的标签选择器
-- `frontend/src/components/annotation/TextViewer.vue` - 文本查看器的标签显示  
-- `frontend/src/components/annotation/TextItem.vue` - 列表项的标签显示
+- `web/src/components/annotation/LabelSelector.vue` - 主要的标签选择器
+- `web/src/components/annotation/TextViewer.vue` - 文本查看器的标签显示  
+- `web/src/components/annotation/TextItem.vue` - 列表项的标签显示
 
 **主要改动**:
 1. **数据结构改变**:
@@ -36,8 +36,8 @@
 ### 🔄 阶段2: API接口完善 (进行中)
 
 **修复文件**:
-- `app/schemas.py` - 数据验证和类型定义
-- `app/services.py` - 业务逻辑层
+- `server/schemas.py` - 数据验证和类型定义
+- `server/services.py` - 业务逻辑层
 
 **已完成改动**:
 1. **数据验证增强**:

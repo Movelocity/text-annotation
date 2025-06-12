@@ -72,7 +72,7 @@
 - 响应式设计
 
 ### 开发环境
-- 后端服务: `uv run app.main:app`
+- 后端服务: `uv run server.main:app`
 - API代理配置到 `http://localhost:8000`
 - CORS已配置允许所有来源
 

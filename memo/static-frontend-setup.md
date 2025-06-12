@@ -8,7 +8,7 @@
 
 ### 1. 静态文件挂载
 
-在 `app/main.py` 中添加了以下配置：
+在 `server/main.py` 中添加了以下配置：
 
 ```python
 # 挂载静态资源目录
@@ -27,7 +27,7 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 ### 3. 文件路径结构
 
 ```
-frontend/
+web/
 └── dist/           # 前端构建输出目录
     ├── index.html  # 主页面文件
     ├── vite.svg    # Vite 图标
@@ -42,7 +42,7 @@ frontend/
 ### 1. 构建前端项目
 
 ```bash
-cd frontend
+cd web
 pnpm build
 ```
 
@@ -51,7 +51,7 @@ pnpm build
 ```bash
 uv run python start_server.py
 # 或者
-uv run python -m app.main
+uv run python -m server.main
 ```
 
 ### 3. 访问应用
@@ -94,7 +94,7 @@ async def serve_spa_pages(path: str):
 
 1. 前端修改后需要重新构建（`pnpm build`）才能生效
 2. 开发期间如需热重载，仍可使用 `pnpm dev` 独立启动前端
-3. 确保 `frontend/dist` 目录存在且包含构建文件
+3. 确保 `web/dist` 目录存在且包含构建文件
 4. API 路由优先级高于静态文件路由
 5. 所有 `/pages/*` 路径都会由前端路由器处理，确保前端路由配置正确
 

@@ -116,7 +116,7 @@ DataImporter (scripts/data_import.py)
 
 ### 优化后架构
 ```
-AnnotationService (app/services.py)
+AnnotationService (server/services.py)
 ├── 批量文本处理 ✅
 ├── 批量重复检查 ✅
 ├── 批量记录插入 ✅

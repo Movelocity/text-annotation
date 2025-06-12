@@ -322,7 +322,7 @@ const labeledCount = computed(() =>
 ### 开发环境验证
 ```bash
 # 前端开发服务器
-cd frontend && pnpm dev
+cd web && pnpm dev
 
 # 后端API服务器
 uv run start_server.py

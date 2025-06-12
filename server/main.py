@@ -44,7 +44,7 @@ app.add_middleware(
 )
 
 # 挂载静态文件目录
-static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "dist")
 if os.path.exists(static_dir):
     # 挂载静态资源目录
     app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
@@ -70,7 +70,7 @@ async def serve_frontend():
     Returns:
         前端 index.html 文件
     """
-    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "dist")
     index_file = os.path.join(static_dir, "index.html")
     
     if os.path.exists(index_file):
@@ -87,7 +87,7 @@ async def serve_vite_svg():
     Returns:
         vite.svg 文件
     """
-    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "dist")
     vite_file = os.path.join(static_dir, "vite.svg")
     
     if os.path.exists(vite_file):
@@ -104,7 +104,7 @@ async def serve_favicon():
     Returns:
         favicon.ico 文件
     """
-    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "dist")
     favicon_file = os.path.join(static_dir, "favicon.ico")
     
     if os.path.exists(favicon_file):
@@ -134,7 +134,7 @@ async def serve_spa_pages(path: str):
     Returns:
         前端 index.html 文件，让 SPA 处理路由
     """
-    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "dist")
     index_file = os.path.join(static_dir, "index.html")
     
     if os.path.exists(index_file):
@@ -631,9 +631,9 @@ def main():
     """启动服务器的主函数。"""
     import uvicorn
     from .config import HOST, PORT
-    
+    print(f"访问: http://localhost:{PORT}")
     uvicorn.run(
-        "app.main:app",
+        "server.main:app",
         host=HOST,
         port=PORT,
         # reload=True,

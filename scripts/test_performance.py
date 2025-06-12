@@ -191,9 +191,9 @@ def test_database_queries() -> None:
     project_root = Path(__file__).parent.parent
     sys.path.append(str(project_root))
     
-    from app.models import SessionLocal, AnnotationData, Label
-    from app.services import AnnotationService, StatisticsService
-    from app.schemas import SearchRequest
+    from server.models import SessionLocal, AnnotationData, Label
+    from server.services import AnnotationService, StatisticsService
+    from server.schemas import SearchRequest
     
     db = SessionLocal()
     annotation_service = AnnotationService(db)

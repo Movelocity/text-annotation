@@ -86,7 +86,7 @@ LabelManagePage:
 
 启动前端服务访问标签管理页面验证：
 ```bash
-cd frontend
+cd web
 pnpm dev
 ```
 

@@ -235,7 +235,7 @@ def import_text_file(self, file_path: str) -> int:
 ```python
 # 测试脚本 (可添加到 tmp/ 目录)
 import time
-from app.services import AnnotationService
+from server.services import AnnotationService
 from scripts.data_import import DataImporter
 
 def compare_import_performance():

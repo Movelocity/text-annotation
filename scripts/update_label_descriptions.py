@@ -16,8 +16,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy.orm import Session
-from app.models import engine, Label
-from app.config import DATABASE_URL
+from server.models import engine, Label
+from server.config import DATABASE_URL
 
 def read_and_parse_data(file_path: str) -> list[tuple[str, str]]:
     """

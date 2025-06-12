@@ -7,10 +7,10 @@
 针对窄宽度容器（500px以内）进行了专门优化，采用垂直布局减少横向空间占用。
 
 ## 新增文件
-- `frontend/src/components/common/Pagination.vue` - 新的简洁分页组件
+- `web/src/components/common/Pagination.vue` - 新的简洁分页组件
 
 ## 修改文件
-- `frontend/src/components/annotation/TextList.vue` - 替换分页组件引用和相关样式
+- `web/src/components/annotation/TextList.vue` - 替换分页组件引用和相关样式
 
 ## 功能特性
 

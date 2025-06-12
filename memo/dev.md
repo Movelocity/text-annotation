@@ -15,7 +15,7 @@
 **新建目录结构**：
 ```
 text-annotation/
-├── app/              # 应用核心代码
+├── server/              # 应用核心代码
 │   ├── __init__.py
 │   ├── main.py       # 
 │   ├── models.py     # 
@@ -34,8 +34,8 @@ text-annotation/
 ```
 
 **实施步骤**：
-1. 创建app、scripts、tests、logs目录
-2. 移动核心文件到app目录
+1. 创建server、scripts、tests、logs目录
+2. 移动核心文件到server目录
 3. 移动脚本文件到scripts目录
 4. 调整导入路径
 5. 更新pyproject.toml
@@ -70,7 +70,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["server"]
 ```
 
 **2. 添加基础配置管理**：
@@ -125,10 +125,10 @@ MAX_PAGE_SIZE = 1000
 ✅ 4. 测试运行确保功能正常
 
 **完成的文件移动**：
-✅ `main.py` → `app/main.py`
-✅ `models.py` → `app/models.py`  
-✅ `schemas.py` → `app/schemas.py`
-✅ `services.py` → `app/services.py`
+✅ `main.py` → `server/main.py`
+✅ `models.py` → `server/models.py`  
+✅ `schemas.py` → `server/schemas.py`
+✅ `services.py` → `server/services.py`
 ✅ `run_import.py` → `scripts/run_import.py`
 ✅ `data_import.py` → `scripts/data_import.py`
 ✅ `demo.py` → `scripts/demo.py`
@@ -141,14 +141,14 @@ MAX_PAGE_SIZE = 1000
 
 **测试结果**：
 ✅ 数据导入脚本正常运行：`uv run python -m scripts.run_import`
-✅ API服务器正常启动：`uv run python -m app.main` 或 `python start_server.py`
+✅ API服务器正常启动：`uv run python -m server.main` 或 `python start_server.py`
 ✅ API端点正常工作：健康检查、搜索、统计等
 ✅ 数据库包含 114,304 条标注数据，115 个标签
 
 **当前目录结构**：
 ```
 text-annotation/
-├── app/              # ✅ 核心应用代码
+├── server/              # ✅ 核心应用代码
 │   ├── __init__.py
 │   ├── main.py       # FastAPI应用主文件
 │   ├── models.py     # 数据库模型
@@ -185,7 +185,7 @@ text-annotation/
 - API演示：`uv run demo`（推荐）或 `uv run text-annotation-demo`（需要服务器运行）
 
 传统方式仍然可用：
-- 启动服务器：`python start_server.py` 或 `uv run python -m app.main`
+- 启动服务器：`python start_server.py` 或 `uv run python -m server.main`
 - 数据导入：`uv run python -m scripts.run_import`
 - API演示：`uv run python -m scripts.demo`
 
@@ -291,56 +291,7 @@ addopts = "--cov=. --cov-report=html --cov-report=term-missing"
 - 已有 `uv.lock` 文件，建议定期更新
 - 使用 `uv lock --upgrade` 更新依赖
 
-## 2. 代码结构优化
-
-### 2.1 项目布局改进
-
-当前项目采用扁平结构，对于小型项目合适。建议的改进方案：
-
-```
-text-annotation/
-├── src/
-│   └── text_annotation/
-│       ├── __init__.py
-│       ├── main.py
-│       ├── models/
-│       │   ├── __init__.py
-│       │   └── database.py
-│       ├── schemas/
-│       │   ├── __init__.py
-│       │   ├── annotation.py
-│       │   └── label.py
-│       ├── services/
-│       │   ├── __init__.py
-│       │   ├── annotation.py
-│       │   ├── label.py
-│       │   └── statistics.py
-│       ├── api/
-│       │   ├── __init__.py
-│       │   ├── routes/
-│       │   │   ├── __init__.py
-│       │   │   ├── annotations.py
-│       │   │   ├── labels.py
-│       │   │   └── import.py
-│       │   └── dependencies.py
-│       ├── core/
-│       │   ├── __init__.py
-│       │   ├── config.py
-│       │   └── database.py
-│       └── utils/
-│           ├── __init__.py
-│           └── import_utils.py
-├── tests/
-├── scripts/
-│   ├── run_import.py
-│   └── setup_dev.py
-├── docs/
-├── pyproject.toml
-├── README.md
-└── dev.md
-```
-
-### 2.2 配置管理改进
+### 配置管理改进
 
 **❌ 已移除 - 对个人项目过度设计**
 

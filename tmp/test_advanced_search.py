@@ -14,9 +14,9 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from app.models import SessionLocal, AnnotationData
-from app.services import AnnotationService
-from app.schemas import SearchRequest
+from server.models import SessionLocal, AnnotationData
+from server.services import AnnotationService
+from server.schemas import SearchRequest
 
 
 def test_advanced_search():

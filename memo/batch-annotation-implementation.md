@@ -7,7 +7,7 @@
 ## 实现的组件
 
 ### 1. Composable - `useBatchAnnotation.ts`
-- **位置**: `frontend/src/composables/useBatchAnnotation.ts`
+- **位置**: `web/src/composables/useBatchAnnotation.ts`
 - **功能**: 提供批量标注的响应式状态管理
 - **主要功能**:
   - 筛选条件管理（包含/不包含关键词、标签）
@@ -17,7 +17,7 @@
   - 支持两种操作模式：选中文本操作、全部筛选结果操作
 
 ### 2. 页面组件 - `BatchAnnotationPage.vue`
-- **位置**: `frontend/src/pages/BatchAnnotationPage.vue`
+- **位置**: `web/src/pages/BatchAnnotationPage.vue`
 - **路由**: `/batch-annotation`
 - **设计特点**:
   - 采用现代化毛玻璃设计风格，与现有页面保持一致
@@ -25,11 +25,11 @@
   - 响应式设计，支持移动端适配
 
 ### 3. 路由配置
-- **位置**: `frontend/src/router/index.ts`
+- **位置**: `web/src/router/index.ts`
 - **新增路由**: `/batch-annotation` -> `BatchAnnotationPage.vue`
 
 ### 4. 首页集成
-- **位置**: `frontend/src/pages/HomePage.vue`
+- **位置**: `web/src/pages/HomePage.vue`
 - **新增入口**: 在快速操作卡片中添加了"批量标注"选项
 
 ## 主要功能

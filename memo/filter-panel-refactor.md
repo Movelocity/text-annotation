@@ -10,7 +10,7 @@
 
 ### 1. 新增组件
 - **FilterConditionsTab.vue**: 独立的筛选条件Tab组件
-  - 位置: `frontend/src/components/batch/FilterConditionsTab.vue`
+  - 位置: `web/src/components/batch/FilterConditionsTab.vue`
   - 功能: 关键词筛选、标签筛选、未标注筛选等
   - 接口: 与原FilterPanel保持相同的props/emits接口
 

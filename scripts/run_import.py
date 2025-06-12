@@ -9,8 +9,8 @@ import os
 import sys
 from scripts.data_import import DataImporter, main as import_main
 from sqlalchemy.orm import Session
-from app.models import create_tables, get_db
-from app.services import StatisticsService
+from server.models import create_tables, get_db
+from server.services import StatisticsService
 
 
 def main():

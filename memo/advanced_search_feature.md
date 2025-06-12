@@ -11,7 +11,7 @@
 
 ## 实现细节
 
-### 1. Schema更新 (`app/schemas.py`)
+### 1. Schema更新 (`server/schemas.py`)
 
 在 `SearchRequest` 类中新增了两个字段：
 
@@ -26,7 +26,7 @@ class SearchRequest(BaseModel):
     per_page: int = Field(50, description="每页记录数", ge=1, le=1000)
 ```
 
-### 2. 服务层更新 (`app/services.py`)
+### 2. 服务层更新 (`server/services.py`)
 
 在 `search_annotations` 方法中添加了新的过滤逻辑：
 
@@ -72,8 +72,8 @@ Content-Type: application/json
 ### Python代码示例
 
 ```python
-from app.schemas import SearchRequest
-from app.services import AnnotationService
+from server.schemas import SearchRequest
+from server.services import AnnotationService
 
 # 复杂搜索条件
 search_request = SearchRequest(

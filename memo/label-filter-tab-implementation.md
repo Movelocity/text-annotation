@@ -136,7 +136,7 @@ BatchAnnotationPage --> 更新筛选条件
 
 1. **功能检查**：
    ```bash
-   cd frontend
+   cd web
    pnpm run dev
    ```
    - 访问批量标注页面
@@ -147,7 +147,7 @@ BatchAnnotationPage --> 更新筛选条件
 
 2. **构建检查**：
    ```bash
-   cd frontend
+   cd web
    pnpm run build
    ```
    - 确保无TypeScript错误

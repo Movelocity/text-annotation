@@ -20,7 +20,7 @@ uv run server
 uv run text-annotation-server
 
 # 方式3：传统方式
-uv run python -m app.main
+uv run python -m server.main
 ```
 
 #### 数据导入
@@ -55,7 +55,7 @@ uv run python -m scripts.demo
 
 ```
 text-annotation/
-├── app/              # 核心应用代码
+├── server/              # 核心应用代码
 │   ├── main.py       # FastAPI应用主文件
 │   ├── models.py     # 数据库模型
 │   ├── schemas.py    # Pydantic模型

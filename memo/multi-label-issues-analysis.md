@@ -12,7 +12,7 @@
 
 ### 1. 前端问题 (高优先级)
 
-**文件**: `frontend/src/components/annotation/LabelSelector.vue`
+**文件**: `web/src/components/annotation/LabelSelector.vue`
 
 **主要问题**:
 - **单标签UI设计**: 界面只显示单个"当前标签"，而不是标签列表
@@ -40,7 +40,7 @@ const handleLabelSelect = (labelText: string) => {
 
 ### 2. 后端API问题 (中优先级)
 
-**文件**: `app/schemas.py`
+**文件**: `server/schemas.py`
 
 **主要问题**:
 - **类型定义模糊**: `labels: Optional[str]` 暗示单标签，实际却要支持多标签
@@ -53,7 +53,7 @@ labels: Optional[str] = Field(None, description="逗号分隔的标签")
 # 应该明确定义为: labels: Optional[List[str]] 或制定明确的多标签协议
 ```
 
-**文件**: `app/services.py`
+**文件**: `server/services.py`
 
 **搜索逻辑问题**:
 ```python
@@ -66,7 +66,7 @@ for label in search_request.labels.split(','):
 
 ### 3. 数据模型问题 (低优先级)
 
-**文件**: `app/models.py`
+**文件**: `server/models.py`
 
 **主要问题**:
 - **非规范化存储**: 使用逗号分隔字符串存储多标签，不是最佳实践
@@ -81,7 +81,7 @@ labels = Column(String, nullable=True, index=True)
 
 ### 4. 前端类型定义问题
 
-**文件**: `frontend/src/types/api.ts`
+**文件**: `web/src/types/api.ts`
 
 **类型定义一致性问题**:
 ```typescript
@@ -109,7 +109,7 @@ labels?: string | null
 
 **目标**: 快速恢复多标签功能，满足基本使用需求
 
-**修改文件**: `frontend/src/components/annotation/LabelSelector.vue`
+**修改文件**: `web/src/components/annotation/LabelSelector.vue`
 
 **具体改动**:
 1. 将 `selectedLabel` 改为 `selectedLabels: string[]`
@@ -121,7 +121,7 @@ labels?: string | null
 
 **目标**: 规范化多标签处理逻辑
 
-**修改文件**: `app/schemas.py`, `app/services.py`
+**修改文件**: `server/schemas.py`, `server/services.py`
 
 **具体改动**:
 1. 添加标签数组类型定义和转换逻辑

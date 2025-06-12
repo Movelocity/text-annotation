@@ -21,7 +21,7 @@ total_subquery = query.statement.with_only_columns([func.count()]).order_by(None
 total_subquery = query.statement.with_only_columns(func.count()).order_by(None)
 ```
 
-**文件位置**: `app/services.py:149`
+**文件位置**: `server/services.py:149`
 
 ### 2. 缺少API端点
 **错误信息**: HTTP 404 - `/stats` 端点未找到
@@ -30,7 +30,7 @@ total_subquery = query.statement.with_only_columns(func.count()).order_by(None)
 
 **修复**: 添加了 `/stats` 端点作为 `/stats/system` 的别名
 
-**文件位置**: `app/main.py`
+**文件位置**: `server/main.py`
 
 ## 测试结果
 

@@ -9,7 +9,7 @@
 ## 主要优化内容
 
 ### 1. ResultsList 组件优化
-**文件**: `frontend/src/components/batch/ResultsList.vue`
+**文件**: `web/src/components/batch/ResultsList.vue`
 
 #### 设计改进：
 - **现代化卡片容器**: 采用白色背景的卡片设计，配有阴影和圆角
@@ -26,7 +26,7 @@
 - 优化的滚动条样式
 
 ### 2. ResultItem 组件优化
-**文件**: `frontend/src/components/batch/ResultItem.vue`
+**文件**: `web/src/components/batch/ResultItem.vue`
 
 #### 设计改进：
 - **精简卡片设计**: 白色背景、subtle阴影、现代化圆角

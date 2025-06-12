@@ -53,7 +53,7 @@ curl http://localhost:8000/health
 
 ```bash
 # 启动服务器
-uv run python -m app.main
+uv run python -m server.main
 
 # 数据导入
 uv run python -m scripts.run_import

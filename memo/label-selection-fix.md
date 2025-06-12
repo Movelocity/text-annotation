@@ -12,7 +12,7 @@
 
 ### 1. 统一标签选择逻辑
 
-**修改文件：** `frontend/src/components/batch/LabelManagementTab.vue`
+**修改文件：** `web/src/components/batch/LabelManagementTab.vue`
 
 - 将 `highlightedLabels` (Set) 改为 `selectedLabel` (单个标签)
 - 合并 `handleLabelClick` 和 `handleLabelFilter` 为统一的 `handleLabelSelect` 方法
@@ -21,7 +21,7 @@
 
 ### 2. 修改按钮功能
 
-**修改文件：** `frontend/src/components/batch/LabelItem.vue`
+**修改文件：** `web/src/components/batch/LabelItem.vue`
 
 - 将过滤按钮（`fas fa-filter`）改为选择按钮（`fas fa-hand-pointer`）
 - 移除 `filter` 事件和 `handleFilter` 方法
@@ -29,7 +29,7 @@
 
 ### 3. 更新父组件逻辑
 
-**修改文件：** `frontend/src/components/batch/FilterPanel.vue`
+**修改文件：** `web/src/components/batch/FilterPanel.vue`
 
 - 移除 `handleLabelFiltered` 方法
 - 优化 `handleLabelSelected` 方法，支持切换选中状态：
@@ -62,9 +62,9 @@
 
 ## 文件变更清单
 
-- ✅ `frontend/src/components/batch/LabelManagementTab.vue`
-- ✅ `frontend/src/components/batch/LabelItem.vue` 
-- ✅ `frontend/src/components/batch/FilterPanel.vue`
+- ✅ `web/src/components/batch/LabelManagementTab.vue`
+- ✅ `web/src/components/batch/LabelItem.vue` 
+- ✅ `web/src/components/batch/FilterPanel.vue`
 
 ## 测试结果
 

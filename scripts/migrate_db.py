@@ -13,7 +13,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from app.config import DATABASE_URL
+from server.config import DATABASE_URL
 
 
 def migrate_database():

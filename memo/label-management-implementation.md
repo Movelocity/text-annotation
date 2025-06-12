@@ -8,7 +8,7 @@
 
 ### 1. 增强的 Label Store
 
-**文件**: `frontend/src/stores/label.ts`
+**文件**: `web/src/stores/label.ts`
 
 **新增功能**:
 - 系统统计数据管理
@@ -25,7 +25,7 @@
 
 ### 2. 标签管理主页面
 
-**文件**: `frontend/src/pages/LabelManagePage.vue`
+**文件**: `web/src/pages/LabelManagePage.vue`
 
 **功能特性**:
 - 统计概览卡片（总标签数、已使用、未使用、已标注文本）
@@ -37,7 +37,7 @@
 
 ### 3. 标签卡片组件
 
-**文件**: `frontend/src/components/label/LabelCard.vue`
+**文件**: `web/src/components/label/LabelCard.vue`
 
 **功能特性**:
 - 标签基本信息展示
@@ -48,7 +48,7 @@
 
 ### 4. 新增标签对话框
 
-**文件**: `frontend/src/components/label/CreateLabelDialog.vue`
+**文件**: `web/src/components/label/CreateLabelDialog.vue`
 
 **功能特性**:
 - 表单验证（名称重复检查）
@@ -58,7 +58,7 @@
 
 ### 5. 标签统计图表
 
-**文件**: `frontend/src/components/label/LabelStatsChart.vue`
+**文件**: `web/src/components/label/LabelStatsChart.vue`
 
 **功能特性**:
 - 柱状图和饼图切换
@@ -69,7 +69,7 @@
 
 ## 路由配置
 
-**文件**: `frontend/src/router/index.ts`
+**文件**: `web/src/router/index.ts`
 
 新增路由:
 ```javascript
@@ -85,7 +85,7 @@
 
 ## 导航集成
 
-**文件**: `frontend/src/pages/HomePage.vue`
+**文件**: `web/src/pages/HomePage.vue`
 
 - 修改了"管理标签"操作项，从 `loadLabels` 改为 `goToLabelManage`
 - 添加了 `goToLabelManage()` 方法跳转到标签管理页面

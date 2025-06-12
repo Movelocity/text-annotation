@@ -491,7 +491,7 @@ function BatchLabelUpdate() {
 ### 1. 启动后端服务
 ```bash
 cd C:\projects\data\intents-dataset
-uv run app.main:app
+uv run server.main:app
 ```
 
 ### 2. 代理设置（开发环境）
