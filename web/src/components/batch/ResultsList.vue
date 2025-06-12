@@ -20,6 +20,7 @@
       
       <div class="results-actions" v-if="filteredTexts.length > 0">
         <el-button
+          text
           type="primary"
           size="default"
           @click="$emit('selectAll')"
@@ -30,6 +31,7 @@
           全选
         </el-button>
         <el-button
+          text
           type="primary"
           size="default"
           @click="$emit('clearSelection')"
@@ -124,7 +126,7 @@ defineEmits<Emits>()
   justify-content: space-between;
   align-items: flex-start;
   padding: 20px 24px 16px 24px;
-  background: linear-gradient(135deg, #f8fafb 0%, #ffffff 100%);
+  background: white;
   border-bottom: 1px solid var(--divider-color);
   flex-shrink: 0;
 }
@@ -173,7 +175,6 @@ defineEmits<Emits>()
 /* 操作按钮 */
 .results-actions {
   display: flex;
-  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -236,29 +237,22 @@ defineEmits<Emits>()
   justify-content: center;
   padding: 60px 40px;
   text-align: center;
+  color: var(--text-tertiary, #c0c4cc);
 }
 
 .empty-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f1f3f4 0%, #e8eaed 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   margin-bottom: 24px;
 }
 
 .empty-icon i {
-  font-size: 32px;
-  color: var(--text-secondary);
-  opacity: 0.6;
+  font-size: 48px;
+  opacity: 0.8;
 }
 
 .empty-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 

@@ -417,6 +417,7 @@ onMounted(async () => {
   max-height: calc(100vh - 55px);
   display: flex;
   flex-direction: column;
+  padding: 0 2rem;
 }
 
 .page-header-section {
