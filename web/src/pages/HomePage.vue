@@ -197,21 +197,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-// import { EditPen } from '@element-plus/icons-vue'
-// import { useAppStore } from '@/stores/app'
-// import { useAnnotationStore } from '../stores/annotation'
-// import { useLabelStore } from '@/stores/label'
 import { statsApi } from '@/services/api'
 import type { SystemStats } from '@/types/api'
 
 const router = useRouter()
-// const appStore = useAppStore()
-// const annotationStore = useAnnotationStore()
-// const labelStore = useLabelStore()
-
 const stats = ref<SystemStats | null>(null)
 const statsLoading = ref(false)
-// const healthLoading = ref(false)
+
 
 const loadStats = async () => {
   try {
@@ -225,31 +217,6 @@ const loadStats = async () => {
     statsLoading.value = false
   }
 }
-
-// const checkHealth = async () => {
-//   try {
-//     healthLoading.value = true
-//     await healthApi.check()
-//     ElMessage.success('后端连接正常')
-//   } catch (error) {
-//     console.error('健康检查失败:', error)
-//     ElMessage.error('后端连接失败')
-//   } finally {
-//     healthLoading.value = false
-//   }
-// }
-
-// const loadAnnotations = async () => {
-//   try {
-//     await annotationStore.searchAnnotations({ page: 1, per_page: 10 })
-//     ElMessage.success(`加载了 ${annotationStore.annotations.length} 条标注数据`)
-//   } catch (error) {
-//     console.error('加载标注数据失败:', error)
-//     ElMessage.error('加载标注数据失败')
-//   }
-// }
-
-
 
 const refreshStats = async () => {
   await loadStats()

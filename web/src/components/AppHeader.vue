@@ -6,6 +6,7 @@ import {
   Edit as EditIcon,
   Collection as CollectionIcon,
   Setting as SettingIcon,
+  Upload as UploadIcon,
   User as UserIcon,
   Bell as BellIcon,
   Search as SearchIcon
@@ -48,6 +49,11 @@ const currentPath = computed(() => route.path)
                 <CollectionIcon class="nav-icon" />
               </router-link>
             </li>
+            <li :class="{ active: currentPath === '/pages/data-import' }">
+              <router-link to="/pages/data-import">
+                <UploadIcon class="nav-icon" />
+              </router-link>
+            </li>
             <li :class="{ active: currentPath === '/pages/label-manage' }">
               <router-link to="/pages/label-manage">
                 <SettingIcon class="nav-icon" />
@@ -88,6 +94,12 @@ const currentPath = computed(() => route.path)
                 <router-link to="/pages/batch-annotation">
                   <CollectionIcon class="nav-icon" />
                   <span>批量标注</span>
+                </router-link>
+              </li>
+              <li :class="{ active: currentPath === '/pages/data-import' }">
+                <router-link to="/pages/data-import">
+                  <UploadIcon class="nav-icon" />
+                  <span>数据导入</span>
                 </router-link>
               </li>
               <li :class="{ active: currentPath === '/pages/label-manage' }">

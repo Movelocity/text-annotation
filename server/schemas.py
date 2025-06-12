@@ -197,4 +197,43 @@ class BulkLabelUpdateRequest(BaseModel):
 class BulkLabelUpdateResponse(BaseModel):
     """批量标签更新响应的 schema。"""
     updated_count: int = Field(..., description="更新的记录数量")
-    message: str = Field(..., description="操作结果描述") 
+    message: str = Field(..., description="操作结果描述")
+
+
+# 数据生成相关schemas
+class GenerateRequest(BaseModel):
+    """数据生成请求的 schema。"""
+    api_key: str = Field(..., description="大模型API Key")
+    base_url: str = Field(..., description="大模型API Base URL")
+    model: str = Field(default="gpt-3.5-turbo", description="模型名称")
+    system_prompt: str = Field(..., description="系统提示词")
+    user_prompt: str = Field(..., description="用户提示词")
+    count: int = Field(default=10, ge=1, le=100, description="生成数量")
+    parse_regex: Optional[str] = Field(None, description="解析正则表达式")
+    temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="生成温度")
+    max_tokens: Optional[int] = Field(None, ge=1, le=4096, description="最大token数")
+
+
+class GeneratedText(BaseModel):
+    """生成的文本 schema。"""
+    text: str = Field(..., description="生成的文本内容")
+    labels: Optional[str] = Field(None, description="解析出的标签")
+    raw_output: str = Field(..., description="原始模型输出")
+
+
+class GenerateResponse(BaseModel):
+    """数据生成响应的 schema。"""
+    success: bool = Field(..., description="是否成功")
+    generated_count: int = Field(..., description="成功生成的数量")
+    texts: List[GeneratedText] = Field(..., description="生成的文本列表")
+    error: Optional[str] = Field(None, description="错误信息")
+
+
+class GenerateStatus(BaseModel):
+    """生成状态 schema。"""
+    status: str = Field(..., description="状态: generating, completed, cancelled, error")
+    progress: int = Field(..., description="进度 (0-100)")
+    current_count: int = Field(..., description="当前已生成数量")
+    total_count: int = Field(..., description="目标总数量")
+    message: Optional[str] = Field(None, description="状态消息")
+    error: Optional[str] = Field(None, description="错误信息") 

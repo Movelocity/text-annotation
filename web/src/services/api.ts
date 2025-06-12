@@ -24,6 +24,41 @@ import type {
   ApiError
 } from '@/types/api'
 
+// 数据生成相关类型定义
+export interface GenerateRequest {
+  api_key: string
+  base_url: string
+  model: string
+  system_prompt: string
+  user_prompt: string
+  count: number
+  parse_regex?: string
+  temperature?: number
+  max_tokens?: number
+}
+
+export interface GeneratedText {
+  text: string
+  labels?: string
+  raw_output: string
+}
+
+export interface GenerateResponse {
+  success: boolean
+  generated_count: number
+  texts: GeneratedText[]
+  error?: string
+}
+
+export interface GenerateStatus {
+  status: string
+  progress: number
+  current_count: number
+  total_count: number
+  message?: string
+  error?: string
+}
+
 class ApiService {
   private axiosInstance: AxiosInstance
 
@@ -182,6 +217,31 @@ class ApiService {
     const response = await this.axiosInstance.get<{ status: string }>('/health')
     return response.data
   }
+
+  // 数据生成相关方法
+  async startGeneration(data: GenerateRequest): Promise<{ task_id: string; status: string; message: string }> {
+    const response = await this.axiosInstance.post<{ task_id: string; status: string; message: string }>('/generate/start', data)
+    return response.data
+  }
+
+  async cancelGeneration(taskId: string): Promise<{ message: string }> {
+    const response = await this.axiosInstance.post<{ message: string }>(`/generate/cancel/${taskId}`)
+    return response.data
+  }
+
+  async getGenerationStatus(taskId: string): Promise<GenerateStatus> {
+    const response = await this.axiosInstance.get<GenerateStatus>(`/generate/status/${taskId}`)
+    return response.data
+  }
+
+  async getGenerationResults(taskId: string): Promise<GenerateResponse> {
+    const response = await this.axiosInstance.get<GenerateResponse>(`/generate/results/${taskId}`)
+    return response.data
+  }
+
+  createGenerationEventSource(taskId: string): EventSource {
+    return new EventSource(`${this.axiosInstance.defaults.baseURL}/generate/stream/${taskId}`)
+  }
 }
 
 // 创建单例实例
@@ -221,4 +281,12 @@ export const statsApi = {
 
 export const healthApi = {
   check: () => apiService.healthCheck()
+}
+
+export const generateApi = {
+  start: (data: GenerateRequest) => apiService.startGeneration(data),
+  cancel: (taskId: string) => apiService.cancelGeneration(taskId),
+  getStatus: (taskId: string) => apiService.getGenerationStatus(taskId),
+  getResults: (taskId: string) => apiService.getGenerationResults(taskId),
+  createEventSource: (taskId: string) => apiService.createGenerationEventSource(taskId)
 } 

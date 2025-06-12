@@ -41,6 +41,14 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '标签管理'
     }
+  },
+  {
+    path: '/pages/data-import',
+    name: 'DataImport',
+    component: () => import('@/pages/DataImportPage.vue'),
+    meta: {
+      title: '数据导入'
+    }
   }
 ]
 

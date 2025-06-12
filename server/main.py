@@ -9,10 +9,10 @@
 - 统计和分析
 """
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
 import os
@@ -20,6 +20,7 @@ import logging
 
 from .models import get_db, create_tables
 from .services import AnnotationService, LabelService, StatisticsService
+from .generation_service import generation_service
 from scripts.data_import import DataImporter
 from . import schemas
 
@@ -618,6 +619,134 @@ def get_system_stats(db: Session = Depends(get_db)):
     """
     service = StatisticsService(db)
     return service.get_system_stats()
+
+
+# 数据生成端点
+@app.post("/generate/start")
+async def start_generation(request: schemas.GenerateRequest):
+    """
+    启动数据生成任务。
+    
+    Args:
+        request: 生成请求参数
+        
+    Returns:
+        任务ID和初始状态
+        
+    Raises:
+        HTTPException: 如果请求参数无效
+    """
+    try:
+        # 创建生成任务
+        task_id = generation_service.create_task(request)
+        
+        return {
+            "task_id": task_id,
+            "status": "created",
+            "message": "生成任务已创建，请使用task_id获取流式更新"
+        }
+        
+    except Exception as e:
+        logger.error(f"创建生成任务失败: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/generate/stream/{task_id}")
+async def stream_generation(task_id: str):
+    """
+    获取生成任务的流式更新。
+    
+    Args:
+        task_id: 任务ID
+        
+    Returns:
+        Server-Sent Events流
+        
+    Raises:
+        HTTPException: 如果任务不存在
+    """
+    task = generation_service.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    
+    return StreamingResponse(
+        generation_service.generate_stream(task_id),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
+
+
+@app.post("/generate/cancel/{task_id}")
+async def cancel_generation(task_id: str):
+    """
+    取消生成任务。
+    
+    Args:
+        task_id: 任务ID
+        
+    Returns:
+        取消结果
+        
+    Raises:
+        HTTPException: 如果任务不存在
+    """
+    success = generation_service.cancel_task(task_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    
+    return {"message": "任务已取消"}
+
+
+@app.get("/generate/status/{task_id}", response_model=schemas.GenerateStatus)
+async def get_generation_status(task_id: str):
+    """
+    获取生成任务状态。
+    
+    Args:
+        task_id: 任务ID
+        
+    Returns:
+        任务状态
+        
+    Raises:
+        HTTPException: 如果任务不存在
+    """
+    task = generation_service.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    
+    return task.get_status()
+
+
+@app.get("/generate/results/{task_id}")
+async def get_generation_results(task_id: str):
+    """
+    获取生成任务的结果。
+    
+    Args:
+        task_id: 任务ID
+        
+    Returns:
+        生成的文本列表
+        
+    Raises:
+        HTTPException: 如果任务不存在
+    """
+    task = generation_service.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    
+    return {
+        "task_id": task_id,
+        "status": task.status,
+        "generated_count": len(task.generated_texts),
+        "texts": [text.model_dump() for text in task.generated_texts]
+    }
 
 
 # 健康检查端点
