@@ -180,30 +180,48 @@
             <div class="panel-content">
               <div class="submit-list" v-if="pendingItems.length > 0">
                 <div v-for="(item, index) in pendingItems" :key="item.id" class="submit-item">
-                  <div class="item-index">{{ index + 1 }}</div>
-                  <div class="item-content">
-                    <el-input
-                      v-model="item.text"
-                      type="textarea"
-                      :rows="2"
-                      placeholder="输入文本内容..."
-                      class="text-input"
-                      size="small"
-                    />
-                    <el-input
-                      v-model="item.labels"
-                      placeholder="输入标签，用逗号分隔"
-                      class="labels-input"
-                      size="small"
-                    />
+                  <div class="item-header">
+                    <span class="item-number">#{{ index + 1 }}</span>
+                    <div class="labels-tags">
+                      <el-tag 
+                        v-for="label in getItemLabels(item.labels)" 
+                        :key="label" 
+                        size="small" 
+                        closable
+                        @close="removeLabel(item, label)"
+                        class="label-tag"
+                      >
+                        {{ label }}
+                      </el-tag>
+                      <el-button 
+                        size="small" 
+                        @click="openLabelSelector(item)"
+                        class="add-label-btn"
+                      >
+                        <i class="fas fa-plus"></i> 添加标签
+                      </el-button>
+                      <el-button 
+                        size="small" 
+                        circle 
+                        type="danger" 
+                        @click="removeItem(index)"
+                        class="delete-btn"
+                      >
+                        <i class="fas fa-times"></i>
+                      </el-button>
+                    </div>
                   </div>
-                  <div class="item-actions">
-                    <el-button size="small" type="danger" @click="removeItem(index)">
-                      <i class="fas fa-trash"></i>
-                    </el-button>
-                    <el-button size="small" type="primary" @click="submitSingleItem(item, index)" :loading="item.isSubmitting">
-                      <i class="fas fa-check"></i>
-                    </el-button>
+                  <div class="item-content">
+                    <div class="text-section">
+                      <el-input
+                        v-model="item.text"
+                        type="textarea"
+                        :rows="3"
+                        placeholder="输入文本内容..."
+                        class="text-input"
+                        size="default"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -243,6 +261,43 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 标签选择弹窗 -->
+    <el-dialog v-model="showLabelSelector" title="选择标签" width="600px">
+      <div class="label-selector">
+        <div class="search-section">
+          <el-input
+            v-model="labelStore.searchQuery"
+            placeholder="搜索标签..."
+            clearable
+            prefix-icon="Search"
+          />
+        </div>
+        <div class="labels-grid">
+          <el-button
+            v-for="label in labelStore.filteredLabels"
+            :key="label.id"
+            size="small"
+            @click="addLabelToItem(label.label)"
+            class="label-option"
+            :type="getItemLabels(currentEditingItem?.labels || '').includes(label.label) ? 'primary' : 'default'"
+          >
+            {{ label.label }}
+            <span v-if="labelStore.getLabelStats(label.label)" class="label-count">
+              ({{ labelStore.getLabelStats(label.label)?.count || 0 }})
+            </span>
+          </el-button>
+        </div>
+        <div v-if="labelStore.filteredLabels.length === 0" class="no-labels">
+          <p>没有找到匹配的标签</p>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="closeLabelSelector">完成</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -250,6 +305,7 @@
 import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { dataGenerationService, type GenerationConfig, type GeneratedText } from '@/services/dataGeneration'
+import { useLabelStore } from '@/stores/label'
 
 // 待提交数据项类型
 interface PendingItem {
@@ -312,6 +368,9 @@ const showApiConfig = ref(false)
 const pendingItems = ref<PendingItem[]>([])
 const generatedTexts = ref<GeneratedItem[]>([])
 const activeInputTab = ref('ai')
+const labelStore = useLabelStore()
+const showLabelSelector = ref(false)
+const currentEditingItem = ref<PendingItem | null>(null)
 
 // EventSource 连接
 let eventSource: EventSource | null = null
@@ -549,28 +608,7 @@ const clearAllItems = async () => {
   }
 }
 
-// 提交单个项目
-const submitSingleItem = async (item: PendingItem, index: number) => {
-  if (!item.text.trim()) {
-    ElMessage.error('请输入文本内容')
-    return
-  }
-  
-  try {
-    item.isSubmitting = true
-    await dataGenerationService.createAnnotation({
-      text: item.text,
-      labels: item.labels
-    })
-    ElMessage.success('提交成功')
-    pendingItems.value.splice(index, 1)
-  } catch (error: any) {
-    console.error('提交失败:', error)
-    ElMessage.error('提交失败')
-  } finally {
-    item.isSubmitting = false
-  }
-}
+
 
 // 提交所有项目
 const submitAllItems = async () => {
@@ -647,6 +685,42 @@ const importFileToGenerated = () => {
   clearFile()
 }
 
+// 标签相关方法
+const getItemLabels = (labelsString: string): string[] => {
+  if (!labelsString) return []
+  return labelsString.split(',').map(label => label.trim()).filter(label => label)
+}
+
+const removeLabel = (item: PendingItem, labelToRemove: string) => {
+  const labels = getItemLabels(item.labels)
+  const updatedLabels = labels.filter(label => label !== labelToRemove)
+  item.labels = updatedLabels.join(', ')
+}
+
+const openLabelSelector = (item: PendingItem) => {
+  currentEditingItem.value = item
+  showLabelSelector.value = true
+  // 确保标签数据已加载
+  if (!labelStore.hasLabels) {
+    labelStore.fetchLabels()
+  }
+}
+
+const addLabelToItem = (labelName: string) => {
+  if (!currentEditingItem.value) return
+  
+  const currentLabels = getItemLabels(currentEditingItem.value.labels)
+  if (!currentLabels.includes(labelName)) {
+    currentLabels.push(labelName)
+    currentEditingItem.value.labels = currentLabels.join(', ')
+  }
+}
+
+const closeLabelSelector = () => {
+  showLabelSelector.value = false
+  currentEditingItem.value = null
+}
+
 // 清理资源
 onUnmounted(() => {
   if (eventSource) {
@@ -657,6 +731,8 @@ onUnmounted(() => {
 
 onMounted(() => {
   loadConfig()
+  // 初始化标签数据
+  labelStore.fetchLabels()
 })
 </script>
 
@@ -714,14 +790,6 @@ onMounted(() => {
   color: #2c3e50;
 }
 
-.display-item.selected {
-  background: #e8f4ff;
-  border-color: #409EFF;
-}
-
-.display-item .item-content {
-  cursor: pointer;
-}
 
 .batch-actions {
   margin-top: 16px;
@@ -730,40 +798,127 @@ onMounted(() => {
 }
 
 .submit-list {
-  max-height: calc(100vh - 450px);
   overflow-y: auto;
 }
 
 .submit-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
+  padding: 8px 16px 0 16px;
   border: 1px solid #e4e7ed;
   border-radius: 8px;
   margin-bottom: 12px;
-  background: #fafafa;
+  background: white;
   transition: all 0.2s ease;
 }
 
 .submit-item:hover {
-  background: #f0f9ff;
-  border-color: #409EFF;
+  background: #f9f9f9;
+  border-color: #c0c4cc;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.item-index {
-  width: 32px;
-  height: 32px;
-  background: #409EFF;
-  color: white;
+
+.delete-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+
+.item-content {
+  width: 100%;
+}
+
+.text-section {
+  margin-bottom: 16px;
+}
+
+.text-input {
+  width: 100%;
+}
+
+.labels-section {
+  margin-top: 8px;
+}
+
+.labels-display {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.labels-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+}
+
+.labels-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-weight: bold;
+  min-height: 28px;
+}
+
+.label-tag {
+  margin: 0;
+}
+
+.add-label-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px dashed #d9d9d9;
+  background: transparent;
+  color: #666;
+  border-radius: 4px;
+}
+
+.add-label-btn:hover {
+  border-color: #409EFF;
+  color: #409EFF;
+}
+
+/* 标签选择器样式 */
+.label-selector {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.search-section {
+  margin-bottom: 16px;
+}
+
+.labels-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.label-option {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.label-count {
+  color: #999;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.no-labels {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+.no-labels p {
+  margin: 0;
   font-size: 14px;
-  flex-shrink: 0;
-  margin-top: 4px;
 }
 
 .panel-icon {
@@ -906,8 +1061,6 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e4e7ed;
 }
 
 .item-number {
@@ -948,20 +1101,7 @@ onMounted(() => {
   margin: 0;
 }
 
-.text-input {
-  margin-bottom: 8px;
-}
 
-.labels-input {
-  margin-bottom: 0;
-}
-
-.item-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex-shrink: 0;
-}
 
 .empty-state {
   text-align: center;
