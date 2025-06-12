@@ -365,14 +365,26 @@ class AnnotationService:
         """
         query = self.db.query(AnnotationData)
         
-        # 应用包含过滤器
+        # 应用包含过滤器（模糊搜索，暂不开发）
         if search_request.query:
             query = query.filter(AnnotationData.text.contains(search_request.query))
         
-        # 应用排除关键词过滤器
+        # 应用排除关键词过滤器（模糊搜索，暂不开发）
         if search_request.exclude_query:
             query = query.filter(~AnnotationData.text.contains(search_request.exclude_query))
         
+        # 应用关键词数组过滤器（精确包含搜索）
+        if search_request.keywords:
+            for keyword in search_request.keywords:
+                if keyword.strip():  # 跳过空关键词
+                    query = query.filter(AnnotationData.text.contains(keyword.strip()))
+        
+        # 应用排除关键词数组过滤器（精确包含搜索）
+        if search_request.exclude_keywords:
+            for keyword in search_request.exclude_keywords:
+                if keyword.strip():  # 跳过空关键词
+                    query = query.filter(~AnnotationData.text.contains(keyword.strip()))
+
         if search_request.labels:
             # 搜索指定的任何标签 - 使用更精确的匹配
             label_filters = []

@@ -43,8 +43,10 @@ export class BatchAnnotationService {
    */
   async filterTexts(options: BatchFilterOptions): Promise<AnnotationDataList> {
     const searchParams: AdvancedSearchRequest = {
-      query: options.includeKeywords?.join(' ') || undefined,
-      exclude_query: options.excludeKeywords?.join(' ') || undefined,
+      // query: options.includeKeywords?.join(' ') || undefined,
+      // exclude_query: options.excludeKeywords?.join(' ') || undefined,
+      keywords: options.includeKeywords || undefined,
+      exclude_keywords: options.excludeKeywords || undefined,
       labels: options.includeLabels?.join(',') || undefined,
       exclude_labels: options.excludeLabels?.join(',') || undefined,
       unlabeled_only: options.unlabeledOnly,

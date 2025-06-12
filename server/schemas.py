@@ -117,8 +117,10 @@ class BulkLabelRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     """文本搜索请求的 schema。"""
-    query: Optional[str] = Field(None, description="文本必须包含的关键词")
-    exclude_query: Optional[str] = Field(None, description="文本不能包含的关键词")
+    query: Optional[str] = Field(None, description="文本必须包含的关键词（模糊搜索、正则搜索，暂不开发）")
+    exclude_query: Optional[str] = Field(None, description="文本不能包含的关键词（模糊搜索、正则搜索，暂不开发）")
+    keywords: Optional[List[str]] = Field(None, description="文本必须包含的关键词数组（精确包含搜索）")
+    exclude_keywords: Optional[List[str]] = Field(None, description="文本不能包含的关键词数组（精确包含搜索）")
     labels: Optional[str] = Field(None, description="文本必须包含的逗号分隔标签")
     exclude_labels: Optional[str] = Field(None, description="文本不能包含的逗号分隔标签")
     unlabeled_only: bool = Field(False, description="仅返回未标注文本")

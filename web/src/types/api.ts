@@ -65,8 +65,10 @@ export interface BulkLabelRequest {
 
 // 高级搜索相关类型（增强版）
 export interface AdvancedSearchRequest {
-  query?: string | null              // 必须包含的关键词
-  exclude_query?: string | null      // 不能包含的关键词
+  query?: string | null              // 必须包含的关键词（模糊搜索、正则搜索，暂不开发）
+  exclude_query?: string | null      // 不能包含的关键词（模糊搜索、正则搜索，暂不开发）
+  keywords?: string[] | null         // 必须包含的关键词数组（精确包含搜索）
+  exclude_keywords?: string[] | null // 不能包含的关键词数组（精确包含搜索）
   labels?: string | null             // 必须包含的标签（逗号分隔）
   exclude_labels?: string | null     // 不能包含的标签（逗号分隔）
   unlabeled_only?: boolean
