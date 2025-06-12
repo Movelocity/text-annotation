@@ -30,10 +30,10 @@
                   <div class="generation-params">
                     <el-form :model="generationParams" label-width="100px" size="default">
                       <el-form-item label="系统提示词">
-                        <el-input v-model="generationParams.systemPrompt" type="textarea" :rows="2" />
+                        <el-input v-model="generationParams.systemPrompt" type="textarea" :rows="3" />
                       </el-form-item>
                       <el-form-item label="用户提示词">
-                        <el-input v-model="generationParams.userPrompt" type="textarea" :rows="2" />
+                        <el-input v-model="generationParams.userPrompt" type="textarea" :rows="3" />
                       </el-form-item>
                       <el-form-item label="生成数量">
                         <el-input-number v-model="generationParams.count" :min="1" :max="100" size="default" />
@@ -43,7 +43,7 @@
                       </el-form-item>
                     </el-form>
                     
-                    <div class="action-buttons">
+                    <div class="action-buttons" style="margin-top: 2rem;">
                       <el-button @click="cancelGeneration" :disabled="!isGenerating" size="default">
                         <i class="fas fa-stop"></i> 取消
                       </el-button>
@@ -65,9 +65,6 @@
 
                 <!-- 文件导入标签页 -->
                 <el-tab-pane label="文件导入" name="file">
-                  <div class="tab-icon">
-                    <i class="fas fa-file-import"></i>
-                  </div>
                   <div class="upload-area">
                     <el-upload
                       class="upload-dragger"
@@ -88,8 +85,8 @@
                   </div>
                   
                   <div class="file-preview" v-if="fileContent">
-                    <h4><i class="fas fa-eye"></i> 文件预览</h4>
                     <div class="preview-stats">
+                      <h4><i class="fas fa-eye"></i> 文件预览</h4>
                       <el-tag>共 {{ fileLines.length }} 条数据</el-tag>
                     </div>
                     <div class="preview-content">
@@ -102,11 +99,40 @@
                     </div>
                     
                     <div class="action-buttons">
+                      <el-button type="success" @click="importFileToQueue" size="small">
+                        <i class="fas fa-arrow-right"></i> 直接添加到待提交区域
+                      </el-button>
                       <el-button type="primary" @click="importFileToGenerated" size="small">
                         <i class="fas fa-arrow-right"></i> 导入到中间区域
                       </el-button>
                       <el-button @click="clearFile" size="small">
                         <i class="fas fa-times"></i> 取消
+                      </el-button>
+                    </div>
+                  </div>
+                </el-tab-pane>
+
+                <!-- 手动输入标签页 -->
+                <el-tab-pane label="手动输入" name="manual">
+                  <div class="manual-input-area">
+                    <el-form label-width="80px" size="default">
+                      <el-input
+                        v-model="manualInputText"
+                        type="textarea"
+                        :rows="8"
+                        placeholder="在此粘贴或输入文本内容，支持多行输入..."
+                        class="manual-textarea"
+                      />
+                    </el-form>
+                    <div class="action-buttons">
+                      <div class="manual-input-stats" v-if="manualInputText">
+                        <el-tag>{{ getManualInputLines().length }} 行有效数据</el-tag>
+                      </div>
+                      <el-button type="success" @click="addManualInputToQueue" :disabled="!manualInputText.trim()" size="default">
+                        <i class="fas fa-plus"></i> 分行添加到待提交区域
+                      </el-button>
+                      <el-button @click="clearManualInput" :disabled="!manualInputText.trim()" size="default">
+                        <i class="fas fa-times"></i> 清空
                       </el-button>
                     </div>
                   </div>
@@ -175,13 +201,16 @@
               <h3>待提交数据 ({{ pendingItems.length }})</h3>
               <div class="header-actions">
                 <el-button size="small" @click="addNewItem" type="primary">
-                  <i class="fas fa-plus"></i> 新增记录
+                  <i class="fas fa-plus"></i>
+                </el-button>
+                <el-button size="small" @click="openBatchLabelSelector" :disabled="pendingItems.length === 0">
+                  <i class="fas fa-tags"></i> 批量标签
                 </el-button>
                 <el-button size="small" @click="clearAllItems" :disabled="pendingItems.length === 0">
                   <i class="fas fa-trash"></i> 清空
                 </el-button>
                 <el-button size="small" @click="submitAllItems" :disabled="pendingItems.length === 0" :loading="isSubmitting" type="success">
-                  <i class="fas fa-check"></i> 提交全部 ({{ pendingItems.length }})
+                  <i class="fas fa-check"></i> 提交全部
                 </el-button>
               </div>
             </div>
@@ -306,6 +335,50 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 批量标签选择弹窗 -->
+    <el-dialog v-model="showBatchLabelSelector" title="批量添加标签" width="600px">
+      <div class="batch-label-selector">
+        <div class="batch-info">
+          <el-alert
+            :title="`将为 ${pendingItems.length} 条记录批量添加标签`"
+            type="info"
+            :closable="false"
+            show-icon
+          />
+        </div>
+        <div class="search-section">
+          <el-input
+            v-model="labelStore.searchQuery"
+            placeholder="搜索标签..."
+            clearable
+            prefix-icon="Search"
+          />
+        </div>
+        <div class="labels-grid">
+          <el-button
+            v-for="label in labelStore.filteredLabels"
+            :key="label.id"
+            size="small"
+            @click="batchAddLabel(label.label)"
+            class="label-option"
+          >
+            {{ label.label }}
+            <span v-if="labelStore.getLabelStats(label.label)" class="label-count">
+              ({{ labelStore.getLabelStats(label.label)?.count || 0 }})
+            </span>
+          </el-button>
+        </div>
+        <div v-if="labelStore.filteredLabels.length === 0" class="no-labels">
+          <p>没有找到匹配的标签</p>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="closeBatchLabelSelector">完成</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -378,7 +451,9 @@ const generatedTexts = ref<GeneratedItem[]>([])
 const activeInputTab = ref('ai')
 const labelStore = useLabelStore()
 const showLabelSelector = ref(false)
+const showBatchLabelSelector = ref(false)
 const currentEditingItem = ref<PendingItem | null>(null)
+const manualInputText = ref('')
 
 // EventSource 连接
 let eventSource: EventSource | null = null
@@ -616,8 +691,6 @@ const clearAllItems = async () => {
   }
 }
 
-
-
 // 提交所有项目
 const submitAllItems = async () => {
   const validItems = pendingItems.value.filter(item => item.text.trim())
@@ -681,16 +754,69 @@ const importFileToGenerated = () => {
     return
   }
   
-  const newItems = fileLines.value.map(line => ({
+  // const newItems = fileLines.value.map(line => ({
+  //   id: generateId(),
+  //   text: line.trim(),
+  //   labels: '',
+  //   raw_output: line.trim(), // 文件导入时，raw_output就是原始文本
+  // }))
+  // as a whole record
+  const newItem = {
+    id: generateId(),
+    text: fileLines.value.join('\n'),
+    labels: '',
+    raw_output: fileLines.value.join('\n'),
+  }
+  
+  generatedTexts.value.unshift(newItem) // 新数据添加到顶部
+  ElMessage.success(`已添加 1 条数据到生成数据区域`)
+  clearFile()
+}
+
+// 直接将文件导入到待提交区域
+const importFileToQueue = () => {
+  if (fileLines.value.length === 0) {
+    ElMessage.error('请先选择文件')
+    return
+  }
+  
+  const newItems: PendingItem[] = fileLines.value.map(line => ({
     id: generateId(),
     text: line.trim(),
-    labels: '',
-    raw_output: line.trim(), // 文件导入时，raw_output就是原始文本
+    labels: ''
   }))
   
-  generatedTexts.value.unshift(...newItems) // 新数据添加到顶部
-  ElMessage.success(`已添加 ${newItems.length} 条数据到生成数据区域`)
+  pendingItems.value.unshift(...newItems) // 添加到顶部
+  ElMessage.success(`已添加 ${newItems.length} 条数据到待提交区域`)
   clearFile()
+}
+
+// 手动输入相关方法
+const getManualInputLines = (): string[] => {
+  if (!manualInputText.value) return []
+  return manualInputText.value.split('\n').map(line => line.trim()).filter(line => line)
+}
+
+const addManualInputToQueue = () => {
+  const lines = getManualInputLines()
+  if (lines.length === 0) {
+    ElMessage.warning('没有有效的文本行可添加')
+    return
+  }
+  
+  const newItems: PendingItem[] = lines.map(line => ({
+    id: generateId(),
+    text: line,
+    labels: ''
+  }))
+  
+  pendingItems.value.unshift(...newItems) // 添加到顶部
+  ElMessage.success(`已添加 ${newItems.length} 条数据到待提交区域`)
+  clearManualInput()
+}
+
+const clearManualInput = () => {
+  manualInputText.value = ''
 }
 
 // 标签相关方法
@@ -727,6 +853,37 @@ const addLabelToItem = (labelName: string) => {
 const closeLabelSelector = () => {
   showLabelSelector.value = false
   currentEditingItem.value = null
+}
+
+// 批量标签相关方法
+const openBatchLabelSelector = () => {
+  showBatchLabelSelector.value = true
+  // 确保标签数据已加载
+  if (!labelStore.hasLabels) {
+    labelStore.fetchLabels()
+  }
+}
+
+const closeBatchLabelSelector = () => {
+  showBatchLabelSelector.value = false
+}
+
+const batchAddLabel = (labelName: string) => {
+  let addedCount = 0
+  pendingItems.value.forEach(item => {
+    const currentLabels = getItemLabels(item.labels)
+    if (!currentLabels.includes(labelName)) {
+      currentLabels.push(labelName)
+      item.labels = currentLabels.join(', ')
+      addedCount++
+    }
+  })
+  
+  if (addedCount > 0) {
+    ElMessage.success(`已为 ${addedCount} 条记录添加标签: ${labelName}`)
+  } else {
+    ElMessage.info(`所有记录已包含标签: ${labelName}`)
+  }
 }
 
 // 删除文本中的标号（数字+点号+空格的格式）
@@ -777,7 +934,7 @@ onMounted(() => {
 <style scoped>
 .data-import-page {
   padding: 24px;
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 100px);
 }
 
 .page-header {
@@ -828,7 +985,6 @@ onMounted(() => {
   color: #2c3e50;
 }
 
-
 .batch-actions {
   margin-top: 16px;
   padding-top: 16px;
@@ -853,7 +1009,6 @@ onMounted(() => {
   border-color: #c0c4cc;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-
 
 .delete-btn {
   width: 24px;
@@ -959,6 +1114,31 @@ onMounted(() => {
   font-size: 14px;
 }
 
+/* 手动输入样式 */
+.manual-input-area {
+  margin-bottom: 24px;
+}
+
+.manual-textarea {
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.manual-input-stats {
+  margin: 12px 12px 0 0;
+  text-align: right;
+}
+
+/* 批量标签选择器样式 */
+.batch-label-selector {
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.batch-info {
+  margin-bottom: 16px;
+}
+
 .panel-icon {
   width: 32px;
   height: 32px;
@@ -996,7 +1176,6 @@ onMounted(() => {
 
 .header-actions {
   display: flex;
-  gap: 8px;
 }
 
 .panel-content {
@@ -1021,10 +1200,10 @@ onMounted(() => {
 }
 
 .action-buttons {
-  margin-top: 2rem;
+  margin-top: 1rem;
   display: flex;
   justify-content: end;
-  gap: 12px;
+  align-items: baseline;
 }
 
 .upload-area {
@@ -1048,15 +1227,16 @@ onMounted(() => {
 }
 
 .preview-stats {
-  margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
 }
 
 .preview-content {
-  max-height: 300px;
-  overflow-y: auto;
+  overflow-y: scroll;
   border: 1px solid #f0f0f0;
   border-radius: 4px;
-  padding: 12px;
+  padding: 0 12px;
   background: #fafafa;
 }
 
@@ -1070,7 +1250,6 @@ onMounted(() => {
 .more-lines {
   text-align: center;
   color: #999;
-  padding: 8px 0;
   font-style: italic;
 }
 
@@ -1109,7 +1288,6 @@ onMounted(() => {
 
 .header-buttons {
   display: flex;
-  gap: 6px;
   align-items: center;
 }
 
@@ -1149,8 +1327,6 @@ onMounted(() => {
 .label-tag {
   margin: 0;
 }
-
-
 
 .empty-state {
   text-align: center;
