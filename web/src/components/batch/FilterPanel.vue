@@ -126,8 +126,8 @@ interface Emits {
   'preview': []
   'filter': []
   // BatchActions 相关 emits
-  'addLabels': [label: string]
-  'removeLabels': [label: string]
+  'addLabels': [labels: string[]]
+  'removeLabels': [labels: string[]]
   'update:operationMode': [mode: 'selected' | 'filtered']
 }
 

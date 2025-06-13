@@ -108,12 +108,14 @@ const {
 const operationMode = ref<'selected' | 'filtered'>('selected')
 
 // 批量操作
-const handleAddLabels = async (label: string) => {
-  if (!label) return
+const handleAddLabels = async (labels: string[]) => {
+  if (!labels || labels.length === 0) return
 
+  const labelText = labels.length === 1 ? `"${labels[0]}"` : `${labels.length} 个标签`
+  
   try {
     await ElMessageBox.confirm(
-      `确定要${operationMode.value === 'selected' ? '为选中的' : '为所有筛选结果的'} ${operationMode.value === 'selected' ? selectedTextsCount.value : state.totalCount} 条文本添加标签 "${label}" 吗？`,
+      `确定要${operationMode.value === 'selected' ? '为选中的' : '为所有筛选结果的'} ${operationMode.value === 'selected' ? selectedTextsCount.value : state.totalCount} 条文本添加标签 ${labelText} 吗？`,
       '确认操作',
       {
         confirmButtonText: '确定',
@@ -123,21 +125,23 @@ const handleAddLabels = async (label: string) => {
     )
 
     if (operationMode.value === 'selected') {
-      await addLabelsToSelected([label])
+      await addLabelsToSelected(labels)
     } else {
-      await addLabelsToFiltered([label])
+      await addLabelsToFiltered(labels)
     }
   } catch {
     // 用户取消
   }
 }
 
-const handleRemoveLabels = async (label: string) => {
-  if (!label) return
+const handleRemoveLabels = async (labels: string[]) => {
+  if (!labels || labels.length === 0) return
+
+  const labelText = labels.length === 1 ? `"${labels[0]}"` : `${labels.length} 个标签`
 
   try {
     await ElMessageBox.confirm(
-      `确定要从${operationMode.value === 'selected' ? '选中的' : '所有筛选结果的'} ${operationMode.value === 'selected' ? selectedTextsCount.value : state.totalCount} 条文本中删除标签 "${label}" 吗？`,
+      `确定要从${operationMode.value === 'selected' ? '选中的' : '所有筛选结果的'} ${operationMode.value === 'selected' ? selectedTextsCount.value : state.totalCount} 条文本中删除标签 ${labelText} 吗？`,
       '确认操作',
       {
         confirmButtonText: '确定',
@@ -147,9 +151,9 @@ const handleRemoveLabels = async (label: string) => {
     )
 
     if (operationMode.value === 'selected') {
-      await removeLabelsFromSelected([label])
+      await removeLabelsFromSelected(labels)
     } else {
-      await removeLabelsFromFiltered([label])
+      await removeLabelsFromFiltered(labels)
     }
   } catch {
     // 用户取消
