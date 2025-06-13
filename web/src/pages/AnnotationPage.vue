@@ -4,9 +4,6 @@
 -->
 <template>
   <div class="annotation-page">
-    <!-- 页面头部 -->
-
-
     <!-- 主工作区域 -->
     <div class="work-area">
       <!-- 左侧：文本列表 -->
@@ -179,8 +176,6 @@ const handleNext = () => {
 }
 
 const handleSaveSuccess = () => {
-  ElMessage.success('标注保存成功')
-  
   // 自动跳转到下一条未标注的文本
   const nextUnlabeledIndex = findNextUnlabeledIndex()
   if (nextUnlabeledIndex !== -1) {
@@ -413,14 +408,14 @@ onMounted(async () => {
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1096px) {
   .annotation-page {
     background: var(--el-bg-color-page);
   }
   
   .work-area {
     grid-template-columns: 1fr;
-    grid-template-rows: 35% 40% 25%;
+    grid-template-rows: 80% 100% 100%;
   }
   
   .navigation-controls {

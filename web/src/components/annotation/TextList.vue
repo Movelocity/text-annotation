@@ -30,13 +30,25 @@
         
         <div class="label-search-wrapper">
           <i class="fas fa-tags search-icon"></i>
-          <el-input
-            v-model="filterForm.labels"
-            placeholder="搜索标签/分类 (多个用逗号分隔)..."
+          <el-select
+            v-model="selectedLabelValues"
+            placeholder="选择标签进行筛选..."
+            multiple
+            collapse-tags
+            collapse-tags-tooltip
+            filterable
             clearable
-            @input="handleLabelInput"
-            class="search-input"
-          />
+            @change="handleLabelSelectChange"
+            class="label-select"
+            :loading="labelLoading"
+          >
+            <el-option
+              v-for="option in labelOptions"
+              :key="option.id"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
         </div>
         
         <div class="filter-options">
@@ -103,6 +115,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 // import { Search } from '@element-plus/icons-vue'
 import { useAnnotationStore } from '@/stores/annotation'
+import { useLabelStore } from '@/stores/label'
 import type { AnnotationDataResponse } from '@/types/api'
 import TextItem from '@/components/annotation/TextItem.vue'
 import Pagination from '@/components/common/Pagination.vue'
@@ -123,6 +136,7 @@ const emit = defineEmits<Emits>()
 
 // Store
 const annotationStore = useAnnotationStore()
+const labelStore = useLabelStore()
 
 // 响应式数据
 const filterForm = ref({
@@ -131,6 +145,7 @@ const filterForm = ref({
   labels: ''
 })
 
+const selectedLabelValues = ref<string[]>([])
 const searchTimeout = ref<number | null>(null)
 
 // 计算属性
@@ -140,6 +155,10 @@ const total = computed(() => annotationStore.total)
 const hasAnnotations = computed(() => annotationStore.hasAnnotations)
 const currentPage = computed(() => annotationStore.searchParams.page || 1)
 const pageSize = computed(() => annotationStore.searchParams.per_page || 50)
+
+// Label store 计算属性
+const labelOptions = computed(() => labelStore.labelOptions)
+const labelLoading = computed(() => labelStore.loading)
 
 // 方法
 // const formatTime = (timeStr: string): string => {
@@ -165,14 +184,10 @@ const handleQueryInput = () => {
   }, 500)
 }
 
-const handleLabelInput = () => {
-  // 防抖搜索
-  if (searchTimeout.value) {
-    clearTimeout(searchTimeout.value)
-  }
-  searchTimeout.value = setTimeout(() => {
-    handleSearch()
-  }, 500)
+const handleLabelSelectChange = (values: string[]) => {
+  selectedLabelValues.value = values
+  filterForm.value.labels = values.join(', ')
+  handleSearch()
 }
 
 const handleSearch = async () => {
@@ -195,6 +210,7 @@ const handleReset = () => {
     query: '',
     labels: ''
   }
+  selectedLabelValues.value = []
   annotationStore.resetSearch()
   loadData()
 }
@@ -229,8 +245,12 @@ const loadData = async () => {
 }
 
 // 生命周期
-onMounted(() => {
-  loadData()
+onMounted(async () => {
+  // 同时加载标签数据和注释数据
+  await Promise.all([
+    labelStore.fetchLabels(),
+    loadData()
+  ])
 })
 
 // 监听器
@@ -247,6 +267,10 @@ watch(() => annotationStore.searchParams, (newParams) => {
     }
     if (filterForm.value.labels !== (newParams.labels || '')) {
       filterForm.value.labels = newParams.labels || ''
+      // 同步更新选中的标签值
+      selectedLabelValues.value = newParams.labels 
+        ? newParams.labels.split(',').map(label => label.trim()).filter(Boolean)
+        : []
     }
     if (filterForm.value.unlabeled_only !== (newParams.unlabeled_only || false)) {
       filterForm.value.unlabeled_only = newParams.unlabeled_only || false
@@ -339,6 +363,15 @@ watch(() => annotationStore.searchParams, (newParams) => {
   transition: all var(--duration-fast) ease;
 }
 
+.label-select {
+  width: 100%;
+}
+
+.label-select :deep(.el-select__wrapper) {
+  padding-left: 40px;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) ease;
+}
 
 .filter-options {
   display: flex;
@@ -393,8 +426,6 @@ watch(() => annotationStore.searchParams, (newParams) => {
   flex-direction: column;
   gap: 12px;
 }
-
-
 
 /* 分页区域 */
 .pagination-section {
