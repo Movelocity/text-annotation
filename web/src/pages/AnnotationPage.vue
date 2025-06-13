@@ -5,23 +5,7 @@
 <template>
   <div class="annotation-page">
     <!-- 页面头部 -->
-    <PageHeader
-      title="数据标注工作台"
-      title-icon="fas fa-magic"
-      :breadcrumbs="breadcrumbs"
-      :stats="headerStats"
-      home-route="/pages/home"
-    >
-      <template #actions>
-        <ModernButton
-          text="刷新"
-          icon="fas fa-sync-alt"
-          :loading="annotationStore.loading"
-          :spinning="annotationStore.loading"
-          @click="handleRefresh"
-        />
-      </template>
-    </PageHeader>
+
 
     <!-- 主工作区域 -->
     <div class="work-area">
@@ -85,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnnotationStore } from '../stores/annotation'
 // import { Refresh, House, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
@@ -93,7 +77,7 @@ import TextList from '../components/annotation/TextList.vue'
 import TextViewer from '../components/annotation/TextViewer.vue'
 import LabelSelector from '../components/annotation/LabelSelector.vue'
 import ModernButton from '../components/common/ModernButton.vue'
-import PageHeader from '../components/common/PageHeader.vue'
+// import PageHeader from '../components/common/PageHeader.vue'
 import type { AnnotationDataResponse } from '../types/api'
 import { ElMessage } from 'element-plus'
 
@@ -108,69 +92,69 @@ const currentItem = ref<AnnotationDataResponse | null>(null)
 const currentIndex = ref(-1)
 
 // 面包屑导航配置
-const breadcrumbs = [
-  { text: '标注工作台' }
-]
+// const breadcrumbs = [
+//   { text: '标注工作台' }
+// ]
 
-// 计算属性
-const labeledCount = computed(() => 
-  annotationStore.annotations.filter(item => item.labels).length
-)
+// // 计算属性
+// const labeledCount = computed(() => 
+//   annotationStore.annotations.filter(item => item.labels).length
+// )
 
-const unlabeledCount = computed(() => 
-  annotationStore.annotations.filter(item => !item.labels).length
-)
+// const unlabeledCount = computed(() => 
+//   annotationStore.annotations.filter(item => !item.labels).length
+// )
 
-// 定义统计项类型
-interface StatItem {
-  key: string
-  label: string
-  value: string | number
-  type?: 'total' | 'success' | 'warning' | 'primary' | 'info' | 'danger' | 'default'
-  icon?: string
-}
+// // 定义统计项类型
+// interface StatItem {
+//   key: string
+//   label: string
+//   value: string | number
+//   type?: 'total' | 'success' | 'warning' | 'primary' | 'info' | 'danger' | 'default'
+//   icon?: string
+// }
 
 // 头部统计信息
-const headerStats = computed<StatItem[]>(() => {
-  if (annotationStore.loading) return []
+// const headerStats = computed<StatItem[]>(() => {
+//   if (annotationStore.loading) return []
   
-  const stats: StatItem[] = [
-    {
-      key: 'total',
-      label: '总计',
-      value: `${annotationStore.total} 条`,
-      type: 'total',
-      icon: 'fas fa-file-text'
-    },
-    {
-      key: 'labeled',
-      label: '已标注',
-      value: labeledCount.value,
-      type: 'success',
-      icon: 'fas fa-check-circle'
-    },
-    {
-      key: 'unlabeled',
-      label: '未标注',
-      value: unlabeledCount.value,
-      type: 'warning',
-      icon: 'fas fa-clock'
-    }
-  ]
+//   const stats: StatItem[] = [
+//     {
+//       key: 'total',
+//       label: '总计',
+//       value: `${annotationStore.total} 条`,
+//       type: 'total',
+//       icon: 'fas fa-file-text'
+//     },
+//     {
+//       key: 'labeled',
+//       label: '已标注',
+//       value: labeledCount.value,
+//       type: 'success',
+//       icon: 'fas fa-check-circle'
+//     },
+//     {
+//       key: 'unlabeled',
+//       label: '未标注',
+//       value: unlabeledCount.value,
+//       type: 'warning',
+//       icon: 'fas fa-clock'
+//     }
+//   ]
   
-  // 如果当前有选中项，添加当前位置信息
-  if (currentIndex.value >= 0) {
-    stats.push({
-      key: 'current',
-      label: '当前',
-      value: `${currentIndex.value + 1} / ${annotationStore.annotations.length}`,
-      type: 'primary',
-      icon: 'fas fa-crosshairs'
-    })
-  }
+//   // 如果当前有选中项，添加当前位置信息
+//   if (currentIndex.value >= 0) {
+//     stats.push({
+//       key: 'current',
+//       label: '当前',
+//       value: `${currentIndex.value + 1} / ${annotationStore.annotations.length}`,
+//       type: 'primary',
+//       icon: 'fas fa-crosshairs'
+//     })
+//   }
   
-  return stats
-})
+//   return stats
+// })
 
 // 方法
 const handleItemSelect = (item: AnnotationDataResponse, index: number) => {
@@ -229,21 +213,19 @@ const findNextUnlabeledIndex = (): number => {
   return -1
 }
 
-const handleRefresh = async () => {
-  try {
-    await annotationStore.searchAnnotations()
-    ElMessage.success('数据刷新成功')
+// const handleRefresh = async () => {
+//   try {
+//     await annotationStore.searchAnnotations()
+//     ElMessage.success('数据刷新成功')
     
-    // 清除当前选择
-    currentItem.value = null
-    currentIndex.value = -1
-  } catch (error) {
-    console.error('刷新失败:', error)
-    ElMessage.error('刷新失败')
-  }
-}
-
-
+//     // 清除当前选择
+//     currentItem.value = null
+//     currentIndex.value = -1
+//   } catch (error) {
+//     console.error('刷新失败:', error)
+//     ElMessage.error('刷新失败')
+//   }
+// }
 
 // 生命周期
 onMounted(async () => {
@@ -294,7 +276,7 @@ onMounted(async () => {
 
 <style scoped>
 .annotation-page {
-  height: 100vh;
+  height: calc(100vh - 55px);
   display: flex;
   flex-direction: column;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -307,7 +289,7 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 380px 1fr 420px;
   gap: 16px;
-  padding: 0 16px 16px;
+  padding: 16px;
   min-height: 0;
 }
 

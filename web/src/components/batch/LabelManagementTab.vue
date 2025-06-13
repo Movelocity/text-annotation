@@ -346,8 +346,6 @@ onUnmounted(() => {
 /* 工具栏 */
 .toolbar {
   padding: 8px 12px;
-  background: #fff;
-  border-bottom: 1px solid #ebeef5;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -376,8 +374,7 @@ onUnmounted(() => {
 /* 统计信息 */
 .stats-bar {
   padding: 6px 12px;
-  background: #fafafa;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid #e2e7f2;
 }
 
 .stats-card {
