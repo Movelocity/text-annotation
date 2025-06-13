@@ -1,108 +1,110 @@
 <template>
-  <el-dialog
-    v-model="dialogVisible"
-    title=""
-    width="500px"
-    :before-close="handleClose"
-    destroy-on-close
-    class="modern-dialog"
-  >
-    <template #header>
-      <div class="form-header">
-        <div class="header-left">
-          <i class="fas fa-edit"></i>
-          <span class="header-title">编辑标签</span>
-          <el-tag type="warning" size="small">修改配置</el-tag>
+  <div>
+    <el-dialog
+      v-model="dialogVisible"
+      title=""
+      width="500px"
+      :before-close="handleClose"
+      destroy-on-close
+      class="modern-dialog"
+    >
+      <template #header>
+        <div class="form-header">
+          <div class="header-left">
+            <i class="fas fa-edit"></i>
+            <span class="header-title">编辑标签</span>
+            <el-tag type="warning" size="small">修改配置</el-tag>
+          </div>
         </div>
-      </div>
-    </template>
+      </template>
 
-    <div class="form-content">
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-position="top"
-        @submit.prevent="handleSubmit"
-        class="modern-form"
-      >
-        <el-form-item label="标签名称" prop="label">
-          <el-input
-            v-model="form.label"
-            placeholder="请输入标签名称"
-            maxlength="50"
-            show-word-limit
-            clearable
-            size="large"
-            @keyup.enter="handleSubmit"
-            class="modern-input"
-          >
-            <template #prefix>
-              <i class="fas fa-tag input-icon"></i>
-            </template>
-          </el-input>
-        </el-form-item>
-
-        <el-form-item label="标签描述" prop="description">
-          <el-input
-            v-model="form.description"
-            type="textarea"
-            placeholder="请输入标签描述（可选）"
-            :rows="3"
-            maxlength="200"
-            show-word-limit
-            class="modern-textarea"
-          />
-        </el-form-item>
-
-        <el-form-item label="标签分组" prop="groups">
-          <el-input
-            v-model="form.groups"
-            placeholder="请输入分组路径，如：NLP/意图分析/情感"
-            maxlength="100"
-            show-word-limit
-            clearable
-            size="large"
-            class="modern-input"
-          >
-            <template #prefix>
-              <i class="fas fa-folder input-icon"></i>
-            </template>
-          </el-input>
-        </el-form-item>
-      </el-form>
-      <el-alert
-        title="提示"
-        type="info"
-        :closable="false"
-        show-icon
-      >
-        <ul class="tips-list">
-          <li>标签名称不能与其他标签重复</li>
-          <li>分组路径区分大小写</li>
-          <li>修改后会影响所有使用该标签的标注数据</li>
-        </ul>
-      </el-alert>
-    </div>
-
-    <template #footer>
-      <div class="form-actions">
-        <el-button @click="handleClose" size="large" class="cancel-btn">
-          取消
-        </el-button>
-        <el-button 
-          type="primary" 
-          @click="handleSubmit"
-          :loading="loading"
-          size="large"
-          class="save-btn"
+      <div class="form-content">
+        <el-form
+          ref="formRef"
+          :model="form"
+          :rules="rules"
+          label-position="top"
+          @submit.prevent="handleSubmit"
+          class="modern-form"
         >
-          <i class="fas fa-save"></i>
-          {{ loading ? '保存中...' : '保存更改' }}
-        </el-button>
+          <el-form-item label="标签名称" prop="label">
+            <el-input
+              v-model="form.label"
+              placeholder="请输入标签名称"
+              maxlength="50"
+              show-word-limit
+              clearable
+              size="large"
+              @keyup.enter="handleSubmit"
+              class="modern-input"
+            >
+              <template #prefix>
+                <i class="fas fa-tag input-icon"></i>
+              </template>
+            </el-input>
+          </el-form-item>
+
+          <el-form-item label="标签描述" prop="description">
+            <el-input
+              v-model="form.description"
+              type="textarea"
+              placeholder="请输入标签描述（可选）"
+              :rows="3"
+              maxlength="200"
+              show-word-limit
+              class="modern-textarea"
+            />
+          </el-form-item>
+
+          <el-form-item label="标签分组" prop="groups">
+            <el-input
+              v-model="form.groups"
+              placeholder="请输入分组路径，如：NLP/意图分析/情感"
+              maxlength="100"
+              show-word-limit
+              clearable
+              size="large"
+              class="modern-input"
+            >
+              <template #prefix>
+                <i class="fas fa-folder input-icon"></i>
+              </template>
+            </el-input>
+          </el-form-item>
+        </el-form>
+        <el-alert
+          title="提示"
+          type="info"
+          :closable="false"
+          show-icon
+        >
+          <ul class="tips-list">
+            <li>标签名称不能与其他标签重复</li>
+            <li>分组路径区分大小写</li>
+            <li>修改后会影响所有使用该标签的标注数据</li>
+          </ul>
+        </el-alert>
       </div>
-    </template>
-  </el-dialog>
+
+      <template #footer>
+        <div class="form-actions">
+          <el-button @click="handleClose" size="large" class="cancel-btn">
+            取消
+          </el-button>
+          <el-button 
+            type="primary" 
+            @click="handleSubmit"
+            :loading="loading"
+            size="large"
+            class="save-btn"
+          >
+            <i class="fas fa-save"></i>
+            {{ loading ? '保存中...' : '保存更改' }}
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -275,8 +277,10 @@ watch(() => props.modelValue, (isOpen) => {
 </script>
 
 <style scoped>
-/* 现代化对话框样式 */
-.modern-dialog :deep(.el-dialog) {
+/* 现代化对话框样式。
+scope样式使用时，需要在 el-dialog 外面套一层div，
+然后才能使用 :deep(.modern-dialog) 选择器 */
+:deep(.modern-dialog) {
   border-radius: 16px;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
   box-shadow: 
@@ -285,16 +289,6 @@ watch(() => props.modelValue, (isOpen) => {
   border: 1px solid rgba(64, 158, 255, 0.1);
   position: relative;
   overflow: hidden;
-}
-
-.modern-dialog :deep(.el-dialog::before) {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #409eff 0%, #67c23a 50%, #e6a23c 100%);
 }
 
 .modern-dialog :deep(.el-dialog__header) {
@@ -340,8 +334,6 @@ watch(() => props.modelValue, (isOpen) => {
 .form-content {
   margin-bottom: 20px;
 }
-
-
 
 .modern-input,
 .modern-textarea {

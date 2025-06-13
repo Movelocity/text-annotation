@@ -3,7 +3,7 @@
     <el-dialog
       v-model="dialogVisible"
       title=""
-      width="500px"
+      width="520px"
       :before-close="handleClose"
       destroy-on-close
       class="modern-dialog"
@@ -11,9 +11,9 @@
       <template #header>
         <div class="form-header">
           <div class="header-left">
-            <i class="fas fa-plus"></i>
-            <span class="header-title">新增标签</span>
-            <el-tag type="primary" size="small">详细配置</el-tag>
+            <i class="fas fa-cog"></i>
+            <span class="header-title">API配置</span>
+            <el-tag type="info" size="small">AI生成设置</el-tag>
           </div>
         </div>
       </template>
@@ -26,85 +26,102 @@
           @submit.prevent="handleSubmit"
           class="modern-form"
         >
-          <el-form-item prop="label">
+          <el-form-item prop="baseUrl">
             <template #label>
               <div class="input-label">
-                <i class="fas fa-tag"></i>
-                <span>标签名称</span>
+                <i class="fas fa-link"></i>
+                <span>Base URL</span>
                 <span class="required">*</span>
               </div>
             </template>
             <el-input
-              v-model="form.label"
-              placeholder="输入标签名称"
-              :maxlength="50"
-              show-word-limit
+              v-model="form.baseUrl"
+              placeholder="输入API Base URL"
               clearable
               size="large"
-              @keyup.enter="handleSubmit"
-              autofocus
               class="modern-input"
             >
               <template #prefix>
-                <i class="fas fa-tag input-icon"></i>
+                <i class="fas fa-link input-icon"></i>
               </template>
             </el-input>
           </el-form-item>
 
-          <el-form-item prop="description">
+          <el-form-item prop="apiKey">
             <template #label>
               <div class="input-label">
-                <i class="fas fa-align-left"></i>
-                <span>标签描述</span>
-                <span class="optional">(可选)</span>
+                <i class="fas fa-key"></i>
+                <span>API Key</span>
+                <span class="required">*</span>
               </div>
             </template>
             <el-input
-              v-model="form.description"
-              type="textarea"
-              placeholder="可选，描述标签用途"
-              :rows="3"
-              :maxlength="200"
-              show-word-limit
-              class="modern-textarea"
-            />
+              v-model="form.apiKey"
+              type="password"
+              placeholder="输入API Key"
+              show-password
+              clearable
+              size="large"
+              class="modern-input"
+            >
+              <template #prefix>
+                <i class="fas fa-key input-icon"></i>
+              </template>
+            </el-input>
           </el-form-item>
 
-          <el-form-item prop="groups">
+          <el-form-item prop="model">
             <template #label>
               <div class="input-label">
-                <i class="fas fa-folder"></i>
-                <span>分组</span>
-                <span class="optional">(可选)</span>
+                <i class="fas fa-brain"></i>
+                <span>模型</span>
+                <span class="optional">(可选或自定义)</span>
               </div>
             </template>
             <el-select
-              v-model="form.groups"
-              placeholder="选择分组或输入新分组"
+              v-model="form.model"
+              placeholder="选择或输入模型名"
+              clearable
               filterable
               allow-create
-              clearable
+              default-first-option
               size="large"
               style="width: 100%"
               class="modern-select"
             >
               <template #prefix>
-                <i class="fas fa-folder input-icon"></i>
+                <i class="fas fa-brain input-icon"></i>
               </template>
               <el-option
-                v-for="group in existingGroups"
-                :key="group"
-                :label="group"
-                :value="group"
+                v-for="modelOption in modelOptions"
+                :key="modelOption.value"
+                :label="modelOption.value"
+                :value="modelOption.value"
               >
-                <div class="group-option">
-                  <i class="fas fa-folder-open"></i>
-                  <span>{{ group }}</span>
+                <div class="model-option">
+                  <i class="fas fa-robot"></i>
+                  <span>{{ modelOption.value }}</span>
+                  <span class="model-desc">{{ modelOption.description }}</span>
                 </div>
               </el-option>
             </el-select>
           </el-form-item>
         </el-form>
+
+        <el-alert
+          title="提示"
+          type="info"
+          :closable="false"
+          show-icon
+          class="config-tips"
+        >
+          <ul class="tips-list">
+            <li>API Key用于身份认证，请妥善保管</li>
+            <li>Base URL为API服务地址，确保网络可达</li>
+            <li>模型可选择预设选项或手动输入任意模型名</li>
+            <li>配置将保存在本地浏览器中</li>
+          </ul>
+        </el-alert>
       </div>
 
       <template #footer>
@@ -117,10 +134,10 @@
             @click="handleSubmit"
             :loading="loading"
             size="large"
-            class="create-btn"
+            class="save-btn"
           >
-            <i class="fas fa-plus"></i>
-            {{ loading ? '创建中...' : '创建标签' }}
+            <i class="fas fa-save"></i>
+            {{ loading ? '保存中...' : '保存配置' }}
           </el-button>
         </div>
       </template>
@@ -131,66 +148,94 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { useLabelStore } from '@/stores/label'
-import type { LabelCreate } from '@/types/api'
+
+interface ApiConfig {
+  apiKey: string
+  baseUrl: string
+  model: string
+}
 
 interface Props {
   modelValue: boolean
+  config: ApiConfig
 }
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'created'): void
+  (e: 'save', config: ApiConfig): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const labelStore = useLabelStore()
-
-// 响应式数据
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
-const form = reactive<LabelCreate & { description?: string; groups?: string }>({
-  label: '',
-  description: '',
-  groups: ''
+// 表单数据
+const form = reactive<ApiConfig>({
+  apiKey: '',
+  baseUrl: '',
+  model: 'gpt-4o-mini'
 })
 
-// 计算属性
+// 模型选项
+const modelOptions = [
+  {
+    value: 'gpt-4o-mini',
+    description: '快速且经济'
+  },
+  {
+    value: 'gpt-4o',
+    description: '高质量多模态'
+  },
+  {
+    value: 'gpt-3.5-turbo',
+    description: '平衡性能'
+  },
+  {
+    value: 'claude-3-sonnet',
+    description: '高质量推理'
+  },
+  {
+    value: 'claude-3-haiku',
+    description: '快速响应'
+  },
+  {
+    value: 'deepseek-chat',
+    description: '高性价比'
+  },
+  {
+    value: 'qwen-max',
+    description: '阿里通义千问'
+  }
+]
+
+// 对话框显示状态
 const dialogVisible = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
-// 获取现有分组
-const existingGroups = computed(() => {
-  const groups = new Set<string>()
-  labelStore.labels.forEach(label => {
-    if (label.groups) {
-      groups.add(label.groups)
-      // 也添加父级分组
-      const parts = label.groups.split('/')
-      for (let i = 1; i < parts.length; i++) {
-        groups.add(parts.slice(0, i).join('/'))
-      }
-    }
-  })
-  return Array.from(groups).sort()
-})
-
-// 简化的表单验证规则
+// 表单验证规则
 const rules: FormRules = {
-  label: [
-    { required: true, message: '请输入标签名称', trigger: 'blur' },
-    { min: 1, max: 50, message: '标签名称长度在 1 到 50 个字符', trigger: 'blur' },
+  apiKey: [
+    { required: true, message: '请输入API Key', trigger: 'blur' },
+    { min: 10, message: 'API Key长度不能少于10个字符', trigger: 'blur' }
+  ],
+  baseUrl: [
+    { required: true, message: '请输入Base URL', trigger: 'blur' },
     {
       validator: (_rule, value, callback) => {
-        if (value && labelStore.getLabelByName(value)) {
-          callback(new Error('标签名称已存在'))
-        } else {
+        if (!value) {
           callback()
+          return
+        }
+        
+        try {
+          new URL(value)
+          callback()
+        } catch {
+          callback(new Error('请输入有效的URL格式'))
         }
       },
       trigger: 'blur'
@@ -198,16 +243,15 @@ const rules: FormRules = {
   ]
 }
 
-// 方法
+// 重置表单
 const resetForm = () => {
-  form.label = ''
-  form.description = ''
-  form.groups = ''
+  form.apiKey = props.config.apiKey || ''
+  form.baseUrl = props.config.baseUrl || ''
+  form.model = props.config.model || 'gpt-4o-mini'
   formRef.value?.clearValidate()
 }
 
 const handleClose = () => {
-  resetForm()
   dialogVisible.value = false
 }
 
@@ -219,20 +263,22 @@ const handleSubmit = async () => {
     
     loading.value = true
     
-    const labelData: LabelCreate = {
-      label: form.label.trim(),
-      description: form.description?.trim() || null,
-      groups: form.groups?.trim() || null
+    const configData: ApiConfig = {
+      apiKey: form.apiKey.trim(),
+      baseUrl: form.baseUrl.trim(),
+      model: form.model
     }
 
-    await labelStore.createLabel(labelData)
-    
-    emit('created')
+    // 简单验证API连接（这里可以添加实际的API测试）
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    emit('save', configData)
+    ElMessage.success('API配置已保存')
     handleClose()
     
   } catch (error) {
     if (error !== false) {
-      ElMessage.error('创建标签失败，请重试')
+      ElMessage.error('保存配置失败，请检查输入')
     }
   } finally {
     loading.value = false
@@ -245,6 +291,13 @@ watch(dialogVisible, (newVal) => {
     resetForm()
   }
 })
+
+// 监听配置变化，更新表单
+watch(() => props.config, () => {
+  if (dialogVisible.value) {
+    resetForm()
+  }
+}, { deep: true })
 </script>
 
 <style scoped>
@@ -278,7 +331,6 @@ watch(dialogVisible, (newVal) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(64, 158, 255, 0.1);
 }
@@ -327,14 +379,12 @@ watch(dialogVisible, (newVal) => {
 }
 
 .modern-input,
-.modern-select,
-.modern-textarea {
+.modern-select {
   transition: all 0.3s ease;
 }
 
 .modern-input :deep(.el-input__wrapper),
-.modern-select :deep(.el-select__wrapper),
-.modern-textarea :deep(.el-textarea__inner) {
+.modern-select :deep(.el-select__wrapper) {
   border-radius: 8px;
   border: 2px solid #e9ecef;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -343,15 +393,13 @@ watch(dialogVisible, (newVal) => {
 }
 
 .modern-input :deep(.el-input__wrapper:hover),
-.modern-select :deep(.el-select__wrapper:hover),
-.modern-textarea :deep(.el-textarea__inner:hover) {
+.modern-select :deep(.el-select__wrapper:hover) {
   border-color: #409eff;
   box-shadow: 0 4px 16px rgba(64, 158, 255, 0.15);
 }
 
 .modern-input :deep(.el-input__wrapper.is-focus),
-.modern-select :deep(.el-select__wrapper.is-focused),
-.modern-textarea :deep(.el-textarea__inner:focus) {
+.modern-select :deep(.el-select__wrapper.is-focused) {
   border-color: #409eff;
   box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
 }
@@ -366,10 +414,39 @@ watch(dialogVisible, (newVal) => {
   color: #409eff;
 }
 
-.group-option {
+.model-option {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.model-desc {
+  color: #95a5a6;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.config-tips {
+  margin-top: 16px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.tips-list {
+  margin: 0;
+  padding-left: 16px;
+  color: #1e40af;
+}
+
+.tips-list li {
+  margin-bottom: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tips-list li:last-child {
+  margin-bottom: 0;
 }
 
 .form-actions {
@@ -379,7 +456,7 @@ watch(dialogVisible, (newVal) => {
   align-items: center;
 }
 
-.create-btn {
+.save-btn {
   background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
   border: none;
   color: white;
@@ -391,7 +468,7 @@ watch(dialogVisible, (newVal) => {
   overflow: hidden;
 }
 
-.create-btn::before {
+.save-btn::before {
   content: '';
   position: absolute;
   top: 0;
@@ -402,11 +479,11 @@ watch(dialogVisible, (newVal) => {
   transition: left 0.5s;
 }
 
-.create-btn:hover::before {
+.save-btn:hover::before {
   left: 100%;
 }
 
-.create-btn:hover {
+.save-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(64, 158, 255, 0.3);
 }

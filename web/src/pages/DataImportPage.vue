@@ -288,28 +288,11 @@
     </div>
 
     <!-- API配置弹窗 -->
-    <el-dialog v-model="showApiConfig" title="API配置" width="500px">
-      <el-form :model="generationConfig" label-width="120px" size="default">
-        <el-form-item label="API Key" required>
-          <el-input v-model="generationConfig.apiKey" type="password" placeholder="输入API Key" />
-        </el-form-item>
-        <el-form-item label="Base URL" required>
-          <el-input v-model="generationConfig.baseUrl" placeholder="输入API Base URL" />
-        </el-form-item>
-        <el-form-item label="模型">
-          <el-select v-model="generationConfig.model" placeholder="选择模型">
-            <el-option label="gpt-4o-mini" value="gpt-4o-mini" />
-            <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="showApiConfig = false">取消</el-button>
-          <el-button type="primary" @click="saveApiConfig">保存</el-button>
-        </span>
-      </template>
-    </el-dialog>
+    <ApiConfigModal
+      v-model="showApiConfig"
+      :config="generationConfig"
+      @save="handleApiConfigSave"
+    />
 
     <!-- 标签选择弹窗 -->
     <el-dialog v-model="showLabelSelector" title="选择标签" width="600px">
@@ -399,6 +382,7 @@ import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { dataGenerationService, type GenerationConfig, type GeneratedText } from '@/services/dataGeneration'
 import { useLabelStore } from '@/stores/label'
+import ApiConfigModal from '@/components/modals/ApiConfigModal.vue'
 
 // 待提交数据项类型
 interface PendingItem {
@@ -526,14 +510,22 @@ const saveConfig = () => {
 }
 
 // 保存API配置
-const saveApiConfig = () => {
-  if (!generationConfig.value.apiKey || !generationConfig.value.baseUrl) {
-    ElMessage.error('请填写API Key和Base URL')
-    return
-  }
+// const saveApiConfig = () => {
+//   if (!generationConfig.value.apiKey || !generationConfig.value.baseUrl) {
+//     ElMessage.error('请填写API Key和Base URL')
+//     return
+//   }
+//   saveConfig()
+//   showApiConfig.value = false
+//   ElMessage.success('API配置已保存')
+// }
+
+// 处理API配置保存（新modal组件的事件处理器）
+const handleApiConfigSave = (config: { apiKey: string; baseUrl: string; model: string }) => {
+  generationConfig.value.apiKey = config.apiKey
+  generationConfig.value.baseUrl = config.baseUrl
+  generationConfig.value.model = config.model
   saveConfig()
-  showApiConfig.value = false
-  ElMessage.success('API配置已保存')
 }
 
 // 开始生成
@@ -1426,11 +1418,7 @@ onMounted(() => {
   color: #666;
 }
 
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
+
 
 /* 滚动条样式 */
 .display-list::-webkit-scrollbar,
