@@ -215,6 +215,22 @@ const loadLabels = async () => {
 const handleKeyDown = (event: KeyboardEvent) => {
   if (!props.currentItem) return
 
+  // 检查是否在输入框或可编辑元素中
+  const target = event.target as HTMLElement
+  const isInputElement = target && (
+    target.tagName === 'INPUT' ||
+    target.tagName === 'TEXTAREA' ||
+    target.isContentEditable ||
+    target.closest('.el-input__wrapper') ||
+    target.closest('.el-select') ||
+    target.closest('.el-textarea')
+  )
+
+  // 如果在输入框中，不处理快捷键
+  if (isInputElement) {
+    return
+  }
+
   // 数字键 1-9 切换标签
   if (event.key >= '1' && event.key <= '9') {
     const index = parseInt(event.key) - 1

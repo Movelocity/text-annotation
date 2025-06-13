@@ -291,10 +291,24 @@ const handleFilter = () => {
 
 // 键盘事件处理函数
 const handleKeydown = (event: KeyboardEvent) => {
+  // 检查是否在输入框或可编辑元素中
+  const target = event.target as HTMLElement
+  const isInputElement = target && (
+    target.tagName === 'INPUT' ||
+    target.tagName === 'TEXTAREA' ||
+    target.isContentEditable ||
+    target.closest('.el-input__wrapper') ||
+    target.closest('.el-select') ||
+    target.closest('.el-textarea')
+  )
+
   // 检查是否为 Ctrl + Enter 组合键
   if (event.ctrlKey && event.key === 'Enter') {
-    event.preventDefault()
-    handleFilter()
+    // 如果在输入框中，允许默认行为（换行等）
+    if (!isInputElement) {
+      event.preventDefault()
+      handleFilter()
+    }
   }
 }
 
