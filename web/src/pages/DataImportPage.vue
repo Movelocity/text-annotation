@@ -162,15 +162,27 @@
                   <div class="item-header">
                     <span class="item-number">#{{ index + 1 }}</span>
                     <div class="header-buttons">
-                      <el-button size="small" @click="removeNumbering(item)" class="action-btn">
-                        <i class="fas fa-eraser"></i> 去标号
-                      </el-button>
-                      <el-button size="small" @click="splitAndAddToQueue(item)" class="action-btn">
-                        <i class="fas fa-cut"></i> 分行添加
-                      </el-button>
-                      <el-button size="small" @click="copyText(item.text)" class="copy-btn">
-                        <i class="fas fa-copy"></i> 复制
-                      </el-button>
+                      <el-dropdown @command="(command: string) => handleItemCommand(command, item)" size="small">
+                        <el-button size="small" class="action-btn">
+                          <i class="fas fa-ellipsis-v"></i> 操作 <i class="fas fa-caret-down"></i>
+                        </el-button>
+                        <template #dropdown>
+                          <el-dropdown-menu>
+                            <el-dropdown-item command="splitAndAddToQueue">
+                              <i class="fas fa-cut"></i> 分行添加
+                            </el-dropdown-item>
+                            <el-dropdown-item command="removeNumbering">
+                              <i class="fas fa-list-ol"></i> 去行首标号
+                            </el-dropdown-item>
+                            <el-dropdown-item command="removeQuotes">
+                              <i class="fas fa-quote-right"></i> 去引号
+                            </el-dropdown-item>
+                            <el-dropdown-item command="copyText">
+                              <i class="fas fa-copy"></i> 复制
+                            </el-dropdown-item>
+                          </el-dropdown-menu>
+                        </template>
+                      </el-dropdown>
                     </div>
                   </div>
                   <div class="item-text-display">{{ item.text }}</div>
@@ -891,7 +903,41 @@ const removeNumbering = (item: GeneratedItem) => {
   // 使用正则表达式删除每行开头的数字标号格式：\n数字.\空格 或 行首数字.\空格
   const cleanedText = item.text.replace(/(?:^|\n)\d+\.\s*/g, '\n').replace(/^\n/, '').trim()
   item.text = cleanedText
-  ElMessage.success('已删除标号')
+  ElMessage.success('已删除行首标号')
+}
+
+// 删除文本中的引号
+const removeQuotes = (item: GeneratedItem) => {
+  // 删除成对的引号：双引号、单引号、中文引号
+  let cleanedText = item.text
+  // 删除成对的双引号
+  cleanedText = cleanedText.replace(/"([^"]*)"/g, '$1')
+  // 删除成对的单引号
+  cleanedText = cleanedText.replace(/'([^']*)'/g, '$1')
+  // 删除成对的中文引号
+  cleanedText = cleanedText.replace(/[""]([^""]*)[""]/g, '$1')
+  cleanedText = cleanedText.replace(/['']([^'']*)['']/g, '$1')
+  
+  item.text = cleanedText
+  ElMessage.success('已删除引号')
+}
+
+// 处理项目操作命令
+const handleItemCommand = (command: string, item: GeneratedItem) => {
+  switch (command) {
+    case 'splitAndAddToQueue':
+      splitAndAddToQueue(item)
+      break
+    case 'removeNumbering':
+      removeNumbering(item)
+      break
+    case 'removeQuotes':
+      removeQuotes(item)
+      break
+    case 'copyText':
+      copyText(item.text)
+      break
+  }
 }
 
 // 按行分割并添加到待提交区域
