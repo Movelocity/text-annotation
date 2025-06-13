@@ -24,9 +24,6 @@
               <el-tabs v-model="activeInputTab" class="input-tabs">
                 <!-- AI生成标签页 -->
                 <el-tab-pane label="AI生成" name="ai">
-                  <div class="tab-icon">
-                    <i class="fas fa-brain"></i>
-                  </div>
                   <div class="generation-params">
                     <el-form :model="generationParams" label-width="100px" size="default">
                       <el-form-item label="系统提示词">
@@ -216,13 +213,13 @@
                   <i class="fas fa-plus"></i>
                 </el-button>
                 <el-button size="small" @click="openBatchLabelSelector" :disabled="pendingItems.length === 0">
-                  <i class="fas fa-tags"></i> 批量标签
+                  批量标签
                 </el-button>
                 <el-button size="small" @click="clearAllItems" :disabled="pendingItems.length === 0">
-                  <i class="fas fa-trash"></i> 清空
+                  清空
                 </el-button>
                 <el-button size="small" @click="submitAllItems" :disabled="pendingItems.length === 0" :loading="isSubmitting" type="success">
-                  <i class="fas fa-check"></i> 提交全部
+                  提交全部
                 </el-button>
               </div>
             </div>
@@ -247,12 +244,12 @@
                         @click="openLabelSelector(item)"
                         class="add-label-btn"
                       >
-                        <i class="fas fa-plus"></i> 添加标签
+                        <i class="fas fa-plus"></i> 标签
                       </el-button>
                       <el-button 
-                        size="small" 
-                        circle 
-                        type="danger" 
+                        size="default" 
+                        text 
+                        type="info" 
                         @click="removeItem(index)"
                         class="delete-btn"
                       >
@@ -261,16 +258,14 @@
                     </div>
                   </div>
                   <div class="item-content">
-                    <div class="text-section">
-                      <el-input
-                        v-model="item.text"
-                        type="textarea"
-                        :rows="3"
-                        placeholder="输入文本内容..."
-                        class="text-input"
-                        size="default"
-                      />
-                    </div>
+                    <el-input
+                      v-model="item.text"
+                      type="textarea"
+                      autosize
+                      placeholder="输入文本内容..."
+                      class="text-input"
+                      size="default"
+                    />
                   </div>
                 </div>
               </div>
@@ -971,12 +966,13 @@ onMounted(() => {
 
 <style scoped>
 .data-import-page {
-  padding: 24px;
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - 55px);
+  display: flex;
+  flex-direction: column;
 }
 
 .page-header {
-  margin-bottom: 32px;
+  padding: 16px;
   text-align: center;
 }
 
@@ -993,8 +989,8 @@ onMounted(() => {
 }
 
 .content-container {
-  max-width: 1700px;
-  margin: 0 auto;
+  padding: 0 3rem;
+  flex: 1;
 }
 
 .work-panel {
@@ -1003,7 +999,7 @@ onMounted(() => {
   border: 1px solid #e4e7ed;
   overflow: hidden;
   transition: all 0.2s ease;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 180px);
   display: flex;
   flex-direction: column;
 }
@@ -1031,21 +1027,16 @@ onMounted(() => {
 
 .submit-list {
   overflow-y: auto;
+  padding-right: 12px;
 }
 
 .submit-item {
-  padding: 8px 16px 0 16px;
+  /* padding: 8px 16px 0 16px; */
   border: 1px solid #e4e7ed;
   border-radius: 8px;
   margin-bottom: 12px;
   background: white;
   transition: all 0.2s ease;
-}
-
-.submit-item:hover {
-  background: #f9f9f9;
-  border-color: #c0c4cc;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .delete-btn {
@@ -1055,15 +1046,12 @@ onMounted(() => {
 }
 
 .item-content {
-  width: 100%;
-}
-
-.text-section {
-  margin-bottom: 16px;
+  width: 95%;
 }
 
 .text-input {
-  width: 100%;
+  padding: 6px 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .labels-section {
@@ -1227,6 +1215,10 @@ onMounted(() => {
 .input-tabs {
   margin-bottom: 16px;
 }
+.input-tabs :deep(.el-tabs__nav-scroll) {
+  display: flex;
+  justify-content: center;
+}
 
 .tab-icon {
   text-align: center;
@@ -1315,7 +1307,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  padding: 6px 12px 0 12px;
 }
 
 .item-number {
