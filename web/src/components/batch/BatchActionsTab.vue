@@ -262,7 +262,7 @@ watch(() => props.isUpdating, (newVal, oldVal) => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 10px;
-  height: 100%;
+  max-height: 100%;
   overflow-y: auto;
   padding: 4px;
 }
@@ -274,6 +274,7 @@ watch(() => props.isUpdating, (newVal, oldVal) => {
   cursor: pointer;
   transition: all 0.15s ease;
   background: var(--el-bg-color);
+  max-height: 1.2rem;
 }
 
 .label-item:hover {
