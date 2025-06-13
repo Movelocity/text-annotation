@@ -203,8 +203,8 @@ import {
 } from '@element-plus/icons-vue'
 import { useLabelStore } from '@/stores/label'
 import LabelCard from '@/components/label/LabelCard.vue'
-import CreateLabelDialog from '@/components/label/CreateLabelDialog.vue'
-import EditLabelDialog from '@/components/label/EditLabelDialog.vue'
+import CreateLabelDialog from '@/components/modals/CreateLabelDialog.vue'
+import EditLabelDialog from '@/components/modals/EditLabelDialog.vue'
 import ModernButton from '@/components/common/ModernButton.vue'
 import type { LabelResponse } from '@/types/api'
 
