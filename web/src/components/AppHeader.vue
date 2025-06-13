@@ -378,7 +378,7 @@ const currentPath = computed(() => route.path)
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 5px);
+  top: 100%;
   right: 0;
   background-color: var(--background-light);
   border-radius: var(--border-radius-md);
@@ -387,6 +387,17 @@ const currentPath = computed(() => route.path)
   padding: var(--spacing-xs) 0;
   z-index: 10;
   display: none;
+  margin-top: 5px;
+}
+
+.dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: transparent;
 }
 
 .user-dropdown:hover .dropdown-menu {
