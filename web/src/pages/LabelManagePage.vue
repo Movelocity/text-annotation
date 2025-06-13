@@ -34,7 +34,7 @@
         <ModernButton
           text="新增标签"
           icon="fas fa-plus"
-          type="primary"
+          variant="prominent"
           :loading="labelStore.loading"
           @click="showCreateDialog = true"
         />
@@ -43,7 +43,7 @@
 
     <!-- 搜索和过滤 -->
     <div class="search-section">
-      <el-row :gutter="20" align="middle">
+      <el-row :gutter="20">
         <el-col :span="6">
           <el-input
             v-model="searchQuery"
@@ -56,7 +56,7 @@
             </template>
           </el-input>
         </el-col>
-        <el-col :span="4">
+        <el-col :span="3">
           <el-select v-model="selectedGroup" placeholder="选择分组" @change="handleGroupFilter" clearable>
             <el-option label="全部分组" value="" />
             <el-option 
@@ -67,7 +67,14 @@
             />
           </el-select>
         </el-col>
-        <el-col :span="4">
+        <el-col :span="3">
+          <el-select v-model="filterBy" placeholder="筛选条件" @change="handleFilterChange">
+            <el-option label="全部标签" value="all" />
+            <el-option label="已使用标签" value="used" />
+            <el-option label="未使用标签" value="unused" />
+          </el-select>
+        </el-col>
+        <el-col :span="3">
           <el-select v-model="sortBy" placeholder="排序方式" @change="handleSortChange">
             <el-option label="按使用频率排序" value="usage" />
             <el-option label="按名称排序" value="name" />
@@ -75,28 +82,19 @@
             <el-option label="按创建时间排序" value="time" />
           </el-select>
         </el-col>
-        <el-col :span="4">
-          <el-select v-model="filterBy" placeholder="筛选条件" @change="handleFilterChange">
-            <el-option label="全部标签" value="all" />
-            <el-option label="已使用标签" value="used" />
-            <el-option label="未使用标签" value="unused" />
-          </el-select>
-        </el-col>
-        <el-col :span="6">
-          <div class="view-controls">
-            <ModernButton
-              text="卡片视图"
-              icon="fas fa-th"
-              type="primary"
-              @click="viewMode = 'grid'"
-            />
-            <ModernButton
-              text="分组视图"
-              icon="fas fa-th-large"
-              type="primary"
-              @click="viewMode = 'grouped'"
-            />
-          </div>
+        <el-col :span="2" style="display: flex; gap: 8px;">
+          <ModernButton
+            :text="sortOrder === 'desc' ? '降序' : '升序'"
+            :icon="sortOrder === 'desc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-amount-up'"
+            type="default"
+            @click="toggleSortOrder"
+          />
+          <ModernButton
+            :text="viewMode === 'grid' ? '切换到分组视图' : '切换到卡片视图'"
+            :icon="viewMode === 'grid' ? 'fas fa-th-large' : 'fas fa-th'"
+            type="primary"
+            @click="toggleViewMode"
+          />
         </el-col>
       </el-row>
     </div>
@@ -216,6 +214,7 @@ const showEditDialog = ref(false)
 const editingLabel = ref<LabelResponse | null>(null)
 const searchQuery = ref('')
 const sortBy = ref('usage')
+const sortOrder = ref('desc') // 'asc' | 'desc' 升序或降序
 const filterBy = ref('all')
 const selectedGroup = ref('')
 const viewMode = ref('grid') // 'grid' | 'grouped'
@@ -266,27 +265,38 @@ const displayLabels = computed(() => {
   }
 
   // 应用排序
+  let sortedLabels = [...labels]
+  
   if (sortBy.value === 'usage') {
-    return [...labels].sort((a, b) => {
+    sortedLabels.sort((a, b) => {
       const aCount = labelStore.getLabelStats(a.label)?.count || 0
       const bCount = labelStore.getLabelStats(b.label)?.count || 0
-      return bCount - aCount
+      return sortOrder.value === 'desc' ? bCount - aCount : aCount - bCount
     })
   } else if (sortBy.value === 'name') {
-    return [...labels].sort((a, b) => a.label.localeCompare(b.label))
+    sortedLabels.sort((a, b) => {
+      const result = a.label.localeCompare(b.label)
+      return sortOrder.value === 'desc' ? -result : result
+    })
   } else if (sortBy.value === 'group') {
-    return [...labels].sort((a, b) => {
+    sortedLabels.sort((a, b) => {
       const aGroup = a.groups || '未分组'
       const bGroup = b.groups || '未分组'
       if (aGroup === bGroup) {
-        return a.label.localeCompare(b.label)
+        const nameResult = a.label.localeCompare(b.label)
+        return sortOrder.value === 'desc' ? -nameResult : nameResult
       }
-      return aGroup.localeCompare(bGroup)
+      const groupResult = aGroup.localeCompare(bGroup)
+      return sortOrder.value === 'desc' ? -groupResult : groupResult
     })
   } else {
     // 按ID排序（近似创建时间）
-    return [...labels].sort((a, b) => b.id - a.id)
+    sortedLabels.sort((a, b) => {
+      return sortOrder.value === 'desc' ? b.id - a.id : a.id - b.id
+    })
   }
+  
+  return sortedLabels
 })
 
 
@@ -355,6 +365,10 @@ const handleGroupFilter = () => {
   // 分组筛选逻辑在计算属性中处理
 }
 
+const toggleSortOrder = () => {
+  sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+}
+
 const handleLabelCreated = () => {
   ElMessage.success('标签创建成功')
   showCreateDialog.value = false
@@ -398,6 +412,11 @@ const getGroupUsageCount = (labels: LabelResponse[]) => {
     const stats = labelStore.getLabelStats(label.label)
     return sum + (stats?.count || 0)
   }, 0)
+}
+
+// 切换视图模式的辅助方法
+const toggleViewMode = () => {
+  viewMode.value = viewMode.value === 'grid' ? 'grouped' : 'grid'
 }
 
 // 生命周期

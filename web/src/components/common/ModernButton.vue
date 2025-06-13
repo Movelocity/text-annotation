@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 type ButtonSize = 'small' | 'medium' | 'large'
-type ButtonVariant = 'default' | 'primary' | 'danger'
+type ButtonVariant = 'default' | 'primary' | 'danger' | 'prominent'
 
 interface Props {
   text?: string
@@ -105,6 +105,17 @@ const handleClick = () => {
 .modern-btn--danger:hover:not(:disabled) {
   background: var(--el-color-danger-light-3);
   border-color: var(--el-color-danger-light-3);
+}
+
+.modern-btn--prominent {
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.modern-btn--prominent:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c90ff 0%, #8b5fbf 100%);
+  transform: translateY(-3px);
 }
 
 /* 尺寸样式 */
