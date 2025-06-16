@@ -44,22 +44,87 @@
         </div>
       </div>
 
-      <!-- 文本统计信息 -->
-      <div class="text-stats">
-        <div class="stats-title">文本统计</div>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-label">字符数：</span>
-            <span class="stat-value">{{ currentItem.text.length }}</span>
+      <!-- 意图预测区域 -->
+      <div class="prediction-section">
+
+        <!-- 加载中状态 -->
+        <div v-if="isLoading" class="prediction-loading">
+          <div class="loading-content">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            <span class="loading-text">正在分析文本意图...</span>
           </div>
-          <div class="stat-item">
-            <span class="stat-label">行数：</span>
-            <span class="stat-value">{{ lineCount }}</span>
+        </div>
+
+        <!-- 预测结果 -->
+        <div v-else-if="predictionResult" class="prediction-result">
+          <div class="main-prediction">
+            <div class="prediction-result-header">
+              <span class="prediction-label">预测意图：</span>
+              <el-tag 
+                :type="getConfidenceType(predictionResult.prob)" 
+                size="large"
+              >
+                {{ predictionResult.intent }}
+              </el-tag>
+              <span class="confidence">
+                ({{ formatProbability(predictionResult.prob) }})
+              </span>
+            </div>
+            <ModernButton
+              text="重新预测"
+              icon="fas fa-redo"
+              :disabled="!currentItem?.text.trim()"
+              @click="predictIntent"
+            />
           </div>
-          <div class="stat-item">
-            <span class="stat-label">单词数：</span>
-            <span class="stat-value">{{ wordCount }}</span>
+          
+          <!-- 详细得分 -->
+          <div class="scores-detail">
+            <div 
+              v-for="(score, intent) in predictionResult.result_dict" 
+              :key="intent"
+              class="score-item"
+            >
+              <span class="intent-name">{{ intent }}</span>
+              <el-tag :type="getConfidenceType(score)" size="small">
+                {{ formatProbability(score) }}
+              </el-tag>
+            </div>
           </div>
+        </div>
+
+        <!-- 错误状态 -->
+        <div v-else-if="predictionError" class="prediction-error">
+          <el-alert
+            :title="predictionError"
+            type="error"
+            size="small"
+            show-icon
+            :closable="false"
+          />
+          <div class="error-actions">
+            <ModernButton
+              text="重试"
+              icon="fas fa-redo"
+              :disabled="!currentItem?.text.trim()"
+              @click="predictIntent"
+            />
+          </div>
+        </div>
+
+        <!-- 初始状态 -->
+        <div v-else class="prediction-initial flex-row justify-between">
+          <div class="initial-content flex-row justify-center">
+            <el-icon class="prediction-icon"><MagicStick /></el-icon>
+            <span class="tip">点击按钮分析当前文本的意图</span>
+            
+          </div>
+          <ModernButton
+              text="预测意图"
+              icon="fas fa-rocket"
+              :disabled="!currentItem?.text.trim()"
+              @click="predictIntent"
+            />
         </div>
       </div>
     </div>
@@ -67,8 +132,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Loading, MagicStick } from '@element-plus/icons-vue'
 import type { AnnotationDataResponse } from '@/types/api'
+import { predictionService, type PredictResponse } from '@/services/prediction'
+import ModernButton from '@/components/common/ModernButton.vue'
 
 // Props
 interface Props {
@@ -77,29 +146,59 @@ interface Props {
 
 const props = defineProps<Props>()
 
+// 预测相关状态
+const isLoading = ref(false)
+const predictionResult = ref<PredictResponse | null>(null)
+const predictionError = ref('')
+
+// 监听 currentItem 变化，重置预测状态
+watch(() => props.currentItem, () => {
+  // 重置预测相关状态
+  predictionResult.value = null
+  predictionError.value = ''
+  isLoading.value = false
+})
+
 // 计算属性
 const currentLabels = computed(() => {
   if (!props.currentItem?.labels) return []
   return props.currentItem.labels.split(',').map(label => label.trim()).filter(label => label)
 })
 
-const lineCount = computed(() => {
-  if (!props.currentItem) return 0
-  return props.currentItem.text.split('\n').length
-})
+// 预测意图
+const predictIntent = async () => {
+  if (!props.currentItem?.text.trim()) {
+    ElMessage.warning('没有可预测的文本内容')
+    return
+  }
 
-const wordCount = computed(() => {
-  if (!props.currentItem) return 0
-  // 简单的单词计数，支持中英文
-  const text = props.currentItem.text.trim()
-  if (!text) return 0
-  
-  // 中文字符数 + 英文单词数
-  const chineseChars = (text.match(/[\u4e00-\u9fa5]/g) || []).length
-  const englishWords = text.match(/[a-zA-Z]+/g)?.length || 0
-  
-  return chineseChars + englishWords
-})
+  isLoading.value = true
+  predictionError.value = ''
+  predictionResult.value = null
+
+  try {
+    const response = await predictionService.predict(props.currentItem.text.trim())
+    predictionResult.value = response
+    ElMessage.success('预测完成')
+  } catch (err: any) {
+    predictionError.value = err.message
+    ElMessage.error(`预测失败: ${err.message}`)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 获取置信度标签类型
+const getConfidenceType = (prob: number) => {
+  if (prob >= 0.8) return 'success'
+  if (prob >= 0.6) return 'warning'
+  return 'danger'
+}
+
+// 格式化概率为百分比
+const formatProbability = (prob: number) => {
+  return (prob * 100).toFixed(2) + '%'
+}
 </script>
 
 <style scoped>
@@ -161,16 +260,18 @@ const wordCount = computed(() => {
   white-space: pre-wrap;
   word-break: break-word;
   overflow-y: auto;
-  min-height: 200px;
   max-height: 400px;
 }
 
 .label-status {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .status-title,
-.stats-title {
+.section-title {
   font-weight: 600;
   color: var(--el-text-color-primary);
   margin-bottom: 8px;
@@ -178,10 +279,6 @@ const wordCount = computed(() => {
 }
 
 .status-content {
-  padding: 12px;
-  background: var(--el-bg-color-page);
-  border-radius: 6px;
-  border: 1px solid var(--el-border-color-lighter);
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
@@ -197,34 +294,123 @@ const wordCount = computed(() => {
   font-style: italic;
 }
 
-.text-stats {
+/* 预测区域样式 */
+.prediction-section {
   flex-shrink: 0;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+.prediction-result {
+  padding: 12px;
+  /* background: var(--el-bg-color-page); */
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.main-prediction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.prediction-result-header {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.stat-item {
-  padding: 8px 12px;
-  background: var(--el-bg-color-page);
-  border-radius: 4px;
-  border: 1px solid var(--el-border-color-lighter);
+.prediction-label {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.confidence {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.scores-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.score-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 4px 0;
 }
 
-.stat-label {
-  font-size: 12px;
+.intent-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--el-text-color-primary);
+}
+
+.prediction-error {
+  margin-top: 8px;
+}
+
+/* 移除不再使用的 .no-prediction 样式 */
+
+.tip {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.prediction-loading {
+  padding: 20px;
+  text-align: center;
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.loading-text {
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.prediction-initial {
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.initial-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.prediction-icon {
+  font-size: 24px;
   color: var(--el-text-color-secondary);
 }
 
-.stat-value {
+.scores-header {
   font-weight: 600;
   color: var(--el-text-color-primary);
+  margin-bottom: 8px;
   font-size: 14px;
+}
+
+.error-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
 }
 </style> 

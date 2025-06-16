@@ -17,6 +17,8 @@ from sqlalchemy.orm import Session
 from typing import List
 import os
 import logging
+import httpx
+import json
 
 from .models import get_db, create_tables
 from .services import AnnotationService, LabelService, StatisticsService
@@ -754,6 +756,127 @@ async def get_generation_results(task_id: str):
 def health_check():
     """健康检查端点。"""
     return {"status": "healthy", "message": "文本标注 API 正在运行"}
+
+
+# 预测服务代理端点
+@app.post("/prediction/predict", response_model=schemas.PredictResponse)
+async def predict_proxy(request: schemas.PredictRequest):
+    """
+    代理预测请求到外部预测服务。
+    
+    Args:
+        request: 预测请求数据
+        
+    Returns:
+        预测结果
+        
+    Raises:
+        HTTPException: 如果预测服务不可用或请求失败
+    """
+    # 默认配置，可以后续从配置文件或数据库中读取
+    predict_config = {
+        "base_url": "http://localhost:5000",
+        "endpoint": "/v1/predict"
+    }
+    
+    url = f"{predict_config['base_url']}{predict_config['endpoint']}"
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                url,
+                json={"query": request.query},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return schemas.PredictResponse(
+                    intent=data.get("intent", ""),
+                    prob=data.get("prob", 0.0),
+                    query=data.get("query", request.query),
+                    result_dict=data.get("result_dict", {}),
+                    status=data.get("status", 200)
+                )
+            else:
+                logger.error(f"预测服务返回错误状态码: {response.status_code}, 响应: {response.text}")
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"预测服务返回错误: {response.status_code}"
+                )
+                
+    except httpx.ConnectError:
+        logger.error(f"无法连接到预测服务: {url}")
+        raise HTTPException(
+            status_code=503,
+            detail="预测服务不可用，请检查服务是否正在运行"
+        )
+    except httpx.TimeoutException:
+        logger.error(f"预测服务请求超时: {url}")
+        raise HTTPException(
+            status_code=504,
+            detail="预测服务请求超时"
+        )
+    except Exception as e:
+        logger.error(f"预测服务请求失败: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"预测服务请求失败: {str(e)}"
+        )
+
+
+@app.post("/prediction/test-connection")
+async def test_prediction_connection(config: schemas.PredictConfig):
+    """
+    测试预测服务连接。
+    
+    Args:
+        config: 预测服务配置
+        
+    Returns:
+        连接测试结果
+    """
+    url = f"{config.base_url}{config.endpoint}"
+    
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                url,
+                json={"query": "test"},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                return {
+                    "success": True,
+                    "message": "连接成功",
+                    "status_code": response.status_code
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"服务返回错误状态码: {response.status_code}",
+                    "status_code": response.status_code
+                }
+                
+    except httpx.ConnectError:
+        return {
+            "success": False,
+            "message": "无法连接到预测服务",
+            "error": "连接错误"
+        }
+    except httpx.TimeoutException:
+        return {
+            "success": False,
+            "message": "连接超时",
+            "error": "超时错误"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"连接测试失败: {str(e)}",
+            "error": str(e)
+        }
 
 
 def main():

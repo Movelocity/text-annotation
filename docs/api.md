@@ -433,9 +433,68 @@
 }
 ```
 
-### 5. 健康检查
+### 5. 预测服务代理
 
-#### 5.1 健康检查
+#### 5.1 意图预测
+
+- **POST** `/prediction/predict`
+- **描述**: 代理预测请求到外部预测服务，解决跨域问题
+- **请求体**:
+```json
+{
+  "query": "要预测意图的文本内容"
+}
+```
+- **响应**: 200 OK
+```json
+{
+  "intent": "客户咨询",
+  "prob": 0.95,
+  "query": "要预测意图的文本内容",
+  "result_dict": {
+    "客户咨询": 0.95,
+    "投诉建议": 0.03,
+    "其他": 0.02
+  },
+  "status": 200
+}
+```
+- **错误**:
+  - 502 Bad Gateway - 预测服务返回错误
+  - 503 Service Unavailable - 预测服务不可用
+  - 504 Gateway Timeout - 预测服务请求超时
+
+#### 5.2 测试预测服务连接
+
+- **POST** `/prediction/test-connection`
+- **描述**: 测试预测服务连接状态
+- **请求体**:
+```json
+{
+  "base_url": "http://localhost:5000",
+  "endpoint": "/v1/predict"
+}
+```
+- **响应**: 200 OK
+```json
+{
+  "success": true,
+  "message": "连接成功",
+  "status_code": 200
+}
+```
+或失败时：
+```json
+{
+  "success": false,
+  "message": "无法连接到预测服务",
+  "error": "连接错误"
+}
+```
+
+### 6. 健康检查
+
+#### 6.1 健康检查
 
 - **GET** `/health`
 - **描述**: 检查API服务状态

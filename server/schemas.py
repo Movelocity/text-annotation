@@ -236,4 +236,24 @@ class GenerateStatus(BaseModel):
     current_count: int = Field(..., description="当前已生成数量")
     total_count: int = Field(..., description="目标总数量")
     message: Optional[str] = Field(None, description="状态消息")
-    error: Optional[str] = Field(None, description="错误信息") 
+    error: Optional[str] = Field(None, description="错误信息")
+
+
+class PredictRequest(BaseModel):
+    """预测请求的 schema。"""
+    query: str = Field(..., description="要预测意图的文本")
+
+
+class PredictResponse(BaseModel):
+    """预测响应的 schema。"""
+    intent: str = Field(..., description="预测的意图")
+    prob: float = Field(..., description="预测概率")
+    query: str = Field(..., description="原始查询文本")
+    result_dict: dict = Field(..., description="所有意图的概率分布")
+    status: int = Field(..., description="状态码")
+
+
+class PredictConfig(BaseModel):
+    """预测配置的 schema。"""
+    base_url: str = Field(..., description="预测服务的基础URL")
+    endpoint: str = Field(..., description="预测服务的端点路径") 

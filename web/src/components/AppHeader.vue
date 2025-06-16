@@ -9,7 +9,7 @@ import {
   Upload as UploadIcon,
   User as UserIcon,
   Bell as BellIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
 } from '@element-plus/icons-vue'
 
 // Props
@@ -139,8 +139,8 @@ const currentPath = computed(() => route.path)
               </button>
               <div class="dropdown-menu">
                 <a href="#" class="dropdown-item">个人设置</a>
-                <a href="#" class="dropdown-item">系统设置</a>
-                <div class="dropdown-divider"></div>
+                <a href="#" class="dropdown-item border-bottom">系统设置</a>
+                <!-- <div class="dropdown-divider"></div> -->
                 <a href="#" class="dropdown-item">退出</a>
               </div>
             </div>
@@ -416,10 +416,20 @@ const currentPath = computed(() => route.path)
   background-color: var(--background-dark);
 }
 
-.dropdown-divider {
+.border-bottom {
+  border-bottom: 1px solid var(--divider-color);
+}
+/* .dropdown-divider {
   height: 1px;
   background-color: var(--divider-color);
   margin: var(--spacing-xs) 0;
+} */
+
+.dropdown-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: var(--spacing-sm);
+  vertical-align: middle;
 }
 
 /* Mobile styles */
