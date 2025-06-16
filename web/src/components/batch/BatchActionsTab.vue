@@ -272,9 +272,11 @@ watch(() => props.isUpdating, (newVal, oldVal) => {
   border: 1px solid var(--el-border-color-light);
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  background: var(--el-bg-color);
-  max-height: 1.2rem;
+  transition: all 0.2s ease;
+  background: var(--el-fill-color-lighter);
+  color: var(--el-text-color-primary);
+  position: relative;
+  border-left: 3px solid var(--el-color-primary);
 }
 
 .label-item:hover {
@@ -292,14 +294,11 @@ watch(() => props.isUpdating, (newVal, oldVal) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
 }
 
 .label-text {
-  font-size: 13px;
+  font-weight: 500;
   word-break: break-word;
-  flex: 1;
-  line-height: 1.4;
 }
 
 .selected-icon {

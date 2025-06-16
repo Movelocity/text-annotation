@@ -334,10 +334,6 @@ onUnmounted(() => {
 }
 
 .current-label {
-  padding: 12px;
-  background: var(--el-bg-color-page);
-  border-radius: 6px;
-  min-height: 44px;
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;

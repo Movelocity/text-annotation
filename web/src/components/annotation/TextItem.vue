@@ -14,13 +14,13 @@
     <!-- 头部：ID + 状态 -->
     <div class="item-header">
       <span class="item-id">#{{ item.id }}</span>
-      <div class="label-container">
+      <!-- <div class="label-container"> -->
         <template v-if="itemLabels.length > 0">
           <el-tag
             v-for="label in itemLabels.slice(0, 2)"
             :key="label"
             type="success"
-            size="default"
+            size="small"
             style="font-size: 14px; font-weight: bold;"
           >
             {{ label }}
@@ -30,12 +30,12 @@
           </span>
         </template>
         <span v-else class="item-status pending">待标注</span>
-      </div>
+      <!-- </div> -->
     </div>
     
     <!-- 内容区 -->
     <div class="item-content">
-      <p class="text-preview">{{ truncateText(item.text, 120) }}</p>
+      <p class="text-preview">{{ truncateText(item.text, 60) }}</p>
     </div>
     
     <!-- 底部：元数据 -->
@@ -108,6 +108,7 @@ const handleClick = () => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
   margin-bottom: 12px;
 }
 

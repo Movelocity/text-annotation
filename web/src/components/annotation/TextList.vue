@@ -289,7 +289,7 @@ watch(() => annotationStore.searchParams, (newParams) => {
 
 /* 筛选区域 */
 .filter-section {
-  padding: 20px;
+  padding: 12px 20px;
   border-bottom: 2px solid var(--el-border-color-lighter);
   flex-shrink: 0;
   background: var(--el-bg-color);
@@ -299,7 +299,7 @@ watch(() => annotationStore.searchParams, (newParams) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .section-title {

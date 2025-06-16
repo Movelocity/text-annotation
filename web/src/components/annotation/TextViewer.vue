@@ -33,7 +33,7 @@
               v-for="label in currentLabels"
               :key="label"
               type="success"
-              size="large"
+              size="default"
               style="font-size: 14px; font-weight: bold;"
               class="label-tag"
             >
