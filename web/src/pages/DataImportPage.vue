@@ -327,16 +327,8 @@
     </el-dialog>
 
     <!-- 批量标签选择弹窗 -->
-    <el-dialog v-model="showBatchLabelSelector" title="批量添加标签" width="600px">
+    <el-dialog v-model="showBatchLabelSelector" :title="`批量添加标签(${pendingItems.length})`" width="600px">
       <div class="batch-label-selector">
-        <div class="batch-info">
-          <el-alert
-            :title="`将为 ${pendingItems.length} 条记录批量添加标签`"
-            type="info"
-            :closable="false"
-            show-icon
-          />
-        </div>
         <div class="search-section">
           <el-input
             v-model="labelStore.searchQuery"
@@ -1159,10 +1151,6 @@ onMounted(() => {
 .batch-label-selector {
   max-height: 450px;
   overflow-y: auto;
-}
-
-.batch-info {
-  margin-bottom: 16px;
 }
 
 .panel-icon {

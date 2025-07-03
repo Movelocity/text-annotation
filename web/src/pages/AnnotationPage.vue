@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnnotationStore } from '../stores/annotation'
 // import { Refresh, House, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
@@ -87,71 +87,6 @@ const annotationStore = useAnnotationStore()
 // 响应式数据
 const currentItem = ref<AnnotationDataResponse | null>(null)
 const currentIndex = ref(-1)
-
-// 面包屑导航配置
-// const breadcrumbs = [
-//   { text: '标注工作台' }
-// ]
-
-// // 计算属性
-// const labeledCount = computed(() => 
-//   annotationStore.annotations.filter(item => item.labels).length
-// )
-
-// const unlabeledCount = computed(() => 
-//   annotationStore.annotations.filter(item => !item.labels).length
-// )
-
-// // 定义统计项类型
-// interface StatItem {
-//   key: string
-//   label: string
-//   value: string | number
-//   type?: 'total' | 'success' | 'warning' | 'primary' | 'info' | 'danger' | 'default'
-//   icon?: string
-// }
-
-// 头部统计信息
-// const headerStats = computed<StatItem[]>(() => {
-//   if (annotationStore.loading) return []
-  
-//   const stats: StatItem[] = [
-//     {
-//       key: 'total',
-//       label: '总计',
-//       value: `${annotationStore.total} 条`,
-//       type: 'total',
-//       icon: 'fas fa-file-text'
-//     },
-//     {
-//       key: 'labeled',
-//       label: '已标注',
-//       value: labeledCount.value,
-//       type: 'success',
-//       icon: 'fas fa-check-circle'
-//     },
-//     {
-//       key: 'unlabeled',
-//       label: '未标注',
-//       value: unlabeledCount.value,
-//       type: 'warning',
-//       icon: 'fas fa-clock'
-//     }
-//   ]
-  
-//   // 如果当前有选中项，添加当前位置信息
-//   if (currentIndex.value >= 0) {
-//     stats.push({
-//       key: 'current',
-//       label: '当前',
-//       value: `${currentIndex.value + 1} / ${annotationStore.annotations.length}`,
-//       type: 'primary',
-//       icon: 'fas fa-crosshairs'
-//     })
-//   }
-  
-//   return stats
-// })
 
 // 方法
 const handleItemSelect = (item: AnnotationDataResponse, index: number) => {
@@ -267,6 +202,33 @@ onMounted(async () => {
     handleItemSelect(item, 0)
   }
 })
+
+// 监听annotations数组变化，翻页后重置索引
+watch(
+  () => annotationStore.annotations,
+  (newAnnotations, oldAnnotations) => {
+    // 当数组发生变化时（如翻页、搜索等），重置当前选中项
+    if (newAnnotations !== oldAnnotations) {
+      // 重置索引和当前项
+      currentItem.value = null
+      currentIndex.value = -1
+      
+      // 如果有数据，自动选择第一个未标注的文本
+      if (newAnnotations.length > 0) {
+        const firstUnlabeledIndex = newAnnotations.findIndex(item => !item.labels)
+        if (firstUnlabeledIndex !== -1) {
+          const item = newAnnotations[firstUnlabeledIndex]
+          handleItemSelect(item, firstUnlabeledIndex)
+        } else {
+          // 如果没有未标注的，选择第一个
+          const item = newAnnotations[0]
+          handleItemSelect(item, 0)
+        }
+      }
+    }
+  },
+  { deep: false }
+)
 </script>
 
 <style scoped>

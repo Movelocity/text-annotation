@@ -38,6 +38,12 @@
           :loading="labelStore.loading"
           @click="showCreateDialog = true"
         />
+        <ModernButton
+          text="导出"
+          icon="fas fa-file-export"
+          variant="default"
+          @click="exportLabelsToJson"
+        />
       </div>
     </div>
 
@@ -417,6 +423,30 @@ const getGroupUsageCount = (labels: LabelResponse[]) => {
 // 切换视图模式的辅助方法
 const toggleViewMode = () => {
   viewMode.value = viewMode.value === 'grid' ? 'grouped' : 'grid'
+}
+
+// 导出标签为 JSON
+const exportLabelsToJson = () => {
+  const result: Record<string, Record<string, string>> = {}
+
+  labelStore.labels.forEach((label: LabelResponse) => {
+    const group = label.groups || '未分组'
+    if (!result[group]) {
+      result[group] = {}
+    }
+    result[group][label.description || '无描述'] = label.label
+  })
+
+  const jsonStr = JSON.stringify(result, null, 2)
+  const blob = new Blob([jsonStr], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'labels_export.json'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 // 生命周期

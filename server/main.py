@@ -776,7 +776,7 @@ async def predict_proxy(request: schemas.PredictRequest):
     # 默认配置，可以后续从配置文件或数据库中读取
     predict_config = {
         "base_url": "http://localhost:5000",
-        "endpoint": "/v1/predict"
+        "endpoint": "/v3/predict"
     }
     
     url = f"{predict_config['base_url']}{predict_config['endpoint']}"
