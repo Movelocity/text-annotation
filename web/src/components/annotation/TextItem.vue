@@ -39,10 +39,10 @@
     </div>
     
     <!-- 底部：元数据 -->
-    <div class="item-footer">
+    <!-- <div class="item-footer">
       <span class="meta-info">{{ item.text.length }} 字符</span>
       <span class="meta-info">{{ item.text.split('\n').length }} 行</span>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -109,7 +109,6 @@ const handleClick = () => {
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  margin-bottom: 12px;
 }
 
 .item-id {
@@ -151,11 +150,6 @@ const handleClick = () => {
 .item-status.pending {
   background: var(--el-color-warning-light-9);
   color: var(--el-color-warning);
-}
-
-/* 内容样式 */
-.item-content {
-  margin-bottom: 12px;
 }
 
 .text-preview {

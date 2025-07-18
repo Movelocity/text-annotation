@@ -72,45 +72,45 @@
             v-model="labelSearch"
             placeholder="搜索标签..."
             clearable
-            prefix-icon="Search"
           />
         </div>
 
         <!-- 标签列表 -->
-        <div class="labels-container" v-loading="labelsLoading">
-          <div v-if="!hasLabels && !labelsLoading" class="empty-labels">
-            <el-empty description="暂无标签" />
-          </div>
-          
-          <div v-else class="labels-grid">
-            <div
-              v-for="(label, index) in filteredLabels"
-              :key="label.id"
-              class="label-item"
-              :class="{ 
-                'selected': selectedLabels.includes(label.label),
-                'shortcut': index < 9
-              }"
-              @click="handleLabelToggle(label.label)"
-            >
-              <div class="label-content">
-                <span class="label-text">{{ label.label }}</span>
-                <span v-if="index < 9" class="shortcut-key">{{ index + 1 }}</span>
-              </div>
+        <div v-if="!hasLabels && !labelsLoading" class="empty-labels">
+          <el-empty description="暂无标签" />
+        </div>
+        
+        <div v-else class="labels-grid">
+          <div
+            v-for="(label, index) in filteredLabels"
+            :key="label.id"
+            class="label-item"
+            :class="{ 
+              'selected': selectedLabels.includes(label.label),
+              'shortcut': index < 9
+            }"
+            @click="handleLabelToggle(label.label)"
+          >
+            <div class="label-content">
+              <span class="label-text">{{ label.label }}</span>
+              <span v-if="index < 9" class="shortcut-key">{{ index + 1 }}</span>
             </div>
           </div>
         </div>
+
+          <!-- 操作提示 -->
+        <div class="shortcuts-hint">
+          <div class="hint-title">快捷键提示</div>
+          <div class="hint-content">
+            <span>数字键 1-9：切换对应标签</span>
+            <span>Enter：保存标注</span>
+            <span>Space：跳过</span>
+          </div>
+        </div>
+
       </div>
 
-      <!-- 操作提示 -->
-      <div class="shortcuts-hint">
-        <div class="hint-title">快捷键提示</div>
-        <div class="hint-content">
-          <span>数字键 1-9：切换对应标签</span>
-          <span>Enter：保存标注</span>
-          <span>Space：跳过</span>
-        </div>
-      </div>
+      
     </div>
   </div>
 </template>
@@ -355,10 +355,10 @@ onUnmounted(() => {
   margin-bottom: 12px;
 }
 
-.labels-container {
+/* .labels-container {
   flex: 1;
   min-height: 200px;
-}
+} */
 
 .empty-labels {
   height: 200px;
@@ -371,7 +371,7 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 8px;
-  max-height: 360px;
+  max-height: 400px;
   overflow-y: auto;
 }
 

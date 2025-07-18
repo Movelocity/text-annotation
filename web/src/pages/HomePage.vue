@@ -1,12 +1,46 @@
 <template>
   <div class="home-page">
     <div class="hero-section">
-
       <!-- Hero Content -->
       <div class="hero-content">
         <h1 class="gradient-text">文本标注系统</h1>
         <p class="hero-subtitle">高效、准确、智能的数据标注工作平台</p>
+        
+        <!-- 集成的数据展示部分 -->
+        <div class="integrated-stats">
+          <div class="stat-pill">
+            <i class="fas fa-file-alt"></i>
+            <span class="stat-value">{{ stats?.total_texts || 0 }}</span>
+            <span class="stat-label">文档总数</span>
+          </div>
+          <div class="stat-pill">
+            <i class="fas fa-tag"></i>
+            <span class="stat-value">{{ stats?.total_labels || 0 }}</span>
+            <span class="stat-label">标签总数</span>
+          </div>
+          <div class="stat-pill">
+            <i class="fas fa-check-circle"></i>
+            <span class="stat-value">{{ stats?.labeled_texts || 0 }}</span>
+            <span class="stat-label">已完成</span>
+          </div>
+          <div class="stat-pill">
+            <i class="fas fa-clock"></i>
+            <span class="stat-value">{{ stats?.unlabeled_texts || 0 }}</span>
+            <span class="stat-label">待处理</span>
+          </div>
+        </div>
+        
+        <!-- 快捷操作按钮组 -->
+        <div class="hero-actions">
+          <button class="hero-btn primary" @click="goToAnnotation">
+            <i class="fas fa-tag"></i> 开始标注
+          </button>
+          <button class="hero-btn secondary" @click="refreshStats">
+            <i class="fas fa-sync-alt"></i> 刷新数据
+          </button>
+        </div>
       </div>
+      
       <div class="floating-icons">
         <div class="icon-item" style="animation-delay: 0s;"><i class="fas fa-brain"></i></div>
         <div class="icon-item" style="animation-delay: 0.5s;"><i class="fas fa-tags"></i></div>
@@ -15,179 +49,36 @@
       </div>
     </div>
     
-    <!-- Content Section with smooth transition -->
+    <!-- 简化的内容区域 -->
     <div class="content-section">
       <div class="main-content">
-        <el-row :gutter="24">
-          <el-col :span="8">
-            <div class="stat-card modern-card transform-hover">
-              <div class="card-header">
-                <div class="card-icon stats-icon">
-                  <i class="fas fa-chart-bar"></i>
-                </div>
-                <h3>系统统计</h3>
-              </div>
-              <div v-if="statsLoading" class="loading-container">
-                <div class="loading-spinner"></div>
-                <p>加载统计数据中...</p>
-              </div>
-              <div v-else-if="stats" class="stats-content">
-                <div class="stat-item">
-                  <div class="stat-icon">
-                    <i class="fas fa-file-text"></i>
-                  </div>
-                  <div class="stat-info">
-                    <span class="stat-value">{{ stats.total_texts }}</span>
-                    <span class="stat-label">总文本数</span>
-                  </div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-icon success">
-                    <i class="fas fa-check-circle"></i>
-                  </div>
-                  <div class="stat-info">
-                    <span class="stat-value success">{{ stats.labeled_texts }}</span>
-                    <span class="stat-label">已标注</span>
-                  </div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-icon warning">
-                    <i class="fas fa-clock"></i>
-                  </div>
-                  <div class="stat-info">
-                    <span class="stat-value warning">{{ stats.unlabeled_texts }}</span>
-                    <span class="stat-label">待标注</span>
-                  </div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-icon primary">
-                    <i class="fas fa-tags"></i>
-                  </div>
-                  <div class="stat-info">
-                    <span class="stat-value">{{ stats.total_labels }}</span>
-                    <span class="stat-label">标签总数</span>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="error-message">
-                <el-alert title="无法获取统计数据" type="error" :closable="false" />
+        <!-- 功能快捷入口 -->
+        <div class="action-shortcuts">
+          <h2 class="section-title">快捷功能</h2>
+          <div class="shortcuts-grid">
+            <div class="shortcut-item" @click="goToAnnotation">
+              <div class="shortcut-icon"><i class="fas fa-tag"></i></div>
+              <div class="shortcut-text">
+                <h3>逐条标注</h3>
+                <p>对单个文本进行精细标注</p>
               </div>
             </div>
-          </el-col>
-          
-          <el-col :span="8">
-            <div class="action-card modern-card transform-hover">
-              <div class="card-header">
-                <div class="card-icon action-icon">
-                  <i class="fas fa-bolt"></i>
-                </div>
-                <h3>快速操作</h3>
-              </div>
-              <div class="quick-actions">
-                <div class="action-item" @click="goToAnnotation">
-                  <div class="action-icon-wrapper primary">
-                    <i class="fas fa-edit"></i>
-                  </div>
-                  <div class="action-content">
-                    <h4>开始标注</h4>
-                    <p>进入标注工作台开始数据标注</p>
-                  </div>
-                  <div class="action-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                  </div>
-                </div>
-                
-                <div class="action-item" @click="goToBatchAnnotation">
-                  <div class="action-icon-wrapper primary">
-                    <i class="fas fa-layer-group"></i>
-                  </div>
-                  <div class="action-content">
-                    <h4>批量标注</h4>
-                    <p>批量筛选和标注大量数据</p>
-                  </div>
-                  <div class="action-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                  </div>
-                </div>
-                
-                <div class="action-item" @click="goToLabelManage">
-                  <div class="action-icon-wrapper success">
-                    <i class="fas fa-tags"></i>
-                  </div>
-                  <div class="action-content">
-                    <h4>管理标签</h4>
-                    <p>创建、编辑和管理标签分类</p>
-                  </div>
-                  <div class="action-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                  </div>
-                </div>
-                
-                <div class="action-item" @click="refreshStats">
-                  <div class="action-icon-wrapper info">
-                    <i class="fas fa-sync-alt" :class="{ 'fa-spin': statsLoading }"></i>
-                  </div>
-                  <div class="action-content">
-                    <h4>刷新统计</h4>
-                    <p>更新系统数据统计信息</p>
-                  </div>
-                  <div class="action-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                  </div>
-                </div>
+            <div class="shortcut-item" @click="goToBatchAnnotation">
+              <div class="shortcut-icon"><i class="fas fa-layer-group"></i></div>
+              <div class="shortcut-text">
+                <h3>批量标注</h3>
+                <p>快速处理多个文本</p>
               </div>
             </div>
-          </el-col>
-          
-          <el-col :span="8">
-            <div class="label-card modern-card transform-hover">
-              <div class="card-header">
-                <div class="card-icon label-icon">
-                  <i class="fas fa-chart-pie"></i>
-                </div>
-                <h3>标签分布</h3>
-              </div>
-              <div v-if="statsLoading" class="loading-container">
-                <div class="loading-spinner"></div>
-                <p>加载标签数据中...</p>
-              </div>
-              <div v-else-if="stats?.label_statistics.length" class="label-stats">
-                <div 
-                  v-for="(labelStat, index) in stats.label_statistics.slice(0, 5)" 
-                  :key="labelStat.label"
-                  class="label-stat-item"
-                  :style="{ animationDelay: `${index * 0.1}s` }"
-                >
-                  <div class="label-info">
-                    <span class="label-name">{{ labelStat.label }}</span>
-                    <div class="label-progress">
-                      <div 
-                        class="progress-bar" 
-                        :style="{ 
-                          width: `${(labelStat.count / Math.max(...stats.label_statistics.map(s => s.count))) * 100}%`,
-                          background: `hsl(${index * 60}, 70%, 60%)`
-                        }"
-                      ></div>
-                    </div>
-                  </div>
-                  <div class="label-count">
-                    <span class="count-number">{{ labelStat.count }}</span>
-                  </div>
-                </div>
-                <div v-if="stats.label_statistics.length > 5" class="more-labels">
-                  <i class="fas fa-plus-circle"></i>
-                  还有 {{ stats.label_statistics.length - 5 }} 个标签
-                </div>
-              </div>
-              <div v-else class="no-data">
-                <div class="empty-state">
-                  <i class="fas fa-chart-pie"></i>
-                  <p>暂无标签数据</p>
-                </div>
+            <div class="shortcut-item" @click="goToLabelManage">
+              <div class="shortcut-icon"><i class="fas fa-tags"></i></div>
+              <div class="shortcut-text">
+                <h3>标签管理</h3>
+                <p>创建和管理标注标签</p>
               </div>
             </div>
-          </el-col>
-        </el-row>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -253,6 +144,7 @@ onMounted(() => {
   text-align: center;
   position: relative;
   overflow: hidden;
+  height: 55vh;
 }
 
 @keyframes pulse {
@@ -376,7 +268,7 @@ onMounted(() => {
 .stat-card, .action-card, .label-card {
   padding: 24px;
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: var(--shadow-lg);
@@ -387,9 +279,7 @@ onMounted(() => {
 .card-header {
   display: flex;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--el-border-color-lighter);
+  margin-bottom: 16px;
 }
 
 .card-icon {
@@ -429,20 +319,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  background: var(--el-bg-color-page);
-  border-radius: var(--radius-md);
-  transition: all var(--duration-fast) ease;
-}
-
-.stat-item:hover {
-  transform: translateX(4px);
-  box-shadow: var(--shadow-sm);
 }
 
 .stat-icon {
@@ -507,7 +383,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 16px;
-  background: var(--el-bg-color-page);
+  background: var(--el-bg-color);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--duration-fast) ease;
@@ -735,6 +611,186 @@ onMounted(() => {
   .card-icon {
     margin-right: 0;
     margin-bottom: 8px;
+  }
+}
+
+/* 集成的数据展示样式 */
+.integrated-stats {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 32px auto;
+  max-width: 800px;
+}
+
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.stat-pill:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-pill i {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 8px;
+}
+
+.stat-pill .stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.stat-pill .stat-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4px;
+}
+
+/* 修改现有的hero-actions样式 */
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.hero-btn {
+  padding: 14px 28px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-btn.primary {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+  box-shadow: 0 8px 16px rgba(238, 90, 82, 0.3);
+}
+
+.hero-btn.secondary {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hero-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 功能快捷入口 */
+.action-shortcuts {
+  padding: 40px 0;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 32px;
+  color: #333;
+  font-weight: 600;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.shortcut-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.shortcut-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.shortcut-icon i {
+  font-size: 24px;
+  color: white;
+}
+
+.shortcut-text h3 {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.shortcut-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .integrated-stats {
+    gap: 12px;
+    margin: 24px auto;
+  }
+  
+  .stat-pill {
+    padding: 10px 16px;
+    min-width: 100px;
+  }
+  
+  .stat-pill .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .hero-btn {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
   }
 }
 </style> 
