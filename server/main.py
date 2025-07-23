@@ -19,9 +19,10 @@ import os
 import logging
 import httpx
 import json
+from datetime import datetime
 
 from .models import get_db, create_tables
-from .services import AnnotationService, LabelService, StatisticsService
+from .services import AnnotationService, LabelService, StatisticsService, VerificationService
 from .generation_service import generation_service
 from scripts.data_import import DataImporter
 from . import schemas
@@ -754,8 +755,141 @@ async def get_generation_results(task_id: str):
 # 健康检查端点
 @app.get("/health")
 def health_check():
-    """健康检查端点。"""
-    return {"status": "healthy", "message": "文本标注 API 正在运行"}
+    """
+    健康检查端点。
+    
+    Returns:
+        系统状态信息
+    """
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
+# 标签验证相关端点
+@app.post("/verify/label", response_model=schemas.VerifyLabelResponse)
+def verify_label(
+    request: schemas.VerifyLabelRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    创建标签验证任务批次。
+    
+    Args:
+        request: 验证请求
+        db: 数据库会话
+        
+    Returns:
+        验证任务批次信息
+        
+    Raises:
+        HTTPException: 如果没有找到匹配的记录
+    """
+    service = VerificationService(db)
+    try:
+        result = service.create_verification_batch(
+            target_label=request.target_label,
+            search_criteria=request.search_criteria
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/verify/batch/{batch_id}/progress", response_model=schemas.BatchProgressResponse)
+def get_batch_progress(
+    batch_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    获取验证批次进度。
+    
+    Args:
+        batch_id: 批次ID
+        db: 数据库会话
+        
+    Returns:
+        批次进度信息
+        
+    Raises:
+        HTTPException: 如果批次未找到
+    """
+    service = VerificationService(db)
+    result = service.get_batch_progress(batch_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="批次未找到")
+    return result
+
+
+@app.post("/verify/batch/{batch_id}/process")
+def process_verification_batch(
+    batch_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    处理验证任务批次。
+    
+    Args:
+        batch_id: 批次ID
+        db: 数据库会话
+        
+    Returns:
+        处理结果
+        
+    Raises:
+        HTTPException: 如果批次不存在或处理失败
+    """
+    service = VerificationService(db)
+    try:
+        processed_count = service.process_verification_tasks(batch_id)
+        return {
+            "batch_id": batch_id,
+            "processed_count": processed_count,
+            "message": f"成功处理 {processed_count} 个任务"
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"处理失败: {str(e)}")
+
+
+@app.get("/verify/batches", response_model=List[schemas.BatchProgressResponse])
+def get_all_verification_batches(db: Session = Depends(get_db)):
+    """
+    获取所有验证批次。
+    
+    Args:
+        db: 数据库会话
+        
+    Returns:
+        所有批次的进度信息
+    """
+    service = VerificationService(db)
+    return service.get_all_batches()
+
+
+@app.post("/verify/check-text", response_model=schemas.CheckTextResponse)
+def check_text_label(
+    request: schemas.CheckTextRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    检查单个文本和标签的匹配关系。
+    
+    Args:
+        request: 检查请求
+        db: 数据库会话
+        
+    Returns:
+        检查结果
+    """
+    service = VerificationService(db)
+    is_correct = service.check_text_label(request.text, request.label)
+    
+    return schemas.CheckTextResponse(
+        text=request.text,
+        label=request.label,
+        is_correct=is_correct,
+        message="标签正确" if is_correct else "标签错误"
+    )
 
 
 # 预测服务代理端点

@@ -252,8 +252,47 @@ class PredictResponse(BaseModel):
     result_dict: dict = Field(..., description="所有意图的概率分布")
     status: int = Field(..., description="状态码")
 
-
 class PredictConfig(BaseModel):
     """预测配置的 schema。"""
-    base_url: str = Field(..., description="预测服务的基础URL")
-    endpoint: str = Field(..., description="预测服务的端点路径") 
+    base_url: str = Field(..., description="预测服务Base URL")
+    endpoint: str = Field(..., description="预测服务Endpoint")
+
+# 标签验证相关 schemas
+class VerifyLabelRequest(BaseModel):
+    """标签验证请求的 schema。"""
+    target_label: str = Field(..., description="要验证的目标标签")
+    search_criteria: Optional[SearchRequest] = Field(None, description="搜索条件，用于筛选要验证的记录")
+
+
+class VerifyLabelResponse(BaseModel):
+    """标签验证响应的 schema。"""
+    batch_id: int = Field(..., description="任务批次ID")
+    target_label: str = Field(..., description="目标标签")
+    total_tasks: int = Field(..., description="总任务数")
+    message: str = Field(..., description="响应消息")
+
+
+class BatchProgressResponse(BaseModel):
+    """批次进度响应的 schema。"""
+    batch_id: int = Field(..., description="批次ID")
+    target_label: str = Field(..., description="目标标签")
+    total_tasks: int = Field(..., description="总任务数")
+    completed_tasks: int = Field(..., description="已完成任务数")
+    status: str = Field(..., description="批次状态")
+    progress_percentage: float = Field(..., description="完成百分比")
+    created_at: str = Field(..., description="创建时间")
+    updated_at: str = Field(..., description="更新时间")
+
+
+class CheckTextRequest(BaseModel):
+    """文本检查请求的 schema。"""
+    text: str = Field(..., description="要检查的文本")
+    label: str = Field(..., description="要验证的标签")
+
+
+class CheckTextResponse(BaseModel):
+    """文本检查响应的 schema。"""
+    text: str = Field(..., description="检查的文本")
+    label: str = Field(..., description="验证的标签")
+    is_correct: bool = Field(..., description="标签是否正确")
+    message: str = Field(..., description="检查结果消息") 

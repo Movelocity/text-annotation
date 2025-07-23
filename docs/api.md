@@ -562,3 +562,212 @@ await fetch('/annotations/', {
   })
 });
 ``` 
+
+## 错误处理
+
+### 通用错误响应
+
+```json
+{
+  "detail": "错误描述信息"
+}
+```
+
+### 常见HTTP状态码
+
+- **200 OK**: 请求成功
+- **201 Created**: 资源创建成功
+- **400 Bad Request**: 请求参数错误
+- **404 Not Found**: 资源未找到
+- **500 Internal Server Error**: 服务器内部错误
+
+## 使用示例
+
+### Python 客户端示例
+
+```python
+import requests
+
+# 基础URL
+BASE_URL = "http://localhost:8000"
+
+# 创建标注数据
+response = requests.post(f"{BASE_URL}/annotations/", json={
+    "text": "用户查询文本",
+    "labels": "意图识别,客户服务"
+})
+
+# 搜索标注数据
+response = requests.post(f"{BASE_URL}/annotations/search", json={
+    "query": "查询",
+    "labels": "意图识别",
+    "page": 1,
+    "per_page": 50
+})
+
+# 批量标注
+response = requests.post(f"{BASE_URL}/annotations/bulk-label", json={
+    "text_ids": [1, 2, 3],
+    "labels": "新标签1,新标签2"
+})
+```
+
+### JavaScript 客户端示例
+
+```javascript
+// 创建标注数据
+const response = await fetch('http://localhost:8000/annotations/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        text: '用户查询文本',
+        labels: '意图识别,客户服务'
+    })
+});
+
+// 搜索标注数据
+const searchResponse = await fetch('http://localhost:8000/annotations/search', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        query: '查询',
+        labels: '意图识别',
+        page: 1,
+        per_page: 50
+    })
+});
+```
+
+## 标签验证 API
+
+### 1. 创建标签验证批次
+
+- **POST** `/verify/label`
+- **描述**: 创建标签验证任务批次，查找包含指定标签的所有记录
+- **请求体**:
+```json
+{
+  "target_label": "意图识别",
+  "search_criteria": {
+    "page": 1,
+    "per_page": 100,
+    "keywords": ["查询", "订单"]
+  }
+}
+```
+- **响应**: 200 OK
+```json
+{
+  "batch_id": 1,
+  "target_label": "意图识别",
+  "total_tasks": 150,
+  "message": "成功创建验证批次，包含 150 个任务"
+}
+```
+- **错误**: 400 Bad Request - 没有找到包含指定标签的记录
+
+### 2. 获取批次进度
+
+- **GET** `/verify/batch/{batch_id}/progress`
+- **描述**: 获取验证批次的处理进度
+- **路径参数**:
+  - `batch_id` (integer): 批次ID
+- **响应**: 200 OK
+```json
+{
+  "batch_id": 1,
+  "target_label": "意图识别",
+  "total_tasks": 150,
+  "completed_tasks": 75,
+  "status": "running",
+  "progress_percentage": 50.0,
+  "created_at": "2024-01-01T10:00:00",
+  "updated_at": "2024-01-01T10:30:00"
+}
+```
+- **错误**: 404 Not Found - 批次未找到
+
+### 3. 处理验证批次
+
+- **POST** `/verify/batch/{batch_id}/process`
+- **描述**: 执行验证任务批次，检查每个文本的标签是否正确
+- **路径参数**:
+  - `batch_id` (integer): 批次ID
+- **响应**: 200 OK
+```json
+{
+  "batch_id": 1,
+  "processed_count": 150,
+  "message": "成功处理 150 个任务"
+}
+```
+- **错误**: 400 Bad Request - 批次不存在，500 Internal Server Error - 处理失败
+
+### 4. 获取所有验证批次
+
+- **GET** `/verify/batches`
+- **描述**: 获取所有验证批次的列表和进度
+- **响应**: 200 OK
+```json
+[
+  {
+    "batch_id": 1,
+    "target_label": "意图识别",
+    "total_tasks": 150,
+    "completed_tasks": 150,
+    "status": "completed",
+    "progress_percentage": 100.0,
+    "created_at": "2024-01-01T10:00:00",
+    "updated_at": "2024-01-01T10:30:00"
+  },
+  {
+    "batch_id": 2,
+    "target_label": "情感分析",
+    "total_tasks": 80,
+    "completed_tasks": 40,
+    "status": "running",
+    "progress_percentage": 50.0,
+    "created_at": "2024-01-01T11:00:00",
+    "updated_at": "2024-01-01T11:15:00"
+  }
+]
+```
+
+### 5. 检查单个文本标签
+
+- **POST** `/verify/check-text`
+- **描述**: 检查单个文本和标签的匹配关系
+- **请求体**:
+```json
+{
+  "text": "我想查询我的订单状态",
+  "label": "意图识别"
+}
+```
+- **响应**: 200 OK
+```json
+{
+  "text": "我想查询我的订单状态",
+  "label": "意图识别",
+  "is_correct": true,
+  "message": "标签正确"
+}
+```
+
+## 验证流程说明
+
+1. **创建批次**: 通过 `/verify/label` 指定要验证的标签，系统会查找所有包含该标签的记录并创建验证任务
+2. **执行验证**: 通过 `/verify/batch/{batch_id}/process` 执行验证，系统会调用 `check(text, label)` 函数检查每个文本
+3. **更新数据**: 对于验证失败的记录，系统会自动将标签更新为 "other"
+4. **监控进度**: 通过 `/verify/batch/{batch_id}/progress` 实时查看处理进度
+
+## 批次状态说明
+
+- **pending**: 批次已创建，等待处理
+- **running**: 批次正在处理中
+- **completed**: 批次处理完成
+- **failed**: 批次处理失败 

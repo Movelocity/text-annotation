@@ -62,7 +62,7 @@ export interface GenerateStatus {
 class ApiService {
   private axiosInstance: AxiosInstance
 
-  constructor(baseURL: string = 'http://localhost:8000') {
+  constructor(baseURL: string = '') {
     this.axiosInstance = axios.create({
       baseURL,
       timeout: 10000,

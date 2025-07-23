@@ -151,3 +151,45 @@ PUT /labels/{id}
   "label_statistics": [...]
 }
 ``` 
+
+## 标签验证 API
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| POST | `/verify/label` | 创建标签验证批次 |
+| GET | `/verify/batch/{id}/progress` | 获取批次进度 |
+| POST | `/verify/batch/{id}/process` | 处理验证批次 |
+| GET | `/verify/batches` | 获取所有批次 |
+| POST | `/verify/check-text` | 检查单个文本标签 |
+
+### 创建验证批次
+```javascript
+POST /verify/label
+{
+  "target_label": "意图识别",
+  "search_criteria": {
+    "keywords": ["查询", "订单"],
+    "page": 1,
+    "per_page": 100
+  }
+}
+```
+
+### 获取批次进度
+```javascript
+GET /verify/batch/1/progress
+```
+
+### 处理验证批次
+```javascript
+POST /verify/batch/1/process
+```
+
+### 检查单个文本
+```javascript
+POST /verify/check-text
+{
+  "text": "我想查询我的订单状态",
+  "label": "意图识别"
+}
+``` 
