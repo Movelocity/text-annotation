@@ -22,7 +22,8 @@ import json
 from datetime import datetime
 
 from .models import get_db, create_tables
-from .services import AnnotationService, LabelService, StatisticsService, VerificationService
+from .services import AnnotationService, LabelService, StatisticsService
+from .discrimination_service import DiscriminationService
 from .generation_service import generation_service
 from scripts.data_import import DataImporter
 from . import schemas
@@ -761,7 +762,7 @@ def health_check():
     Returns:
         系统状态信息
     """
-    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 
 # 标签验证相关端点
@@ -783,7 +784,7 @@ def verify_label(
     Raises:
         HTTPException: 如果没有找到匹配的记录
     """
-    service = VerificationService(db)
+    service = DiscriminationService(db)
     try:
         result = service.create_verification_batch(
             target_label=request.target_label,
@@ -812,7 +813,7 @@ def get_batch_progress(
     Raises:
         HTTPException: 如果批次未找到
     """
-    service = VerificationService(db)
+    service = DiscriminationService(db)
     result = service.get_batch_progress(batch_id)
     if not result:
         raise HTTPException(status_code=404, detail="批次未找到")
@@ -837,7 +838,7 @@ def process_verification_batch(
     Raises:
         HTTPException: 如果批次不存在或处理失败
     """
-    service = VerificationService(db)
+    service = DiscriminationService(db)
     try:
         processed_count = service.process_verification_tasks(batch_id)
         return {
@@ -862,7 +863,7 @@ def get_all_verification_batches(db: Session = Depends(get_db)):
     Returns:
         所有批次的进度信息
     """
-    service = VerificationService(db)
+    service = DiscriminationService(db)
     return service.get_all_batches()
 
 
@@ -881,7 +882,7 @@ def check_text_label(
     Returns:
         检查结果
     """
-    service = VerificationService(db)
+    service = DiscriminationService(db)
     is_correct = service.check_text_label(request.text, request.label)
     
     return schemas.CheckTextResponse(
